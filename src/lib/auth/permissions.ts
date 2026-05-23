@@ -16,11 +16,7 @@ export function canManageProject(viewer: ViewerContext) {
 }
 
 export function canUploadToProject(viewer: ViewerContext) {
-  return (
-    isSuperAdmin(viewer) ||
-    viewer.projectRole === "project_manager" ||
-    viewer.projectRole === "uploader"
-  );
+  return isSuperAdmin(viewer) || viewer.projectRole === "uploader";
 }
 
 export function canRunTextAi(viewer: ViewerContext) {
