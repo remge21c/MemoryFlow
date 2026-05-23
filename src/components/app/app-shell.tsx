@@ -5,6 +5,7 @@ import {
   CalendarDays,
   Home,
   ImagePlus,
+  Layers3,
   LogOut,
   Settings,
   ShieldCheck,
@@ -21,9 +22,10 @@ const userNav = [
 ];
 
 const adminNav = [
+  { label: "프로젝트 관리", href: "/admin/projects", icon: Layers3, superAdminOnly: true },
+  { label: "회원 승인", href: "/admin/members", icon: ImagePlus, superAdminOnly: true },
   { label: "일정 관리", href: "/admin/schedules", icon: CalendarDays },
   { label: "스토리북 승인", href: "/admin/storybook", icon: ShieldCheck },
-  { label: "회원 승인", href: "/admin/members", icon: ImagePlus },
 ];
 
 function destinationForStatus(status: string) {
@@ -54,7 +56,10 @@ export async function AppShell({
     redirect(statusDestination);
   }
 
-  const navItems = section === "admin" ? adminNav : userNav;
+  const navItems =
+    section === "admin"
+      ? adminNav.filter((item) => currentUser.globalRole === "super_admin" || !item.superAdminOnly)
+      : userNav;
 
   return (
     <div className="min-h-dvh bg-background text-on-background">
