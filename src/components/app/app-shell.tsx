@@ -89,11 +89,22 @@ export function AppShell({
 
       <div className="lg:pl-64">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-outline-variant bg-surface/95 px-md backdrop-blur-none lg:px-lg">
-          <div className="min-w-0">
+          <div className="hidden min-w-0 lg:block">
             <p className="truncate text-screen-title text-primary">{title}</p>
             <p className="truncate text-metadata text-on-surface-variant">
               {activeProject.name} / {activeProject.orgName}
             </p>
+          </div>
+          <div className="flex min-w-0 items-center gap-sm lg:hidden">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded bg-primary text-secondary font-semibold text-on-primary">
+              MF
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-body font-semibold text-on-surface">MemoryFlow</p>
+              <p className="truncate text-metadata text-on-surface-variant">
+                {activeProject.name} / {activeProject.orgName}
+              </p>
+            </div>
           </div>
           <Link
             href="/settings/project"
@@ -103,7 +114,7 @@ export function AppShell({
           </Link>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-md py-lg pb-24 lg:px-lg">
+        <main className="mx-auto w-full max-w-6xl px-md py-lg pb-32 lg:px-lg lg:pb-lg">
           {children}
         </main>
       </div>
