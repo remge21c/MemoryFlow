@@ -99,6 +99,17 @@ spacing:
   tap-target: 44px
 ---
 
+> ## Document Role
+>
+> **This file is the archived design-source spec.** Tokens defined in the frontmatter above are the seed values for the implementation design system.
+>
+> **For implementation, read [`docs/design-system/MASTER.md`](../../MASTER.md).** MASTER restates these rules in terms of the Tailwind token names actually wired in `tailwind.config.ts`, adds anti-patterns and a pre-delivery checklist, and defines the page-override pattern (`docs/design-system/pages/<page>.md`).
+>
+> **Keep these three files in sync** when changing tokens:
+> 1. `docs/design-system/MASTER.md` (implementation source of truth)
+> 2. `tailwind.config.ts` (code tokens)
+> 3. `docs/design-system/reference/memoryflow/DESIGN.md` (archived source/reference)
+
 ## Brand & Style
 The design system is anchored in "Tech Utility with Soft Warmth." It is designed for travelers who value documentation over decoration. The aesthetic is calm, practical, and strictly content-first, ensuring that user memories—photos, notes, and locations—remain the focal point. 
 

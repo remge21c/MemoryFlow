@@ -78,5 +78,7 @@ npm run build
 docs/memoryflow-prd-v2.md
 docs/memoryflow-erd-v2.md
 docs/memoryflow-mvp-routes-v2.md
-docs/design system/memoryflow/DESIGN.md
+docs/design-system/MASTER.md
+docs/design-system/pages/README.md
+docs/design-system/reference/memoryflow/DESIGN.md
 ```

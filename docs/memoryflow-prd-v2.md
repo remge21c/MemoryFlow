@@ -504,7 +504,7 @@ Push to main
 
 ## 19. Design System
 
-MemoryFlow uses the design system in `docs/design system/memoryflow/DESIGN.md`.
+MemoryFlow uses the design system in `docs/design-system/MASTER.md`.
 
 Visual direction:
 

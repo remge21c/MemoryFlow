@@ -27,6 +27,7 @@ pnpm-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+.claude/
 
 # Local storage and generated artifacts
 /storage/

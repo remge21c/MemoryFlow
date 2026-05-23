@@ -15,7 +15,7 @@ const eslintConfig = [
       ".next/**",
       "node_modules/**",
       "next-env.d.ts",
-      "docs/design system/**/code.html",
+      "docs/design-system/reference/**/code.html",
     ],
   },
 ];
