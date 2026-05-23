@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   BookOpen,
   CalendarDays,
@@ -10,6 +11,7 @@ import {
   Upload,
 } from "lucide-react";
 import { activeProject } from "@/lib/mock-data";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { cn } from "@/lib/utils";
 
 const userNav = [
@@ -24,7 +26,14 @@ const adminNav = [
   { label: "회원 승인", href: "/admin/members", icon: ImagePlus },
 ];
 
-export function AppShell({
+function destinationForStatus(status: string) {
+  if (status === "pending") return "/pending";
+  if (status === "rejected") return "/rejected";
+  if (status === "inactive") return "/inactive";
+  return null;
+}
+
+export async function AppShell({
   children,
   title,
   section = "user",
@@ -33,6 +42,18 @@ export function AppShell({
   title: string;
   section?: "user" | "admin";
 }) {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    redirect("/login");
+  }
+
+  const statusDestination = destinationForStatus(currentUser.status);
+
+  if (statusDestination) {
+    redirect(statusDestination);
+  }
+
   const navItems = section === "admin" ? adminNav : userNav;
 
   return (
@@ -78,8 +99,8 @@ export function AppShell({
           <div className="flex items-center gap-sm">
             <div className="h-10 w-10 rounded-full bg-primary-fixed" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-secondary font-semibold">슈퍼 관리자</p>
-              <p className="truncate text-metadata text-on-surface-variant">admin@memoryflow.local</p>
+              <p className="truncate text-secondary font-semibold">{currentUser.name}</p>
+              <p className="truncate text-metadata text-on-surface-variant">{currentUser.email}</p>
             </div>
             <Settings className="h-5 w-5 text-on-surface-variant" />
             <LogOut className="h-5 w-5 text-on-surface-variant" />
