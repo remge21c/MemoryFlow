@@ -45,6 +45,19 @@ Run migrations when migration files are added:
 npm run prisma:migrate
 ```
 
+Seed development data:
+
+```bash
+npm run db:seed
+```
+
+Default local super admin:
+
+```text
+Email: admin@memoryflow.local
+Password: MemoryFlow!2026
+```
+
 Start the app:
 
 ```bash
