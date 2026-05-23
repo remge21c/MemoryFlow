@@ -11,8 +11,8 @@ import {
   ShieldCheck,
   Upload,
 } from "lucide-react";
-import { activeProject } from "@/lib/mock-data";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { getActiveProjectSummary } from "@/lib/projects/current";
 import { cn } from "@/lib/utils";
 
 const userNav = [
@@ -60,6 +60,9 @@ export async function AppShell({
     section === "admin"
       ? adminNav.filter((item) => currentUser.globalRole === "super_admin" || !item.superAdminOnly)
       : userNav;
+  const activeProject = await getActiveProjectSummary(currentUser);
+  const activeProjectName = activeProject?.name ?? "활성 프로젝트 없음";
+  const activeProjectOrg = activeProject?.orgName ?? "프로젝트 설정에서 선택";
 
   return (
     <div className="min-h-dvh bg-background text-on-background">
@@ -77,9 +80,9 @@ export async function AppShell({
         <div className="border-b border-outline-variant px-md py-sm">
           <p className="text-metadata text-on-surface-variant">현재 프로젝트</p>
           <p className="korean-text mt-base text-secondary font-medium text-on-surface">
-            {activeProject.name}
+            {activeProjectName}
           </p>
-          <p className="mt-1 text-metadata text-on-surface-variant">{activeProject.orgName}</p>
+          <p className="mt-1 text-metadata text-on-surface-variant">{activeProjectOrg}</p>
         </div>
 
         <nav className="flex-1 space-y-base p-sm">
@@ -118,7 +121,7 @@ export async function AppShell({
           <div className="hidden min-w-0 lg:block">
             <p className="truncate text-screen-title text-primary">{title}</p>
             <p className="truncate text-metadata text-on-surface-variant">
-              {activeProject.name} / {activeProject.orgName}
+              {activeProjectName} / {activeProjectOrg}
             </p>
           </div>
           <div className="flex min-w-0 items-center gap-sm lg:hidden">
@@ -128,7 +131,7 @@ export async function AppShell({
             <div className="min-w-0">
               <p className="truncate text-body font-semibold text-on-surface">MemoryFlow</p>
               <p className="truncate text-metadata text-on-surface-variant">
-                {activeProject.name} / {activeProject.orgName}
+                {activeProjectName} / {activeProjectOrg}
               </p>
             </div>
           </div>
