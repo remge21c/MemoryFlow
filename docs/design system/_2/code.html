@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MemoryFlow - 스토리북</title>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config from Guidelines -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#dfe2eb",
+                        "surface-container": "#e9eef9",
+                        "tertiary-fixed": "#ffdadb",
+                        "on-secondary-fixed": "#181c22",
+                        "on-tertiary-fixed": "#3d050f",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#dddfe9",
+                        "secondary": "#5b5e66",
+                        "primary": "#196946",
+                        "outline": "#6f7a72",
+                        "on-secondary-fixed-variant": "#43474e",
+                        "on-tertiary-fixed-variant": "#753137",
+                        "surface-tint": "#1d6b48",
+                        "secondary-fixed-dim": "#c3c6cf",
+                        "surface-container-low": "#eff3ff",
+                        "tertiary-fixed-dim": "#ffb2b6",
+                        "primary-fixed": "#a6f3c6",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "surface": "#f8f9ff",
+                        "surface-variant": "#dee2ee",
+                        "inverse-surface": "#2b3139",
+                        "surface-container-highest": "#dee2ee",
+                        "primary-fixed-dim": "#8bd6ab",
+                        "inverse-primary": "#8bd6ab",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#005233",
+                        "primary-container": "#37825d",
+                        "inverse-on-surface": "#ecf1fc",
+                        "outline-variant": "#bfc9c0",
+                        "on-primary-fixed": "#002112",
+                        "on-background": "#171c24",
+                        "on-surface-variant": "#3f4942",
+                        "on-surface": "#171c24",
+                        "on-tertiary-container": "#fffbff",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e4e8f4",
+                        "tertiary-container": "#ad5d63",
+                        "tertiary": "#8f454c",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#f6fff6",
+                        "surface-dim": "#d5dae5",
+                        "on-secondary-container": "#5f636a",
+                        "background": "#f8f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "tap-target": "44px",
+                        "lg": "24px",
+                        "xs": "8px",
+                        "sm": "12px",
+                        "md": "16px",
+                        "base": "4px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "major-title": ["Inter"],
+                        "metadata": ["Inter"],
+                        "screen-title": ["Inter"],
+                        "body": ["Inter"],
+                        "section-title": ["Inter"],
+                        "secondary": ["Inter"]
+                    },
+                    "fontSize": {
+                        "major-title": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "metadata": ["12px", { "lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "screen-title": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "section-title": ["20px", { "lineHeight": "1.4", "fontWeight": "500" }],
+                        "secondary": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body text-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 bg-surface border-b border-outline-variant flex items-center w-full px-lg py-sm h-[64px]">
+<button class="w-tap-target h-tap-target flex items-center justify-center text-primary hover:bg-surface-container-low transition-colors rounded-full mr-sm focus:outline-none focus:ring-2 focus:ring-primary">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-screen-title text-screen-title leading-tight text-primary truncate">2026 봄 교토 가족여행 — 비 오는 철학의 길과 오래된 찻집들</h1>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full max-w-3xl mx-auto px-lg md:px-xl py-xl pb-[120px] flex flex-col gap-xl">
+<!-- Story Title -->
+<header class="flex flex-col gap-sm">
+<h2 class="font-major-title text-major-title text-on-surface">비 오는 교토에서 완성된 4일의 이야기</h2>
+<p class="font-secondary text-secondary text-on-surface-variant">가족과 함께한 잔잔하고 차분한 기록</p>
+</header>
+<!-- Day 1 Block -->
+<section class="flex flex-col gap-lg border-t border-outline-variant pt-lg">
+<div class="flex items-center gap-sm">
+<span class="w-2 h-2 rounded-full bg-primary block"></span>
+<h3 class="font-section-title text-section-title text-on-surface">1일차: 도착과 첫 산책</h3>
+</div>
+<!-- AI Summary Bento Box -->
+<div class="bg-surface border border-outline-variant rounded-xl p-md flex gap-md items-start shadow-sm shadow-surface-container-low">
+<span class="material-symbols-outlined text-primary mt-[2px]" data-weight="fill">auto_awesome</span>
+<div class="flex flex-col gap-base">
+<p class="font-metadata text-metadata text-primary uppercase tracking-wider">AI Story Summary</p>
+<p class="font-secondary text-secondary text-on-surface-variant">
+                        비가 촉촉하게 내리는 오후, 교토역에 도착했습니다. 복잡한 도심을 지나 고즈넉한 기온 거리에 들어서며 본격적인 여행의 분위기를 느꼈습니다. 저녁에는 따뜻한 우동 한 그릇으로 피로를 달랬습니다.
+                    </p>
+</div>
+</div>
+<!-- Photo Story -->
+<figure class="flex flex-col gap-sm">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-surface-variant bg-surface-container-low">
+<img alt="교토 기온 거리" class="w-full h-full object-cover" data-alt="A highly detailed photograph of a narrow traditional street in Gion, Kyoto, during a gentle evening rain. The scene is lit by warm, soft light emanating from paper lanterns hanging outside wooden machiya houses, reflecting beautifully on the wet, dark stone pavement. The overall mood is peaceful and nostalgic, captured in a clean, sophisticated digital style suitable for a premium travel app. The composition emphasizes the quiet architecture and high negative space." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADq5aAOYrgngQiJfRiU_jZLBZj_UMTBcHNsTtKloYPdQtQ9iPmkXaKxLX2Rx_3mT6DzVkxRsmNcr_iJqKArf3GHSi5fSd3JjEvY6L8AsaWN--25MMRjsYade2gQV8kiiqD5MnMlNfj1QuIy0yXZGvS78NyucMMx-gDk2zMtJq2sn5itV_zsuTb3M6B1DOC_s05wRWlMt8Jvju3Ah0UyB3MsikqAym1d8ZrOycD5Cipww_iftIULaagVTeO4PcT9vPA7cZ7_DHdLB52"/>
+</div>
+<figcaption class="font-body text-body text-on-surface text-center">
+                    비 내리는 기온 거리. 우산 위로 떨어지는 빗소리가 여행의 시작을 알렸다.
+                </figcaption>
+</figure>
+</section>
+<!-- Day 2 Block -->
+<section class="flex flex-col gap-lg border-t border-outline-variant pt-lg">
+<div class="flex items-center gap-sm">
+<span class="w-2 h-2 rounded-full bg-primary block"></span>
+<h3 class="font-section-title text-section-title text-on-surface">2일차: 빗속의 철학의 길</h3>
+</div>
+<!-- AI Summary Bento Box -->
+<div class="bg-surface border border-outline-variant rounded-xl p-md flex gap-md items-start shadow-sm shadow-surface-container-low">
+<span class="material-symbols-outlined text-primary mt-[2px]" data-weight="fill">auto_awesome</span>
+<div class="flex flex-col gap-base">
+<p class="font-metadata text-metadata text-primary uppercase tracking-wider">AI Story Summary</p>
+<p class="font-secondary text-secondary text-on-surface-variant">
+                        아침 일찍 철학의 길을 걸었습니다. 비에 젖은 벚나무 잎들이 수로 위로 떨어지는 모습이 인상적이었습니다. 오후에는 근처의 오래된 찻집에서 말차를 마시며 여유로운 시간을 보냈습니다.
+                    </p>
+</div>
+</div>
+<!-- Photo Story -->
+<figure class="flex flex-col gap-sm">
+<div class="relative w-full aspect-[3/2] rounded-xl overflow-hidden border border-surface-variant bg-surface-container-low">
+<img alt="철학의 길" class="w-full h-full object-cover" data-alt="A serene, eye-level shot of the Philosopher's Path in Kyoto on a mildly overcast, rainy day. A narrow, clear canal flows softly, bordered by lush, vibrant green foliage and damp cherry blossom trees. The lighting is soft, diffused daylight, creating a bright, refreshing light-mode aesthetic. The colors are muted yet natural, focusing on earthy greens and soft greys. The atmosphere conveys deep tranquility and mindful travel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVCYppiAOpoHSnvM6EGtXy1uYRD3ffDOhK-jtiDplIEGuVuAC3DOxv-KdCG4uTpvrGd97tq3zOA_29C2i7CdNlCLs-12vn3VySPX3RDmDSOWMvbYXFxdkSYaAGZUbOdkhQ_uszLzW44srO2HAOp9PsE973MSpxFICQE9wJ4Rds-8fo7BLZU9H74TMWVBTDhDrTIaPCkVyfRz3hRfQPeICJ5btU4IMMAcl_VvJJjAMes6cEmjuUK8EstnTWDklH80TAajXNu2szcQDa"/>
+</div>
+<figcaption class="font-body text-body text-on-surface text-center">
+                    고요한 철학의 길. 빗물에 씻겨 내려간 듯 마음이 맑아지는 시간이었다.
+                </figcaption>
+</figure>
+</section>
+<!-- End of Story marker -->
+<div class="w-full flex justify-center py-lg opacity-50">
+<div class="w-1 h-1 rounded-full bg-outline-variant mx-1"></div>
+<div class="w-1 h-1 rounded-full bg-outline-variant mx-1"></div>
+<div class="w-1 h-1 rounded-full bg-outline-variant mx-1"></div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-md bg-surface h-[80px] border-t border-outline-variant shadow-[0_-4px_24px_rgba(0,0,0,0.02)] md:hidden">
+<!-- 홈 (Inactive) -->
+<button class="flex flex-col items-center justify-center text-secondary hover:text-primary-container transition-all min-w-[64px] h-tap-target">
+<span class="material-symbols-outlined mb-1 text-[24px]">home</span>
+<span class="font-metadata text-metadata">홈</span>
+</button>
+<!-- 업로드 (Inactive) -->
+<button class="flex flex-col items-center justify-center text-secondary hover:text-primary-container transition-all min-w-[64px] h-tap-target">
+<span class="material-symbols-outlined mb-1 text-[24px]">add_circle</span>
+<span class="font-metadata text-metadata">업로드</span>
+</button>
+<!-- 스토리북 (Active) -->
+<button class="flex flex-col items-center justify-center text-primary font-bold transition-all min-w-[64px] h-tap-target scale-95 duration-150">
+<span class="material-symbols-outlined mb-1 text-[24px]" data-weight="fill">auto_stories</span>
+<span class="font-metadata text-metadata">스토리북</span>
+</button>
+<!-- 설정 (Inactive) -->
+<button class="flex flex-col items-center justify-center text-secondary hover:text-primary-container transition-all min-w-[64px] h-tap-target">
+<span class="material-symbols-outlined mb-1 text-[24px]">settings</span>
+<span class="font-metadata text-metadata">설정</span>
+</button>
+</nav>
+</body></html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MemoryFlow - 2026 봄 교토 가족여행</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#dfe2eb",
+                        "surface-container": "#e9eef9",
+                        "tertiary-fixed": "#ffdadb",
+                        "on-secondary-fixed": "#181c22",
+                        "on-tertiary-fixed": "#3d050f",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#dddfe9",
+                        "secondary": "#5b5e66",
+                        "primary": "#196946",
+                        "outline": "#6f7a72",
+                        "on-secondary-fixed-variant": "#43474e",
+                        "on-tertiary-fixed-variant": "#753137",
+                        "surface-tint": "#1d6b48",
+                        "secondary-fixed-dim": "#c3c6cf",
+                        "surface-container-low": "#eff3ff",
+                        "tertiary-fixed-dim": "#ffb2b6",
+                        "primary-fixed": "#a6f3c6",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "surface": "#f8f9ff",
+                        "surface-variant": "#dee2ee",
+                        "inverse-surface": "#2b3139",
+                        "surface-container-highest": "#dee2ee",
+                        "primary-fixed-dim": "#8bd6ab",
+                        "inverse-primary": "#8bd6ab",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#005233",
+                        "primary-container": "#37825d",
+                        "inverse-on-surface": "#ecf1fc",
+                        "outline-variant": "#bfc9c0",
+                        "on-primary-fixed": "#002112",
+                        "on-background": "#171c24",
+                        "on-surface-variant": "#3f4942",
+                        "on-surface": "#171c24",
+                        "on-tertiary-container": "#fffbff",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e4e8f4",
+                        "tertiary-container": "#ad5d63",
+                        "tertiary": "#8f454c",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#f6fff6",
+                        "surface-dim": "#d5dae5",
+                        "on-secondary-container": "#5f636a",
+                        "background": "#f8f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "tap-target": "44px",
+                        "lg": "24px",
+                        "xs": "8px",
+                        "sm": "12px",
+                        "md": "16px",
+                        "base": "4px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "major-title": ["Inter"],
+                        "metadata": ["Inter"],
+                        "screen-title": ["Inter"],
+                        "body": ["Inter"],
+                        "section-title": ["Inter"],
+                        "secondary": ["Inter"]
+                    },
+                    "fontSize": {
+                        "major-title": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "metadata": ["12px", { "lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "screen-title": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "section-title": ["20px", { "lineHeight": "1.4", "fontWeight": "500" }],
+                        "secondary": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #f8f9ff; /* surface */
+            color: #171c24; /* on-surface */
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 80px; /* space for bottom nav */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface">
+<!-- TopAppBar -->
+<header class="bg-surface border-b border-outline-variant docked full-width top-0 z-40 sticky">
+<div class="flex items-center w-full px-lg py-sm min-h-[64px]">
+<button aria-label="Menu" class="w-tap-target h-tap-target flex items-center justify-center mr-sm text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="flex-1">
+<h1 class="font-screen-title text-screen-title text-primary leading-tight line-clamp-2">2026 봄 교토 가족여행 — 비 오는 철학의 길과 오래된 찻집들</h1>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="max-w-3xl mx-auto px-lg py-xl space-y-xl">
+<!-- Welcome & Status Section -->
+<section class="space-y-md">
+<h2 class="font-major-title text-major-title text-on-surface">오늘 정리할 순간</h2>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center justify-between">
+<div>
+<h3 class="font-section-title text-section-title text-on-surface mb-base">정리 진행도</h3>
+<p class="font-secondary text-secondary text-on-surface-variant">어제의 기록 12장이 대기 중입니다.</p>
+</div>
+<div class="text-right">
+<span class="font-major-title text-major-title text-primary">85%</span>
+<div class="w-24 h-1 bg-surface-variant mt-xs rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 85%;"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Uploads (Bento Grid) -->
+<section class="space-y-md">
+<div class="flex justify-between items-end">
+<h3 class="font-section-title text-section-title text-on-surface">최근 업로드</h3>
+<button class="font-metadata text-metadata text-primary hover:text-primary-container h-tap-target flex items-center px-sm">모두 보기</button>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-md">
+<!-- Large Card -->
+<div class="col-span-2 row-span-2 relative group overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest min-h-[240px]">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A moody, atmospheric photograph of the Philosopher's Path in Kyoto during a light spring rain. Cherry blossoms lightly line the canal, their petals slightly wet. A traditional wooden tea house is visible in the soft focus background. The lighting is soft and diffuse, emphasizing the muted greens and gentle pinks of the scene. The overall style is calm, cinematic, and slightly melancholic, perfect for a high-quality travel memory app in a light-mode interface." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBkttAcx5SgwNyAJAjkzGnBeVEKTFbWkV93COLGI6stl5zL9VqF3L1fI7eWTdXGAJQ2Xp0SvfaUIJzI_lYFTaha5QkUYWEQBUP6_5cMIgFUerFEcpGZBw5aw9aJu2De54kZ19n0DOuOMIQg-B_nWwO8QXudwplYrClJBu2jlFwwa2v_6TCUF9r7uuT3wfP0YCyad7dyN3y_Tn0JsJrutZV0LnalCYDtxIDc-xAxBtkYqjPVg8d3WM3poevqsfcWecB25WV-M7cyC-F1');"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-inverse-surface/80 via-transparent to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-md w-full">
+<p class="font-metadata text-metadata text-primary-fixed mb-base">2026.04.12 오후 2:30</p>
+<h4 class="font-body text-body text-on-primary font-medium">비 내리는 철학의 길 산책</h4>
+</div>
+</div>
+<!-- Small Card 1 -->
+<div class="relative group overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest min-h-[110px]">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A close-up shot of a steaming cup of matcha green tea and a delicate wagashi (traditional Japanese sweet) resting on a textured wooden table inside an old Kyoto tea house. Soft, natural daylight filters through a shoji screen, casting gentle shadows. The color palette focuses on earthy browns, vibrant matcha green, and soft whites. The composition is minimal and elegant, conveying a sense of quiet reflection suitable for a premium travel diary app." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBKwuid1rrHlUSuG5fsQzcOCTBgYU-fuakmYlikfDl6m98-lNXyi5Lck2ha8FYDuAw48WosYc7byUGI2eu4ayYAKpO5hlSEP-_MVj_nAfxTzs03sTbgsmknnh6QSPbuaNUYlG68pFUQ6x4QKfw1FLdCKu_qrv6R0CFVgx8HMZgJWYZUs2mHzD800KeWunEn7of9cmiaSfWce_00sjZrKe9QO-cRMaAEsY8jmBvjQ0VJIJuONcJXwefHCDqkB0qDbqV0Xxm46Xzy8eid');"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-inverse-surface/70 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-sm w-full">
+<p class="font-metadata text-metadata text-primary-fixed mb-base">오래된 찻집</p>
+</div>
+</div>
+<!-- Small Card 2 -->
+<div class="relative group overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest min-h-[110px]">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A detail shot of traditional Japanese wooden architecture, focusing on the intricate joinery and dark, weathered wood of a temple exterior in Kyoto. A single red maple leaf rests on the wooden ledge, providing a stark contrast to the dark timber. The lighting is soft and natural, emphasizing textures and the passage of time. The aesthetic is wabi-sabi, grounded, and highly detailed, perfectly matching a calm, memory-focused user interface." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBQzvPAlAUGlXxTmOFjdlzyPT7GenGL7191GR2ojRvS4EYBJOGR1jYMHF70P1L8FspTv9999HpBP4vAq-ZvF2D65EeX5FW2E3tuA_VjlNXvia-3YLuTfXhBYebfC3SKBBUNVytXUZIV1ahMlSvVPNPzkG-fPhIr6RHfz0cu5RxR7Hw0iCO5iXLbbKOdV2pIaD11ULOmyIBCRmWZbdQ8qUf1cWHhhu3h-GhpypSelM8Gn5RXzHcyODHJeQRhR9dEqwLEmi8uglkTeTdT');"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-inverse-surface/70 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-sm w-full">
+<p class="font-metadata text-metadata text-primary-fixed mb-base">난젠지 산문</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Travel Timeline & Storybook Status -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+<!-- Timeline -->
+<section class="space-y-md">
+<h3 class="font-section-title text-section-title text-on-surface">여행 타임라인</h3>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
+<div class="relative pl-lg space-y-lg before:absolute before:inset-y-0 before:left-[11px] before:w-[1px] before:bg-outline-variant">
+<!-- Timeline Item Active -->
+<div class="relative">
+<div class="absolute -left-[28px] top-1 w-[9px] h-[9px] rounded-full bg-primary ring-4 ring-primary-fixed"></div>
+<p class="font-metadata text-metadata text-primary mb-base">Day 3 · 오늘</p>
+<h4 class="font-body text-body text-on-surface">은각사와 철학의 길</h4>
+<p class="font-secondary text-secondary text-on-surface-variant mt-xs">사진 42장 대기 중</p>
+</div>
+<!-- Timeline Item Past -->
+<div class="relative">
+<div class="absolute -left-[28px] top-1 w-[9px] h-[9px] rounded-full bg-outline-variant"></div>
+<p class="font-metadata text-metadata text-on-surface-variant mb-base">Day 2</p>
+<h4 class="font-body text-body text-on-surface">기요미즈데라와 산넨자카</h4>
+<p class="font-secondary text-secondary text-on-surface-variant mt-xs">정리 완료</p>
+</div>
+<!-- Timeline Item Past -->
+<div class="relative">
+<div class="absolute -left-[28px] top-1 w-[9px] h-[9px] rounded-full bg-outline-variant"></div>
+<p class="font-metadata text-metadata text-on-surface-variant mb-base">Day 1</p>
+<h4 class="font-body text-body text-on-surface">간사이 공항 도착, 교토 이동</h4>
+<p class="font-secondary text-secondary text-on-surface-variant mt-xs">정리 완료</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Storybook Status -->
+<section class="space-y-md">
+<h3 class="font-section-title text-section-title text-on-surface">스토리북 제작</h3>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between h-full min-h-[200px]">
+<div>
+<div class="flex items-center space-x-sm mb-sm">
+<span class="material-symbols-outlined text-primary">auto_stories</span>
+<h4 class="font-body text-body text-on-surface font-medium">교토 가족여행 기록집</h4>
+</div>
+<p class="font-secondary text-secondary text-on-surface-variant">여행이 끝나면 실물 책으로 인쇄할 수 있도록 페이지를 구성하고 있습니다.</p>
+</div>
+<div class="mt-md pt-md border-t border-outline-variant/30 flex items-center justify-between">
+<div>
+<p class="font-metadata text-metadata text-on-surface-variant mb-base">완성도</p>
+<p class="font-section-title text-section-title text-on-surface">80% <span class="font-body text-body text-on-surface-variant">/ 24페이지</span></p>
+</div>
+<button class="bg-primary text-on-primary h-tap-target px-md rounded-lg font-secondary text-secondary hover:bg-primary-container transition-colors flex items-center justify-center">
+                            미리보기
+                        </button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-md bg-surface border-t border-outline-variant h-[80px]">
+<button aria-current="page" class="flex flex-col items-center justify-center text-primary font-bold w-tap-target h-tap-target hover:text-primary-container transition-all">
+<span class="material-symbols-outlined filled mb-base">home</span>
+<span class="font-metadata text-metadata">홈</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary w-tap-target h-tap-target hover:text-primary-container transition-all">
+<span class="material-symbols-outlined mb-base">add_circle</span>
+<span class="font-metadata text-metadata">업로드</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary w-tap-target h-tap-target hover:text-primary-container transition-all">
+<span class="material-symbols-outlined mb-base">auto_stories</span>
+<span class="font-metadata text-metadata">스토리북</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary w-tap-target h-tap-target hover:text-primary-container transition-all">
+<span class="material-symbols-outlined mb-base">settings</span>
+<span class="font-metadata text-metadata">설정</span>
+</button>
+</nav>
+</body></html>

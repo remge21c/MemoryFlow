@@ -1,0 +1,460 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  pending
+  active
+  rejected
+  inactive
+}
+
+enum GlobalRole {
+  super_admin
+}
+
+enum ProjectStatus {
+  active
+  completed
+  archived
+}
+
+enum ProjectMemberRole {
+  project_manager
+  uploader
+}
+
+enum ProjectMemberStatus {
+  active
+  removed
+}
+
+enum UploadType {
+  photo
+  video
+}
+
+enum UploadFileType {
+  image
+  video
+}
+
+enum StorybookStatus {
+  draft
+  approved
+}
+
+enum ProjectVideoStatus {
+  uploaded
+  published
+  hidden
+}
+
+enum ShareLinkType {
+  storybook
+  video
+  both
+}
+
+enum JobStatus {
+  pending
+  processing
+  completed
+  failed
+  canceled
+}
+
+enum MediaJobType {
+  thumbnail
+  preview
+  cover_candidate
+  video_frame
+}
+
+enum AiJobType {
+  storybook_review
+  memo_summary
+  caption_timeline
+  bgm_keywords
+  project_cover_image
+  day_cover_image
+  video_cover_image
+  pdf_cover_image
+}
+
+enum BgmSource {
+  manual
+  generated
+}
+
+enum OutputType {
+  pdf
+}
+
+enum BackupType {
+  daily
+  weekly
+  snapshot
+}
+
+model User {
+  id               String       @id @default(uuid()) @db.Uuid
+  email            String       @unique
+  passwordHash     String       @map("password_hash")
+  name             String
+  profileImagePath String?      @map("profile_image_path")
+  status           UserStatus   @default(pending)
+  globalRole       GlobalRole?  @map("global_role")
+  activeProjectId  String?      @map("active_project_id") @db.Uuid
+  lastLoginAt      DateTime?    @map("last_login_at") @db.Timestamptz
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  activeProject    Project?        @relation("ActiveProject", fields: [activeProjectId], references: [id], onDelete: SetNull)
+  createdProjects  Project[]       @relation("ProjectCreator")
+  memberships      ProjectMember[]
+  uploads          Upload[]
+  approvedBooks    Storybook[]     @relation("StorybookApprover")
+  unlockedBooks    Storybook[]     @relation("StorybookUnlocker")
+  bgms             ProjectBgm[]
+  videos           ProjectVideo[]
+  outputs          Output[]
+  shareLinks       ShareLink[]
+  aiJobs           AiJob[]
+
+  @@map("users")
+}
+
+model Project {
+  id             String        @id @default(uuid()) @db.Uuid
+  name           String
+  orgName        String?       @map("org_name")
+  description    String?
+  coverImagePath String?       @map("cover_image_path")
+  startDate      DateTime      @map("start_date") @db.Date
+  endDate        DateTime      @map("end_date") @db.Date
+  status         ProjectStatus @default(active)
+  createdBy      String        @map("created_by") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  creator        User              @relation("ProjectCreator", fields: [createdBy], references: [id])
+  activeForUsers User[]            @relation("ActiveProject")
+  members        ProjectMember[]
+  days           ProjectDay[]
+  schedules      ProjectSchedule[]
+  uploads        Upload[]
+  storybook      Storybook?
+  bgms           ProjectBgm[]
+  videos         ProjectVideo[]
+  outputs        Output[]
+  shareLinks     ShareLink[]
+  aiJobs         AiJob[]
+  mediaJobs      MediaJob[]
+  backupRuns     BackupRun[]
+
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String              @id @default(uuid()) @db.Uuid
+  projectId String              @map("project_id") @db.Uuid
+  userId    String              @map("user_id") @db.Uuid
+  role      ProjectMemberRole
+  status    ProjectMemberStatus @default(active)
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId])
+  @@index([projectId])
+  @@map("project_members")
+}
+
+model ProjectDay {
+  id             String   @id @default(uuid()) @db.Uuid
+  projectId      String   @map("project_id") @db.Uuid
+  dayNumber      Int      @map("day_number")
+  date           DateTime @db.Date
+  title          String?
+  coverImagePath String?  @map("cover_image_path")
+  sortOrder      Int      @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  project        Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  schedules      ProjectSchedule[]
+  uploads        Upload[]
+  storybookItems StorybookItem[]
+
+  @@unique([projectId, dayNumber])
+  @@unique([projectId, date])
+  @@index([projectId, sortOrder])
+  @@map("project_days")
+}
+
+model ProjectSchedule {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  dayId     String   @map("day_id") @db.Uuid
+  time      String?
+  title     String
+  location  String?
+  category  String?
+  sortOrder Int      @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  day            ProjectDay      @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  uploads        Upload[]
+  storybookItems StorybookItem[]
+
+  @@index([dayId, sortOrder])
+  @@index([projectId])
+  @@map("project_schedules")
+}
+
+model Upload {
+  id            String     @id @default(uuid()) @db.Uuid
+  projectId     String     @map("project_id") @db.Uuid
+  dayId         String     @map("day_id") @db.Uuid
+  scheduleId    String     @map("schedule_id") @db.Uuid
+  userId        String     @map("user_id") @db.Uuid
+  type          UploadType
+  memo          String?
+  isFeatured    Boolean    @default(false) @map("is_featured")
+  isInStorybook Boolean    @default(true) @map("is_in_storybook")
+  adminNote     String?    @map("admin_note")
+  sortOrder     Int        @default(0) @map("sort_order")
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz
+
+  project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  day            ProjectDay       @relation(fields: [dayId], references: [id])
+  schedule       ProjectSchedule  @relation(fields: [scheduleId], references: [id])
+  user           User             @relation(fields: [userId], references: [id])
+  files          UploadFile[]
+  storybookItems StorybookItem[]
+
+  @@index([projectId, createdAt])
+  @@index([userId, createdAt])
+  @@index([scheduleId, sortOrder])
+  @@map("uploads")
+}
+
+model UploadFile {
+  id                 String         @id @default(uuid()) @db.Uuid
+  uploadId           String         @map("upload_id") @db.Uuid
+  fileType           UploadFileType @map("file_type")
+  storagePath        String         @map("storage_path")
+  thumbnailPath      String?        @map("thumbnail_path")
+  previewPath        String?        @map("preview_path")
+  coverCandidatePath String?        @map("cover_candidate_path")
+  originalName       String         @map("original_name")
+  mimeType           String         @map("mime_type")
+  sizeBytes          BigInt         @map("size_bytes")
+  width              Int?
+  height             Int?
+  durationSeconds    Decimal?       @map("duration_seconds")
+  sortOrder          Int            @default(0) @map("sort_order")
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  upload    Upload     @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  mediaJobs MediaJob[]
+
+  @@index([uploadId, sortOrder])
+  @@map("upload_files")
+}
+
+model Storybook {
+  id          String          @id @default(uuid()) @db.Uuid
+  projectId   String          @unique @map("project_id") @db.Uuid
+  status      StorybookStatus @default(draft)
+  title       String?
+  openingText String?         @map("opening_text")
+  closingText String?         @map("closing_text")
+  approvedBy  String?         @map("approved_by") @db.Uuid
+  approvedAt  DateTime?       @map("approved_at") @db.Timestamptz
+  unlockedBy  String?         @map("unlocked_by") @db.Uuid
+  unlockedAt  DateTime?       @map("unlocked_at") @db.Timestamptz
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  project  Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  approver User?           @relation("StorybookApprover", fields: [approvedBy], references: [id])
+  unlocker User?           @relation("StorybookUnlocker", fields: [unlockedBy], references: [id])
+  items    StorybookItem[]
+  aiJobs   AiJob[]
+
+  @@map("storybooks")
+}
+
+model StorybookItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  storybookId String   @map("storybook_id") @db.Uuid
+  uploadId    String   @map("upload_id") @db.Uuid
+  dayId       String   @map("day_id") @db.Uuid
+  scheduleId  String   @map("schedule_id") @db.Uuid
+  caption     String?
+  sortOrder   Int      @map("sort_order")
+  isVisible   Boolean  @default(true) @map("is_visible")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  storybook Storybook       @relation(fields: [storybookId], references: [id], onDelete: Cascade)
+  upload    Upload          @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  day       ProjectDay      @relation(fields: [dayId], references: [id])
+  schedule  ProjectSchedule @relation(fields: [scheduleId], references: [id])
+
+  @@unique([storybookId, uploadId])
+  @@index([storybookId, sortOrder])
+  @@map("storybook_items")
+}
+
+model ProjectBgm {
+  id          String    @id @default(uuid()) @db.Uuid
+  projectId   String    @map("project_id") @db.Uuid
+  title       String
+  storagePath String    @map("storage_path")
+  source      BgmSource @default(manual)
+  isActive    Boolean   @default(false) @map("is_active")
+  createdBy   String    @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator User    @relation(fields: [createdBy], references: [id])
+
+  @@index([projectId])
+  @@map("project_bgms")
+}
+
+model ProjectVideo {
+  id              String             @id @default(uuid()) @db.Uuid
+  projectId       String             @map("project_id") @db.Uuid
+  title           String
+  storagePath     String             @map("storage_path")
+  thumbnailPath   String?            @map("thumbnail_path")
+  durationSeconds Decimal?           @map("duration_seconds")
+  sizeBytes       BigInt             @map("size_bytes")
+  status          ProjectVideoStatus @default(uploaded)
+  uploadedBy      String             @map("uploaded_by") @db.Uuid
+  uploadedAt      DateTime           @default(now()) @map("uploaded_at") @db.Timestamptz
+  deletedAt       DateTime?          @map("deleted_at") @db.Timestamptz
+
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader User    @relation(fields: [uploadedBy], references: [id])
+
+  @@index([projectId])
+  @@map("project_videos")
+}
+
+model Output {
+  id             String     @id @default(uuid()) @db.Uuid
+  projectId      String     @map("project_id") @db.Uuid
+  type           OutputType
+  title          String
+  storagePath    String     @map("storage_path")
+  coverImagePath String?    @map("cover_image_path")
+  generatedBy    String     @map("generated_by") @db.Uuid
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  deletedAt      DateTime?  @map("deleted_at") @db.Timestamptz
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  generator User    @relation(fields: [generatedBy], references: [id])
+
+  @@index([projectId])
+  @@map("outputs")
+}
+
+model ShareLink {
+  id         String        @id @default(uuid()) @db.Uuid
+  tokenHash  String        @unique @map("token_hash")
+  projectId  String        @map("project_id") @db.Uuid
+  type       ShareLinkType
+  isActive   Boolean       @default(true) @map("is_active")
+  expiresAt  DateTime      @map("expires_at") @db.Timestamptz
+  createdBy  String        @map("created_by") @db.Uuid
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  disabledAt DateTime?     @map("disabled_at") @db.Timestamptz
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator User    @relation(fields: [createdBy], references: [id])
+
+  @@index([tokenHash])
+  @@index([projectId])
+  @@map("share_links")
+}
+
+model AiJob {
+  id           String     @id @default(uuid()) @db.Uuid
+  projectId    String     @map("project_id") @db.Uuid
+  storybookId  String?    @map("storybook_id") @db.Uuid
+  requestedBy  String     @map("requested_by") @db.Uuid
+  type         AiJobType
+  status       JobStatus  @default(pending)
+  inputJson    Json       @map("input_json")
+  resultJson   Json?      @map("result_json")
+  model        String?
+  errorMessage String?    @map("error_message")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  startedAt    DateTime?  @map("started_at") @db.Timestamptz
+  completedAt  DateTime?  @map("completed_at") @db.Timestamptz
+
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  storybook  Storybook? @relation(fields: [storybookId], references: [id], onDelete: SetNull)
+  requester  User       @relation(fields: [requestedBy], references: [id])
+
+  @@index([status, createdAt])
+  @@index([projectId])
+  @@map("ai_jobs")
+}
+
+model MediaJob {
+  id           String       @id @default(uuid()) @db.Uuid
+  projectId    String       @map("project_id") @db.Uuid
+  uploadFileId String?      @map("upload_file_id") @db.Uuid
+  type         MediaJobType
+  status       JobStatus    @default(pending)
+  errorMessage String?      @map("error_message")
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  startedAt    DateTime?    @map("started_at") @db.Timestamptz
+  completedAt  DateTime?    @map("completed_at") @db.Timestamptz
+
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadFile UploadFile? @relation(fields: [uploadFileId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([projectId])
+  @@map("media_jobs")
+}
+
+model BackupRun {
+  id               String     @id @default(uuid()) @db.Uuid
+  projectId        String     @map("project_id") @db.Uuid
+  backupType       BackupType @map("backup_type")
+  status           JobStatus  @default(pending)
+  dbDumpPath       String?    @map("db_dump_path")
+  filesArchivePath String?    @map("files_archive_path")
+  manifestPath     String?    @map("manifest_path")
+  errorMessage     String?    @map("error_message")
+  createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  completedAt      DateTime?  @map("completed_at") @db.Timestamptz
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@map("backup_runs")
+}

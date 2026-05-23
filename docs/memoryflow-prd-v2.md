@@ -502,7 +502,42 @@ Push to main
 -> docker compose up -d
 ```
 
-## 19. MVP Scope
+## 19. Design System
+
+MemoryFlow uses the design system in `docs/design system/memoryflow/DESIGN.md`.
+
+Visual direction:
+
+```text
+Tech Utility with Soft Warmth
+Content-first travel documentation
+Calm, practical, organized
+No marketing landing-page feel
+No decorative gradients, glassmorphism, or heavy shadows
+```
+
+Core tokens:
+
+```text
+Primary: #196946
+Background: #f8f9ff
+Surface: #ffffff / #eff3ff / #e9eef9
+Text: #171c24
+Border: #bfc9c0
+Font: Inter
+Minimum tap target: 44px
+```
+
+Component rules:
+
+```text
+Buttons, inputs, tags: 8px radius
+Cards and image blocks: 12px radius
+Depth is expressed through tonal layers and 1px outlines, not shadows
+Korean text uses word-break: keep-all and overflow-wrap: anywhere
+```
+
+## 20. MVP Scope
 
 Included:
 
