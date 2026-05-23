@@ -117,12 +117,12 @@ Hash token
 | Method | Route | Purpose |
 |---|---|---|
 | `GET` | `/api/projects` | List accessible projects |
+| `PATCH` | `/api/projects/active` | Update current user's active project |
 | `POST` | `/api/admin/projects` | Create project, super admin only |
 | `GET` | `/api/projects/:projectId` | Project detail |
 | `PATCH` | `/api/admin/projects/:projectId` | Update project, super admin only |
 | `DELETE` | `/api/admin/projects/:projectId` | Delete/archive project, super admin only |
 | `POST` | `/api/admin/projects/:projectId/complete` | Mark completed and create snapshot |
-| `POST` | `/api/settings/active-project` | Update user active project |
 
 ### Project Member API
 
@@ -132,6 +132,7 @@ Hash token
 | `POST` | `/api/admin/projects/:projectId/members` | Add member/role, super admin only |
 | `PATCH` | `/api/admin/projects/:projectId/members/:memberId` | Update role/status, super admin only |
 | `DELETE` | `/api/admin/projects/:projectId/members/:memberId` | Remove member, super admin only |
+| `POST` | `/api/admin/users/:userId/project-members` | Assign user to project role, super admin only |
 
 ### Schedule API
 
@@ -150,6 +151,7 @@ Hash token
 |---|---|---|
 | `GET` | `/api/projects/:projectId/uploads` | List uploads |
 | `POST` | `/api/projects/:projectId/uploads` | Create upload |
+| `POST` | `/api/uploads` | Create upload for current active project |
 | `GET` | `/api/projects/:projectId/uploads/:uploadId` | Upload detail |
 | `PATCH` | `/api/projects/:projectId/uploads/:uploadId` | Update own upload before approval |
 | `DELETE` | `/api/projects/:projectId/uploads/:uploadId` | Soft delete own upload before approval |

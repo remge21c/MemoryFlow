@@ -72,6 +72,39 @@ npx tsc --noEmit
 npm run build
 ```
 
+## Implemented MVP Foundation
+
+```text
+Auth:
+- Email/password login and signup
+- Pending/rejected/inactive account states
+- Super admin approval flow
+
+Admin:
+- User approval, rejection, deactivation
+- Project role assignment
+- Project creation with automatic Day generation
+- Project status changes
+- Schedule create/update/delete for active projects
+
+Core app:
+- Active project selection at /settings/project
+- Home dashboard backed by PostgreSQL project data
+- Storybook viewer backed by PostgreSQL schedules/uploads
+- Local upload foundation using LOCAL_STORAGE_ROOT
+```
+
+## Local Storage
+
+Uploaded files are stored under `LOCAL_STORAGE_ROOT`.
+
+```text
+storage/
+└── projects/{projectId}/uploads/{uploadId}/...
+```
+
+The local `storage/` folder is ignored by Git.
+
 ## Planning Documents
 
 ```text
