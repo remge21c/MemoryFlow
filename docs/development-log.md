@@ -170,6 +170,13 @@ Full-screen role QA:
 - Approve storybook, confirm new uploader uploads are locked with 409, and issue a 30-day share link
 - Confirm public share page renders media without login, exposes no admin entry, and invalid token renders no media
 - Clean up isolated QA project, users, upload, and share link
+Gallery flow finalization:
+- Add share link issue/copy controls directly to /admin/gallery with 30/60/120/180/360-day expiry options
+- Clarify latest uploaded final video behavior as the shared representative video
+- Add authenticated video open action and report open/download actions
+- Confirm final WebM upload, authenticated range streaming, public share range streaming, and share page video player
+- Generate and download HTML, PDF, and DOC outputs from an approved storybook
+- Confirm lint, typecheck, production build, and cleanup of isolated QA project/media/output data
 ```
 
 Current local super admin:
