@@ -15,6 +15,7 @@ b416e81 Add public storybook share links
 5a8779f Add upload edit and delete management
 current Add storybook ordering and preview
 current Add account management and approval assignment flow
+current Add admin permission boundaries
 ```
 
 Verified:
@@ -68,6 +69,13 @@ Browser smoke test:
 - Login as super admin
 - Confirm /settings renders account forms
 - Confirm /admin/members renders project and role controls
+Admin permission matrix smoke test:
+- Super admin can access /admin/projects, /admin/members, /admin/schedules, /admin/storybook
+- Project manager sees an admin entry and can access schedules/storybook
+- Project manager is redirected from super-admin-only pages to /forbidden
+- Uploader does not see admin links
+- Uploader is redirected from all /admin pages to /forbidden
+- Temporary test users are removed after verification
 ```
 
 Current local super admin:

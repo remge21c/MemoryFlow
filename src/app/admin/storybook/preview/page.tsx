@@ -45,7 +45,7 @@ export default async function AdminStorybookPreviewPage() {
   );
 
   if (!allowed) {
-    redirect("/");
+    redirect("/forbidden");
   }
 
   const data = await getStorybookPreviewData(currentUser.activeProjectId);

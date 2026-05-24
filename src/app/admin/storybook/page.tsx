@@ -83,7 +83,7 @@ export default async function AdminStorybookPage() {
   });
 
   if (!project || !canManageStorybook(currentUser, project.members)) {
-    redirect("/");
+    redirect("/forbidden");
   }
 
   const storybook = project.storybook ?? {

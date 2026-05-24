@@ -66,7 +66,7 @@ export default async function AdminSchedulesPage() {
   });
 
   if (!project || !isProjectManager(currentUser, project.id, project.members)) {
-    redirect("/");
+    redirect("/forbidden");
   }
 
   const serializedDays = project.days.map((day) => ({

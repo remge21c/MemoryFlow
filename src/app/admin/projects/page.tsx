@@ -19,7 +19,7 @@ export default async function AdminProjectsPage() {
   const currentUser = await getCurrentUser();
 
   if (!currentUser || currentUser.globalRole !== "super_admin") {
-    redirect("/");
+    redirect("/forbidden");
   }
 
   const projects = await prisma.project.findMany({

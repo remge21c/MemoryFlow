@@ -23,7 +23,7 @@ export default async function AdminMembersPage() {
   const currentUser = await getCurrentUser();
 
   if (!currentUser || currentUser.globalRole !== "super_admin") {
-    redirect("/");
+    redirect("/forbidden");
   }
 
   const [users, projects] = await Promise.all([
