@@ -164,6 +164,7 @@ Hash token
 |---|---|---|
 | `GET` | `/api/projects/:projectId/storybook` | Get storybook |
 | `PATCH` | `/api/admin/projects/:projectId/storybook` | Edit storybook metadata |
+| `PATCH` | `/api/admin/projects/:projectId/uploads/:uploadId/storybook` | Update storybook include flag and admin caption |
 | `POST` | `/api/admin/projects/:projectId/storybook/items` | Add item |
 | `PATCH` | `/api/admin/projects/:projectId/storybook/items/:itemId` | Update caption/order/visibility |
 | `POST` | `/api/admin/projects/:projectId/storybook/reorder` | Reorder items |

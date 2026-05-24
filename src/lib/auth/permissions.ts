@@ -20,7 +20,7 @@ export function canUploadToProject(viewer: ViewerContext) {
 }
 
 export function canRunTextAi(viewer: ViewerContext) {
-  return isSuperAdmin(viewer) || viewer.projectRole === "project_manager";
+  return isSuperAdmin(viewer);
 }
 
 export function canUseSuperAdminMediaTools(viewer: ViewerContext) {
