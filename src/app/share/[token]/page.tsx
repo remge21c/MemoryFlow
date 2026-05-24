@@ -1,7 +1,8 @@
-import { Link2 } from "lucide-react";
+import { CalendarDays, Link2, LockKeyhole } from "lucide-react";
 import { StorybookPreview } from "@/components/storybook/storybook-preview";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { formatDate } from "@/lib/utils";
 import { prisma } from "@/lib/db";
 import { hashShareToken } from "@/lib/share-links/token";
 
@@ -9,18 +10,23 @@ type SharePageProps = {
   params: Promise<{ token: string }>;
 };
 
-function InvalidLink() {
+function InvalidLink({
+  title = "링크가 만료되었습니다",
+  description = "공유 링크가 비활성화되었거나 만료되었습니다. 링크를 발급한 관리자에게 다시 요청해 주세요.",
+}: {
+  title?: string;
+  description?: string;
+}) {
   return (
     <main className="min-h-dvh bg-background px-md py-xl text-on-background">
       <div className="mx-auto max-w-2xl">
         <Card>
           <div className="flex items-center gap-sm">
             <Link2 className="h-5 w-5 text-primary" />
-            <h1 className="text-major-title text-on-surface">링크가 만료되었습니다</h1>
+            <h1 className="text-major-title text-on-surface">{title}</h1>
           </div>
           <p className="mt-sm text-secondary text-on-surface-variant">
-            공유 링크가 비활성화되었거나 만료되었습니다. 링크를 발급한 관리자에게 다시
-            요청해 주세요.
+            {description}
           </p>
         </Card>
       </div>
@@ -71,14 +77,17 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
 
   const storybook = shareLink?.project.storybook;
 
-  if (
-    !shareLink ||
-    !shareLink.isActive ||
-    shareLink.expiresAt.getTime() <= now.getTime() ||
-    !storybook ||
-    storybook.status !== "approved"
-  ) {
+  if (!shareLink || !shareLink.isActive || shareLink.expiresAt.getTime() <= now.getTime()) {
     return <InvalidLink />;
+  }
+
+  if (!storybook || storybook.status !== "approved") {
+    return (
+      <InvalidLink
+        title="아직 공개되지 않은 스토리북입니다"
+        description="스토리북 승인 후에만 공유 링크로 열람할 수 있습니다. 링크를 발급한 관리자에게 승인 상태를 확인해 주세요."
+      />
+    );
   }
 
   const days = new Map<
@@ -123,6 +132,17 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
     }
   }
 
+  const storybookDays = [...days.values()];
+
+  if (storybookDays.length === 0) {
+    return (
+      <InvalidLink
+        title="공개할 스토리 항목이 없습니다"
+        description="공유 링크는 유효하지만 승인된 스토리북에 표시할 항목이 없습니다. 관리자에게 스토리북 구성을 확인해 주세요."
+      />
+    );
+  }
+
   return (
     <main className="min-h-dvh bg-background text-on-background">
       <header className="sticky top-0 z-20 border-b border-outline-variant bg-surface/95 px-md py-sm">
@@ -138,13 +158,41 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
               </p>
             </div>
           </div>
-          <Badge className="hidden border-primary bg-primary-fixed text-on-primary-fixed sm:inline-flex">
-            읽기 전용
-          </Badge>
+          <div className="hidden items-center gap-xs sm:flex">
+            <Badge className="border-primary bg-primary-fixed text-on-primary-fixed">
+              읽기 전용
+            </Badge>
+            <Badge>만료 {formatDate(shareLink.expiresAt)}</Badge>
+          </div>
         </div>
       </header>
 
       <div className="px-md py-xl">
+        <section className="mx-auto mb-lg grid max-w-5xl gap-md sm:grid-cols-2">
+          <Card>
+            <div className="flex items-center gap-sm">
+              <LockKeyhole className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-section-title text-on-surface">공유 링크 열람</p>
+                <p className="text-secondary text-on-surface-variant">
+                  댓글과 좋아요 없이 결과물만 볼 수 있습니다.
+                </p>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex items-center gap-sm">
+              <CalendarDays className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-section-title text-on-surface">링크 만료일</p>
+                <p className="text-secondary text-on-surface-variant">
+                  {formatDate(shareLink.expiresAt)}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </section>
+
         <StorybookPreview
           project={{
             name: shareLink.project.name,
@@ -153,7 +201,7 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
             endDate: shareLink.project.endDate.toISOString(),
           }}
           storybook={storybook}
-          days={[...days.values()]}
+          days={storybookDays}
           mediaSrcPrefix={`/api/share/${token}/media`}
           modeLabel="승인된 스토리북"
         />

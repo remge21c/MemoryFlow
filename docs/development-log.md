@@ -133,6 +133,11 @@ Storybook viewer UX smoke test:
 - Create a temporary storybook upload with local media
 - Confirm /storybook renders summary cards, Day timeline, media preview, and story text
 - Clean up the temporary upload through the authenticated API
+Share page UX smoke test:
+- Create a temporary upload, approve the storybook, and issue a 30-day share link
+- Confirm /share/:token renders without login with expiry/read-only status and media preview
+- Disable the share link and confirm the public page no longer renders story content
+- Unlock storybook and clean up the temporary upload/media
 ```
 
 Current local super admin:
