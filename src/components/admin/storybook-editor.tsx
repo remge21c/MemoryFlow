@@ -69,6 +69,13 @@ type StorybookEditorProps = {
   shareLinks: ShareLink[];
 };
 
+type AiReviewResult = {
+  summary?: string;
+  privacyFlags?: string[];
+  captionDrafts?: { scheduleTitle: string; caption: string; seconds: number }[];
+  bgmKeywords?: string[];
+};
+
 const inputClass =
   "min-h-tap-target rounded border border-outline-variant bg-surface-container-lowest px-sm py-xs text-secondary text-on-surface outline-none focus:border-primary";
 
@@ -117,6 +124,7 @@ export function StorybookEditor({
     ),
   );
   const [error, setError] = useState<string | null>(null);
+  const [aiReview, setAiReview] = useState<AiReviewResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const uploads = useMemo(
@@ -184,6 +192,15 @@ export function StorybookEditor({
 
   async function unlock() {
     await requestJson(`/api/admin/projects/${projectId}/storybook/unlock`, "POST");
+  }
+
+  async function runAiReview() {
+    const data = (await requestJson(
+      `/api/admin/projects/${projectId}/ai/storybook-review`,
+      "POST",
+    )) as { aiJob?: { resultJson?: AiReviewResult } } | null;
+
+    setAiReview(data?.aiJob?.resultJson ?? null);
   }
 
   return (
@@ -444,9 +461,51 @@ export function StorybookEditor({
             <h2 className="text-section-title text-on-surface">AI 검수</h2>
           </div>
           <p className="mt-sm text-secondary text-on-surface-variant">
-            다음 단계에서 슈퍼관리자 전용 Codex CLI 검수로 메모 요약, 개인정보 의심 문구,
-            자막 초안을 연결합니다.
+            슈퍼관리자 전용으로 메모 요약, 민감정보 의심 문구, 영상 자막 초안을 검토합니다.
           </p>
+          <Button
+            className="mt-md w-full"
+            variant="secondary"
+            disabled={!isSuperAdmin || isSubmitting || uploads.length === 0}
+            onClick={() => run(runAiReview)}
+          >
+            <Sparkles className="h-4 w-4" />
+            AI 검수 실행
+          </Button>
+          {aiReview ? (
+            <div className="mt-md space-y-sm rounded border border-outline-variant bg-surface-container-lowest p-sm">
+              <div>
+                <p className="text-metadata text-on-surface-variant">요약</p>
+                <p className="text-secondary text-on-surface">{aiReview.summary}</p>
+              </div>
+              <div>
+                <p className="text-metadata text-on-surface-variant">민감정보 의심</p>
+                <p className="text-secondary text-on-surface">
+                  {aiReview.privacyFlags?.length
+                    ? aiReview.privacyFlags.join(" / ")
+                    : "의심 문구 없음"}
+                </p>
+              </div>
+              <div>
+                <p className="text-metadata text-on-surface-variant">자막 초안</p>
+                <div className="mt-xs space-y-xs">
+                  {(aiReview.captionDrafts ?? []).slice(0, 3).map((draft) => (
+                    <p key={`${draft.scheduleTitle}-${draft.seconds}`} className="text-secondary">
+                      {draft.seconds}s · {draft.scheduleTitle}: {draft.caption}
+                    </p>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-metadata text-on-surface-variant">BGM 키워드</p>
+                <div className="mt-xs flex flex-wrap gap-xs">
+                  {(aiReview.bgmKeywords ?? []).map((keyword) => (
+                    <Badge key={keyword}>{keyword}</Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </Card>
 
         <ShareLinkManager

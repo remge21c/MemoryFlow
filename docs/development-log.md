@@ -152,6 +152,11 @@ Output generation smoke test:
 - Generate temporary HTML, PDF, and DOC outputs from an approved storybook
 - Confirm /api/outputs/:outputId streams text/html, application/pdf, and application/msword
 - Confirm generated outputs render in /admin/gallery and clean up temporary output files
+AI review smoke test:
+- Add super-admin storybook review API with OpenAI Responses API support and local fallback
+- Create a temporary upload containing a phone-like sensitive string
+- Confirm AI review stores a completed aiJob with summary, privacy flags, caption drafts, and BGM keywords
+- Confirm /admin/storybook renders the AI review action and clean up temporary upload/job
 ```
 
 Current local super admin:
