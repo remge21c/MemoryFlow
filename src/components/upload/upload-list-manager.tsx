@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ImagePlus, Trash2, Video, X } from "lucide-react";
+import { ImagePlus, RotateCcw, Trash2, Video, X } from "lucide-react";
 import { MediaPreview } from "@/components/media/media-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -94,10 +94,30 @@ export function UploadListManager({
     ),
   );
   const [view, setView] = useState<"card" | "list">("card");
+  const [filter, setFilter] = useState<"all" | "photo" | "video">("all");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const dayById = useMemo(() => new Map(days.map((day) => [day.id, day])), [days]);
+  const filteredUploads = uploads.filter((upload) => filter === "all" || upload.type === filter);
+
+  function originalForm(upload: Upload) {
+    return {
+      dayId: upload.dayId,
+      scheduleId: upload.scheduleId,
+      memo: upload.memo ?? "",
+    };
+  }
+
+  function isDirty(upload: Upload) {
+    const form = forms[upload.id] ?? originalForm(upload);
+    const original = originalForm(upload);
+    return (
+      form.dayId !== original.dayId ||
+      form.scheduleId !== original.scheduleId ||
+      form.memo !== original.memo
+    );
+  }
 
   function updateForm(
     uploadId: string,
@@ -130,6 +150,13 @@ export function UploadListManager({
     }
   }
 
+  function resetForm(upload: Upload) {
+    setForms((current) => ({
+      ...current,
+      [upload.id]: originalForm(upload),
+    }));
+  }
+
   if (uploads.length === 0) {
     return (
       <Card>
@@ -150,7 +177,28 @@ export function UploadListManager({
             사진 묶음 {photoUploadCount}개 · 영상 {videoUploadCount}개
           </p>
         </div>
-        <div className="flex gap-xs">
+        <div className="flex flex-wrap gap-xs">
+          <Button
+            size="sm"
+            variant={filter === "all" ? "primary" : "secondary"}
+            onClick={() => setFilter("all")}
+          >
+            전체
+          </Button>
+          <Button
+            size="sm"
+            variant={filter === "photo" ? "primary" : "secondary"}
+            onClick={() => setFilter("photo")}
+          >
+            사진
+          </Button>
+          <Button
+            size="sm"
+            variant={filter === "video" ? "primary" : "secondary"}
+            onClick={() => setFilter("video")}
+          >
+            영상
+          </Button>
           <Button
             size="sm"
             variant={view === "card" ? "primary" : "secondary"}
@@ -168,143 +216,179 @@ export function UploadListManager({
         </div>
       </div>
 
-      <div className={view === "card" ? "grid gap-md xl:grid-cols-2" : "space-y-md"}>
-        {uploads.map((upload) => {
-          const form = forms[upload.id] ?? {
-            dayId: upload.dayId,
-            scheduleId: upload.scheduleId,
-            memo: upload.memo ?? "",
-          };
-          const selectedDay = dayById.get(form.dayId);
+      {filteredUploads.length === 0 ? (
+        <Card>
+          <p className="text-secondary text-on-surface-variant">
+            선택한 조건에 해당하는 업로드가 없습니다.
+          </p>
+        </Card>
+      ) : (
+        <div className={view === "card" ? "grid gap-md xl:grid-cols-2" : "space-y-md"}>
+          {filteredUploads.map((upload) => {
+            const form = forms[upload.id] ?? originalForm(upload);
+            const selectedDay = dayById.get(form.dayId);
+            const dirty = isDirty(upload);
 
-          return (
-            <Card key={upload.id} className="overflow-hidden p-0">
-              <div className={view === "card" ? "grid gap-md lg:grid-cols-[220px_1fr]" : "grid gap-md lg:grid-cols-[160px_1fr]"}>
-                <MediaPreview files={upload.files} className="h-full min-h-[180px] rounded-none" />
-                <div className="space-y-md p-md">
-                  <div className="flex flex-wrap items-center justify-between gap-xs">
-                    <div className="flex flex-wrap items-center gap-xs">
-                      <Badge className="border-primary text-primary">
-                        {upload.type === "video" ? (
-                          <>
-                            <Video className="mr-1 h-3 w-3" />
-                            영상
-                          </>
-                        ) : (
-                          <>
-                            <ImagePlus className="mr-1 h-3 w-3" />
-                            사진 {upload.files.length}장
-                          </>
-                        )}
-                      </Badge>
-                      <Badge>
-                        Day {upload.day.dayNumber} / {upload.schedule.title}
-                      </Badge>
+            return (
+              <Card key={upload.id} className="overflow-hidden p-0">
+                <div
+                  className={
+                    view === "card"
+                      ? "grid gap-md lg:grid-cols-[220px_1fr]"
+                      : "grid gap-md lg:grid-cols-[160px_1fr]"
+                  }
+                >
+                  <MediaPreview files={upload.files} className="h-full min-h-[180px] rounded-none" />
+                  <div className="space-y-md p-md">
+                    <div className="flex flex-wrap items-center justify-between gap-xs">
+                      <div className="flex flex-wrap items-center gap-xs">
+                        <Badge className="border-primary text-primary">
+                          {upload.type === "video" ? (
+                            <>
+                              <Video className="mr-1 h-3 w-3" />
+                              영상
+                            </>
+                          ) : (
+                            <>
+                              <ImagePlus className="mr-1 h-3 w-3" />
+                              사진 {upload.files.length}장
+                            </>
+                          )}
+                        </Badge>
+                        <Badge>
+                          Day {upload.day.dayNumber} / {upload.schedule.title}
+                        </Badge>
+                        {dirty ? <Badge className="border-primary text-primary">수정 중</Badge> : null}
+                      </div>
+                      <span className="text-metadata text-on-surface-variant">
+                        {formatDate(upload.createdAt)}
+                      </span>
                     </div>
-                    <span className="text-metadata text-on-surface-variant">
-                      {formatDate(upload.createdAt)}
-                    </span>
-                  </div>
 
-                  <div className="grid gap-sm lg:grid-cols-2">
-                    <label className="grid gap-xs">
-                      <span className="text-metadata text-on-surface-variant">Day</span>
-                      <select
-                        className={inputClass}
-                        disabled={isLocked}
-                        value={form.dayId}
-                        onChange={(event) => changeDay(upload.id, event.target.value)}
-                      >
-                        {days.map((day) => (
-                          <option key={day.id} value={day.id}>
-                            Day {day.dayNumber} {day.title ?? ""}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="grid gap-xs">
-                      <span className="text-metadata text-on-surface-variant">세부일정</span>
-                      <select
-                        className={inputClass}
-                        disabled={isLocked}
-                        value={form.scheduleId}
-                        onChange={(event) =>
-                          updateForm(upload.id, { scheduleId: event.target.value })
-                        }
-                      >
-                        {(selectedDay?.schedules ?? []).map((schedule) => (
-                          <option key={schedule.id} value={schedule.id}>
-                            {schedule.time ? `${schedule.time} - ` : ""}
-                            {schedule.title}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
+                    {isLocked ? (
+                      <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
+                        <p className="text-secondary text-on-surface-variant">
+                          승인 완료된 스토리북의 업로드는 읽기 전용입니다.
+                        </p>
+                      </div>
+                    ) : null}
 
-                  <label className="grid gap-xs">
-                    <span className="text-metadata text-on-surface-variant">메모</span>
-                    <textarea
-                      className={`${inputClass} min-h-24 w-full resize-y`}
-                      disabled={isLocked}
-                      value={form.memo}
-                      onChange={(event) => updateForm(upload.id, { memo: event.target.value })}
-                    />
-                  </label>
-
-                  <div className="flex flex-wrap gap-xs">
-                    {upload.files.map((file, index) => (
-                      <div key={file.id} className="relative">
-                        <MediaPreview files={[file]} compact />
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="absolute right-1 top-1 h-8 w-8 px-0"
-                          disabled={isLocked || isSubmitting || upload.files.length <= 1}
-                          aria-label={`파일 ${index + 1} 삭제`}
-                          onClick={() =>
-                            run(() =>
-                              requestJson(`/api/uploads/${upload.id}/files/${file.id}`, "DELETE"),
-                            )
+                    <div className="grid gap-sm lg:grid-cols-2">
+                      <label className="grid gap-xs">
+                        <span className="text-metadata text-on-surface-variant">Day</span>
+                        <select
+                          className={inputClass}
+                          disabled={isLocked}
+                          value={form.dayId}
+                          onChange={(event) => changeDay(upload.id, event.target.value)}
+                        >
+                          {days.map((day) => (
+                            <option key={day.id} value={day.id}>
+                              Day {day.dayNumber} {day.title ?? ""}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="grid gap-xs">
+                        <span className="text-metadata text-on-surface-variant">세부일정</span>
+                        <select
+                          className={inputClass}
+                          disabled={isLocked}
+                          value={form.scheduleId}
+                          onChange={(event) =>
+                            updateForm(upload.id, { scheduleId: event.target.value })
                           }
                         >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                          {(selectedDay?.schedules ?? []).map((schedule) => (
+                            <option key={schedule.id} value={schedule.id}>
+                              {schedule.time ? `${schedule.time} - ` : ""}
+                              {schedule.title}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
 
-                  <div className="flex flex-wrap justify-end gap-xs">
-                    <Button
-                      variant="secondary"
-                      disabled={isLocked || isSubmitting || !form.scheduleId}
-                      onClick={() =>
-                        run(() =>
-                          requestJson(`/api/uploads/${upload.id}`, "PATCH", {
-                            dayId: form.dayId,
-                            scheduleId: form.scheduleId,
-                            memo: form.memo,
-                          }),
-                        )
-                      }
-                    >
-                      수정 저장
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      disabled={isLocked || isSubmitting}
-                      onClick={() => run(() => requestJson(`/api/uploads/${upload.id}`, "DELETE"))}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      업로드 삭제
-                    </Button>
+                    <label className="grid gap-xs">
+                      <span className="text-metadata text-on-surface-variant">메모</span>
+                      <textarea
+                        className={`${inputClass} min-h-24 w-full resize-y`}
+                        disabled={isLocked}
+                        maxLength={500}
+                        value={form.memo}
+                        onChange={(event) => updateForm(upload.id, { memo: event.target.value })}
+                      />
+                      <span className="text-right text-metadata text-on-surface-variant">
+                        {form.memo.length}/500
+                      </span>
+                    </label>
+
+                    <div className="flex flex-wrap gap-xs">
+                      {upload.files.map((file, index) => (
+                        <div key={file.id} className="relative">
+                          <MediaPreview files={[file]} compact />
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="absolute right-1 top-1 h-8 w-8 px-0"
+                            disabled={isLocked || isSubmitting || upload.files.length <= 1}
+                            aria-label={`파일 ${index + 1} 삭제`}
+                            onClick={() => {
+                              if (!window.confirm("이 파일을 업로드에서 삭제할까요?")) return;
+                              run(() =>
+                                requestJson(`/api/uploads/${upload.id}/files/${file.id}`, "DELETE"),
+                              );
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-wrap justify-end gap-xs">
+                      <Button
+                        variant="secondary"
+                        disabled={isLocked || isSubmitting || !dirty}
+                        onClick={() => resetForm(upload)}
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                        변경 취소
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        disabled={isLocked || isSubmitting || !form.scheduleId || !dirty}
+                        onClick={() =>
+                          run(() =>
+                            requestJson(`/api/uploads/${upload.id}`, "PATCH", {
+                              dayId: form.dayId,
+                              scheduleId: form.scheduleId,
+                              memo: form.memo,
+                            }),
+                          )
+                        }
+                      >
+                        수정 저장
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        disabled={isLocked || isSubmitting}
+                        onClick={() => {
+                          if (!window.confirm("이 업로드를 삭제할까요?")) return;
+                          run(() => requestJson(`/api/uploads/${upload.id}`, "DELETE"));
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        업로드 삭제
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
       {error ? <p className="text-secondary text-error">{error}</p> : null}
     </section>
   );

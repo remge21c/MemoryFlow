@@ -124,6 +124,10 @@ Upload UX smoke test:
 Home dashboard UX smoke test:
 - Confirm / renders project status, schedule progress, Day timeline, recent uploads, storybook status, and video status
 - Confirm desktop and mobile viewports render the dashboard cards and primary links
+Upload UX v2 smoke test:
+- Confirm /upload renders the drag/drop file area, browse button, selected schedule summary, memo counter, and file list
+- Confirm client upload flow creates one image upload with one media file
+- Confirm the temporary upload can be deleted through the authenticated API
 ```
 
 Current local super admin:
