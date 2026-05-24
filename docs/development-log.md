@@ -18,6 +18,7 @@ current Add account management and approval assignment flow
 current Add admin permission boundaries
 current Tighten first-use role UX
 current Improve member approval UX
+current Improve project management UX
 ```
 
 Verified:
@@ -92,6 +93,13 @@ Member approval UX smoke test:
 - Confirm /admin/members renders the pending user in the approval flow
 - Confirm project and role controls plus approval actions are present
 - Clean up temporary pending user
+Project management UX smoke test:
+- Create a temporary active user as a manager candidate
+- Create a temporary project with that user selected as project manager
+- Confirm generated Day records, draft storybook, active project application, and manager membership
+- Confirm active project can be switched with the project apply API
+- Confirm /admin/projects renders project creation, manager selector, current project label, and project status summary
+- Clean up temporary project and manager candidate
 ```
 
 Current local super admin:

@@ -11,6 +11,7 @@ const projectCreateSchema = z
     description: z.string().max(1000).optional(),
     startDate: z.string().date(),
     endDate: z.string().date(),
+    managerUserId: z.string().uuid().optional().or(z.literal("")),
   })
   .refine((data) => data.startDate <= data.endDate, {
     message: "종료일은 시작일 이후여야 합니다.",
@@ -99,6 +100,32 @@ export async function POST(request: Request) {
         status: "active",
       },
     });
+
+    if (parsed.data.managerUserId && parsed.data.managerUserId !== user!.id) {
+      await tx.projectMember.upsert({
+        where: {
+          projectId_userId: {
+            projectId: created.id,
+            userId: parsed.data.managerUserId,
+          },
+        },
+        update: {
+          role: "project_manager",
+          status: "active",
+        },
+        create: {
+          projectId: created.id,
+          userId: parsed.data.managerUserId,
+          role: "project_manager",
+          status: "active",
+        },
+      });
+
+      await tx.user.update({
+        where: { id: parsed.data.managerUserId },
+        data: { status: "active", activeProjectId: created.id },
+      });
+    }
 
     await tx.user.update({
       where: { id: user!.id },
