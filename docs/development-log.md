@@ -17,6 +17,7 @@ current Add storybook ordering and preview
 current Add account management and approval assignment flow
 current Add admin permission boundaries
 current Tighten first-use role UX
+current Improve member approval UX
 ```
 
 Verified:
@@ -86,6 +87,11 @@ First-use role flow smoke test:
 - Confirm project manager can access schedules/storybook and is blocked from member management
 - Confirm project manager /upload page does not expose file controls
 - Browser smoke test confirms uploader and project manager mobile UX
+Member approval UX smoke test:
+- Create a temporary pending user
+- Confirm /admin/members renders the pending user in the approval flow
+- Confirm project and role controls plus approval actions are present
+- Clean up temporary pending user
 ```
 
 Current local super admin:

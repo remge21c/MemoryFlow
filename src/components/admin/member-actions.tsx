@@ -50,41 +50,51 @@ export function MemberActions({ userId, status, projects, isCurrentUser }: Membe
   }
 
   const projectControls = (
-    <div className="grid gap-xs">
-      <select
-        className="h-9 rounded border border-outline-variant bg-surface-container-lowest px-sm text-secondary focus:border-primary focus:outline-none"
-        value={projectId}
-        onChange={(event) => setProjectId(event.target.value)}
-        disabled={projects.length === 0 || isSubmitting}
-      >
-        {projects.length === 0 ? <option value="">등록된 프로젝트 없음</option> : null}
-        {projects.map((project) => (
-          <option key={project.id} value={project.id}>
-            {project.name}
-          </option>
-        ))}
-      </select>
-      <select
-        className="h-9 rounded border border-outline-variant bg-surface-container-lowest px-sm text-secondary focus:border-primary focus:outline-none"
-        value={role}
-        onChange={(event) => setRole(event.target.value as "project_manager" | "uploader")}
-        disabled={isSubmitting}
-      >
-        <option value="uploader">업로더</option>
-        <option value="project_manager">프로젝트 관리자</option>
-      </select>
+    <div className="grid gap-sm">
+      <label className="grid gap-xs">
+        <span className="text-metadata text-on-surface-variant">필수: 배정 프로젝트</span>
+        <select
+          className="h-10 rounded border border-outline-variant bg-surface-container-lowest px-sm text-secondary focus:border-primary focus:outline-none"
+          value={projectId}
+          onChange={(event) => setProjectId(event.target.value)}
+          disabled={projects.length === 0 || isSubmitting}
+        >
+          {projects.length === 0 ? <option value="">등록된 프로젝트 없음</option> : null}
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="grid gap-xs">
+        <span className="text-metadata text-on-surface-variant">필수: 프로젝트 역할</span>
+        <select
+          className="h-10 rounded border border-outline-variant bg-surface-container-lowest px-sm text-secondary focus:border-primary focus:outline-none"
+          value={role}
+          onChange={(event) => setRole(event.target.value as "project_manager" | "uploader")}
+          disabled={isSubmitting}
+        >
+          <option value="uploader">업로더</option>
+          <option value="project_manager">프로젝트 관리자</option>
+        </select>
+      </label>
     </div>
   );
 
   return (
     <div className="space-y-sm">
       {status === "pending" ? (
-        <div className="space-y-xs">
+        <div className="space-y-sm rounded border border-primary/50 bg-primary-fixed/20 p-sm">
+          <p className="text-secondary font-medium text-on-surface">승인 전 확인</p>
+          <p className="text-metadata text-on-surface-variant">
+            가입자를 활성화하려면 프로젝트와 역할을 먼저 지정해야 합니다.
+          </p>
           {projectControls}
           <Button
             size="sm"
             className="w-full"
-            disabled={!projectId || isSubmitting}
+            disabled={!projectId || projects.length === 0 || isSubmitting}
             onClick={() =>
               run(() =>
                 postAction(`/api/admin/users/${userId}/approve`, {
@@ -94,7 +104,7 @@ export function MemberActions({ userId, status, projects, isCurrentUser }: Membe
               )
             }
           >
-            승인 및 프로젝트 배정
+            {isSubmitting ? "처리 중..." : "승인하고 역할 배정"}
           </Button>
           <Button
             size="sm"
@@ -105,6 +115,11 @@ export function MemberActions({ userId, status, projects, isCurrentUser }: Membe
           >
             가입 거절
           </Button>
+          {projects.length === 0 ? (
+            <p className="text-metadata text-error">
+              프로젝트가 없어 승인할 수 없습니다. 프로젝트 관리에서 먼저 프로젝트를 생성해 주세요.
+            </p>
+          ) : null}
         </div>
       ) : (
         <>
@@ -140,13 +155,13 @@ export function MemberActions({ userId, status, projects, isCurrentUser }: Membe
             ) : null}
           </div>
 
-          <div className="space-y-xs">
+          <div className="space-y-sm">
             {projectControls}
             <Button
               size="sm"
               variant="secondary"
               className="w-full"
-              disabled={!projectId || isSubmitting}
+              disabled={!projectId || projects.length === 0 || isSubmitting}
               onClick={() =>
                 run(() =>
                   postAction(`/api/admin/users/${userId}/project-members`, {
