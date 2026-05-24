@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Eye, EyeOff, Lock, Sparkles, Unlock } from "lucide-react";
+import { ShareLinkManager } from "@/components/admin/share-link-manager";
+import { MediaPreview } from "@/components/media/media-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ShareLinkManager } from "@/components/admin/share-link-manager";
 
 type Upload = {
   id: string;
@@ -15,7 +16,7 @@ type Upload = {
   isInStorybook: boolean;
   adminNote: string | null;
   user: { name: string };
-  files: { id: string }[];
+  files: { id: string; fileType: "image" | "video"; mimeType: string | null }[];
 };
 
 type Schedule = {
@@ -33,6 +34,15 @@ type Day = {
   schedules: Schedule[];
 };
 
+type ShareLink = {
+  id: string;
+  isActive: boolean;
+  expiresAt: string;
+  createdAt: string;
+  disabledAt: string | null;
+  creator?: { name: string } | null;
+};
+
 type StorybookEditorProps = {
   projectId: string;
   isSuperAdmin: boolean;
@@ -44,14 +54,7 @@ type StorybookEditorProps = {
     approvedAt: string | null;
   };
   days: Day[];
-  shareLinks: {
-    id: string;
-    isActive: boolean;
-    expiresAt: string;
-    createdAt: string;
-    disabledAt: string | null;
-    creator?: { name: string } | null;
-  }[];
+  shareLinks: ShareLink[];
 };
 
 const inputClass =
@@ -84,7 +87,9 @@ export function StorybookEditor({
   const [title, setTitle] = useState(storybook.title ?? "");
   const [openingText, setOpeningText] = useState(storybook.openingText ?? "");
   const [closingText, setClosingText] = useState(storybook.closingText ?? "");
-  const [uploadForms, setUploadForms] = useState<Record<string, { isInStorybook: boolean; adminNote: string }>>(() =>
+  const [uploadForms, setUploadForms] = useState<
+    Record<string, { isInStorybook: boolean; adminNote: string }>
+  >(() =>
     Object.fromEntries(
       days.flatMap((day) =>
         day.schedules.flatMap((schedule) =>
@@ -105,7 +110,10 @@ export function StorybookEditor({
   const uploads = days.flatMap((day) => day.schedules.flatMap((schedule) => schedule.uploads));
   const includedCount = Object.values(uploadForms).filter((form) => form.isInStorybook).length;
 
-  function setUploadForm(uploadId: string, patch: Partial<{ isInStorybook: boolean; adminNote: string }>) {
+  function setUploadForm(
+    uploadId: string,
+    patch: Partial<{ isInStorybook: boolean; adminNote: string }>,
+  ) {
     setUploadForms((current) => ({
       ...current,
       [uploadId]: { ...current[uploadId], ...patch },
@@ -232,9 +240,7 @@ export function StorybookEditor({
                         key={upload.id}
                         className="grid gap-sm rounded border border-outline-variant p-sm lg:grid-cols-[72px_1fr_auto]"
                       >
-                        <div className="flex h-[72px] w-[72px] items-center justify-center rounded bg-surface-container">
-                          {upload.type === "video" ? "영상" : `${upload.files.length}장`}
-                        </div>
+                        <MediaPreview files={upload.files} compact />
                         <div className="min-w-0 space-y-xs">
                           <div className="flex flex-wrap items-center gap-xs">
                             <Badge>{upload.type === "video" ? "영상" : "사진"}</Badge>

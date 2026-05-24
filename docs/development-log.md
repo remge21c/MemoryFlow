@@ -10,7 +10,8 @@ a8de1de Add super admin project management
 a3b9524 Connect core pages to project data
 f6d4ae2 Add local upload foundation
 5181db2 Add storybook editing and approval flow
-current Add public storybook share links
+b416e81 Add public storybook share links
+current Add protected and shared media streaming
 ```
 
 Verified:
@@ -35,6 +36,12 @@ Share link smoke test:
 - Confirm /share/:token renders without login
 - Disable link
 - Confirm disabled token no longer renders the storybook
+- Clean up test upload/file/storybook item/share link
+Media streaming smoke test:
+- Create test image upload
+- Confirm /api/media/:fileId streams image/jpeg with an authenticated session
+- Approve storybook and issue share link
+- Confirm /api/share/:token/media/:fileId streams image/jpeg without login
 - Clean up test upload/file/storybook item/share link
 ```
 

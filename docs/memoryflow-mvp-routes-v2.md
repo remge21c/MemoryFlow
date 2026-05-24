@@ -222,8 +222,8 @@ Hash token
 
 | Method | Route | Purpose |
 |---|---|---|
-| `GET` | `/api/media/:fileId` | Stream protected media with Range support |
-| `GET` | `/api/share/:token/media/:fileId` | Stream public shared media with Range support |
+| `GET` | `/api/media/:fileId` | Stream protected upload media with Range support |
+| `GET` | `/api/share/:token/media/:fileId` | Stream public shared storybook media with Range support |
 
 ### Backup API
 

@@ -1,5 +1,6 @@
-import { Grid2X2, List, Video } from "lucide-react";
+import { Grid2X2, List } from "lucide-react";
 import { AppShell } from "@/components/app/app-shell";
+import { MediaPreview } from "@/components/media/media-preview";
 import { UploadManager } from "@/components/upload/upload-manager";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,10 @@ export default async function UploadPage() {
             include: {
               day: { select: { dayNumber: true } },
               schedule: { select: { title: true } },
-              files: { orderBy: { sortOrder: "asc" } },
+              files: {
+                orderBy: { sortOrder: "asc" },
+                select: { id: true, fileType: true, mimeType: true },
+              },
             },
           },
         },
@@ -81,16 +85,7 @@ export default async function UploadPage() {
         <section className="grid gap-md md:grid-cols-2 xl:grid-cols-3">
           {project?.uploads.map((upload) => (
             <Card key={upload.id} className="overflow-hidden p-0">
-              <div className="relative aspect-[4/3] bg-surface-container">
-                <div className="absolute inset-md rounded-md bg-gradient-to-br from-primary-fixed to-surface-container-high" />
-                {upload.type === "video" ? (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-inverse-surface text-inverse-on-surface">
-                      <Video className="h-5 w-5" />
-                    </div>
-                  </div>
-                ) : null}
-              </div>
+              <MediaPreview files={upload.files} className="rounded-none" />
               <div className="space-y-sm p-md">
                 <div className="flex items-center justify-between gap-sm">
                   <Badge>

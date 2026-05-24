@@ -57,7 +57,10 @@ export default async function AdminStorybookPage() {
                 orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
                 include: {
                   user: { select: { name: true } },
-                  files: { select: { id: true }, orderBy: { sortOrder: "asc" } },
+                  files: {
+                    select: { id: true, fileType: true, mimeType: true },
+                    orderBy: { sortOrder: "asc" },
+                  },
                 },
               },
             },

@@ -1,6 +1,8 @@
 import path from "node:path";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, stat, writeFile } from "node:fs/promises";
+import { createReadStream } from "node:fs";
 import { randomUUID } from "node:crypto";
+import { Readable } from "node:stream";
 
 const imageExtensions: Record<string, string> = {
   "image/jpeg": ".jpg",
@@ -51,3 +53,75 @@ export async function saveUploadFile({
   return relativePath;
 }
 
+export function resolveStoragePath(storagePath: string) {
+  const root = getLocalStorageRoot();
+  const absolutePath = path.resolve(root, storagePath);
+
+  if (!absolutePath.startsWith(root)) {
+    throw new Error("Invalid storage path");
+  }
+
+  return absolutePath;
+}
+
+function parseRange(rangeHeader: string | null, size: number) {
+  if (!rangeHeader?.startsWith("bytes=")) {
+    return null;
+  }
+
+  const [rawStart, rawEnd] = rangeHeader.replace("bytes=", "").split("-");
+  const start = rawStart ? Number.parseInt(rawStart, 10) : 0;
+  const end = rawEnd ? Number.parseInt(rawEnd, 10) : size - 1;
+
+  if (
+    Number.isNaN(start) ||
+    Number.isNaN(end) ||
+    start < 0 ||
+    end >= size ||
+    start > end
+  ) {
+    return null;
+  }
+
+  return { start, end };
+}
+
+export async function createMediaResponse({
+  storagePath,
+  mimeType,
+  rangeHeader,
+}: {
+  storagePath: string;
+  mimeType: string;
+  rangeHeader: string | null;
+}) {
+  const absolutePath = resolveStoragePath(storagePath);
+  const fileStat = await stat(absolutePath);
+  const range = parseRange(rangeHeader, fileStat.size);
+
+  if (range) {
+    const stream = createReadStream(absolutePath, range);
+
+    return new Response(Readable.toWeb(stream) as ReadableStream, {
+      status: 206,
+      headers: {
+        "Accept-Ranges": "bytes",
+        "Content-Length": String(range.end - range.start + 1),
+        "Content-Range": `bytes ${range.start}-${range.end}/${fileStat.size}`,
+        "Content-Type": mimeType,
+        "Cache-Control": "private, max-age=300",
+      },
+    });
+  }
+
+  const stream = createReadStream(absolutePath);
+
+  return new Response(Readable.toWeb(stream) as ReadableStream, {
+    headers: {
+      "Accept-Ranges": "bytes",
+      "Content-Length": String(fileStat.size),
+      "Content-Type": mimeType,
+      "Cache-Control": "private, max-age=300",
+    },
+  });
+}

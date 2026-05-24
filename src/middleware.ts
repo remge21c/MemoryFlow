@@ -30,7 +30,7 @@ function isPublicApi(pathname: string) {
 }
 
 function isPublicSharePath(pathname: string) {
-  return pathname.startsWith("/share/");
+  return pathname.startsWith("/share/") || pathname.startsWith("/api/share/");
 }
 
 export async function middleware(request: NextRequest) {

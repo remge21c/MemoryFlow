@@ -1,6 +1,7 @@
 import { BookOpen, CalendarDays, Link2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { MediaPreview } from "@/components/media/media-preview";
 import { prisma } from "@/lib/db";
 import { hashShareToken } from "@/lib/share-links/token";
 import { formatDate } from "@/lib/utils";
@@ -55,7 +56,7 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
                       memo: true,
                       files: {
                         orderBy: { sortOrder: "asc" },
-                        select: { id: true, fileType: true },
+                        select: { id: true, fileType: true, mimeType: true },
                       },
                     },
                   },
@@ -166,7 +167,11 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
             <div className="space-y-md sm:ml-14">
               {day.items.map((item) => (
                 <Card key={item.id} className="overflow-hidden p-0">
-                  <div className="aspect-[16/9] bg-gradient-to-br from-primary-fixed via-surface-container-low to-surface-container-high" />
+                  <MediaPreview
+                    files={item.upload.files}
+                    srcPrefix={`/api/share/${token}/media`}
+                    className="aspect-[16/9] rounded-none"
+                  />
                   <div className="space-y-sm p-lg">
                     <div className="flex flex-wrap items-center gap-xs">
                       <Badge>{item.upload.type === "video" ? "영상" : "사진"}</Badge>

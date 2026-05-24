@@ -2,6 +2,7 @@ import { BookOpen, CheckCircle2 } from "lucide-react";
 import { AppShell } from "@/components/app/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { MediaPreview } from "@/components/media/media-preview";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 
@@ -21,7 +22,12 @@ export default async function StorybookPage() {
                   uploads: {
                     where: { deletedAt: null, isInStorybook: true },
                     orderBy: { sortOrder: "asc" },
-                    include: { files: { orderBy: { sortOrder: "asc" }, take: 1 } },
+                    include: {
+                      files: {
+                        orderBy: { sortOrder: "asc" },
+                        select: { id: true, fileType: true, mimeType: true },
+                      },
+                    },
                   },
                 },
               },
@@ -62,7 +68,12 @@ export default async function StorybookPage() {
             </div>
 
             <Card className="ml-0 overflow-hidden p-0 sm:ml-14">
-              <div className="aspect-[16/9] bg-gradient-to-br from-primary-fixed via-surface-container-low to-surface-container-high" />
+              <MediaPreview
+                files={day.schedules.flatMap((schedule) =>
+                  schedule.uploads.flatMap((upload) => upload.files),
+                )}
+                className="aspect-[16/9] rounded-none"
+              />
               <div className="space-y-md p-lg">
                 <div className="flex items-center gap-sm">
                   <BookOpen className="h-5 w-5 text-primary" />

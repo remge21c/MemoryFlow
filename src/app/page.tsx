@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { MediaPreview } from "@/components/media/media-preview";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/utils";
@@ -41,6 +42,10 @@ export default async function HomePage() {
             include: {
               day: { select: { dayNumber: true } },
               schedule: { select: { title: true } },
+              files: {
+                orderBy: { sortOrder: "asc" },
+                select: { id: true, fileType: true, mimeType: true },
+              },
             },
           },
           storybook: { select: { status: true, approvedAt: true } },
@@ -167,7 +172,7 @@ export default async function HomePage() {
             <div className="grid gap-md sm:grid-cols-2">
               {project.uploads.map((upload) => (
                 <Card key={upload.id} className="overflow-hidden p-0">
-                  <div className="aspect-[4/3] bg-gradient-to-br from-primary-fixed to-surface-container" />
+                  <MediaPreview files={upload.files} className="rounded-none" />
                   <div className="p-md">
                     <Badge>
                       Day {upload.day.dayNumber} / {upload.schedule.title}
