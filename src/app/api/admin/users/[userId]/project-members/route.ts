@@ -65,3 +65,65 @@ export async function POST(
 
   return NextResponse.json({ membership });
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ userId: string }> },
+) {
+  const { user: currentUser, response } = await requireSuperAdminForApi();
+
+  if (response) {
+    return response;
+  }
+
+  const body = await request.json().catch(() => null);
+  const parsed = z.object({ projectId: z.string().uuid() }).safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: "해제할 프로젝트를 확인해 주세요." }, { status: 400 });
+  }
+
+  const { userId } = await params;
+
+  if (currentUser?.id === userId) {
+    return NextResponse.json({ error: "내 계정의 프로젝트 역할은 해제할 수 없습니다." }, { status: 400 });
+  }
+
+  const membership = await prisma.projectMember.findUnique({
+    where: {
+      projectId_userId: {
+        projectId: parsed.data.projectId,
+        userId,
+      },
+    },
+    select: { id: true },
+  });
+
+  if (!membership) {
+    return NextResponse.json({ error: "프로젝트 역할을 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  await prisma.projectMember.update({
+    where: { id: membership.id },
+    data: { status: "removed" },
+  });
+
+  const activeMembership = await prisma.projectMember.findFirst({
+    where: {
+      userId,
+      status: "active",
+    },
+    select: {
+      projectId: true,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      activeProjectId: activeMembership?.projectId ?? null,
+    },
+  });
+
+  return NextResponse.json({ ok: true });
+}

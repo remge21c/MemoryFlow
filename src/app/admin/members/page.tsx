@@ -90,6 +90,11 @@ function MemberRow({ user, projects, currentUserId }: MemberRowProps) {
         userId={user.id}
         status={user.status}
         projects={projects}
+        memberships={user.memberships.map((membership) => ({
+          id: membership.id,
+          role: membership.role as "project_manager" | "uploader",
+          project: membership.project,
+        }))}
         isCurrentUser={user.id === currentUserId}
       />
     </div>

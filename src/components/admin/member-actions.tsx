@@ -9,16 +9,26 @@ type Project = {
   name: string;
 };
 
+type Membership = {
+  id: string;
+  role: "project_manager" | "uploader";
+  project: {
+    id: string;
+    name: string;
+  };
+};
+
 type MemberActionsProps = {
   userId: string;
   status: string;
   projects: Project[];
+  memberships: Membership[];
   isCurrentUser: boolean;
 };
 
-async function postAction(url: string, body?: unknown) {
+async function requestAction(url: string, method: "DELETE" | "POST", body?: unknown) {
   const response = await fetch(url, {
-    method: "POST",
+    method,
     headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -29,12 +39,30 @@ async function postAction(url: string, body?: unknown) {
   }
 }
 
-export function MemberActions({ userId, status, projects, isCurrentUser }: MemberActionsProps) {
+async function postAction(url: string, body?: unknown) {
+  return requestAction(url, "POST", body);
+}
+
+async function deleteAction(url: string, body?: unknown) {
+  return requestAction(url, "DELETE", body);
+}
+
+export function MemberActions({
+  userId,
+  status,
+  projects,
+  memberships,
+  isCurrentUser,
+}: MemberActionsProps) {
   const router = useRouter();
-  const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
-  const [role, setRole] = useState<"project_manager" | "uploader">("uploader");
+  const firstMembership = memberships[0];
+  const [projectId, setProjectId] = useState(firstMembership?.project.id ?? projects[0]?.id ?? "");
+  const [role, setRole] = useState<"project_manager" | "uploader">(
+    firstMembership?.role ?? "uploader",
+  );
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const selectedMembership = memberships.find((membership) => membership.project.id === projectId);
 
   async function run(action: () => Promise<void>) {
     setError(null);
@@ -52,11 +80,18 @@ export function MemberActions({ userId, status, projects, isCurrentUser }: Membe
   const projectControls = (
     <div className="grid gap-sm">
       <label className="grid gap-xs">
-        <span className="text-metadata text-on-surface-variant">필수: 배정 프로젝트</span>
+        <span className="text-metadata text-on-surface-variant">프로젝트</span>
         <select
           className="h-10 rounded border border-outline-variant bg-surface-container-lowest px-sm text-secondary focus:border-primary focus:outline-none"
           value={projectId}
-          onChange={(event) => setProjectId(event.target.value)}
+          onChange={(event) => {
+            const nextProjectId = event.target.value;
+            const nextMembership = memberships.find(
+              (membership) => membership.project.id === nextProjectId,
+            );
+            setProjectId(nextProjectId);
+            setRole(nextMembership?.role ?? "uploader");
+          }}
           disabled={projects.length === 0 || isSubmitting}
         >
           {projects.length === 0 ? <option value="">등록된 프로젝트 없음</option> : null}
@@ -68,7 +103,7 @@ export function MemberActions({ userId, status, projects, isCurrentUser }: Membe
         </select>
       </label>
       <label className="grid gap-xs">
-        <span className="text-metadata text-on-surface-variant">필수: 프로젝트 역할</span>
+        <span className="text-metadata text-on-surface-variant">프로젝트 역할</span>
         <select
           className="h-10 rounded border border-outline-variant bg-surface-container-lowest px-sm text-secondary focus:border-primary focus:outline-none"
           value={role}
@@ -79,6 +114,9 @@ export function MemberActions({ userId, status, projects, isCurrentUser }: Membe
           <option value="project_manager">프로젝트 관리자</option>
         </select>
       </label>
+      <p className="text-metadata text-on-surface-variant">
+        {selectedMembership ? "이미 배정된 프로젝트입니다. 저장하면 역할이 변경됩니다." : "새 프로젝트 배정입니다."}
+      </p>
     </div>
   );
 
@@ -123,12 +161,21 @@ export function MemberActions({ userId, status, projects, isCurrentUser }: Membe
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap gap-xs">
+          <div className="space-y-xs rounded border border-outline-variant bg-surface-container-lowest p-sm">
+            <p className="text-secondary font-medium text-on-surface">계정 상태</p>
+            <div className="flex flex-wrap gap-xs">
             {status !== "active" ? (
               <Button
                 size="sm"
-                disabled={isSubmitting}
-                onClick={() => run(() => postAction(`/api/admin/users/${userId}/approve`))}
+                disabled={isSubmitting || (memberships.length === 0 && !projectId)}
+                onClick={() =>
+                  run(() =>
+                    postAction(
+                      `/api/admin/users/${userId}/approve`,
+                      memberships.length === 0 && projectId ? { projectId, role } : undefined,
+                    ),
+                  )
+                }
               >
                 활성화
               </Button>
@@ -153,9 +200,16 @@ export function MemberActions({ userId, status, projects, isCurrentUser }: Membe
                 비활성화
               </Button>
             ) : null}
+            </div>
+            {status !== "active" && memberships.length === 0 ? (
+              <p className="text-metadata text-on-surface-variant">
+                프로젝트 배정이 없는 계정은 아래 프로젝트와 역할을 선택한 뒤 활성화됩니다.
+              </p>
+            ) : null}
           </div>
 
-          <div className="space-y-sm">
+          <div className="space-y-sm rounded border border-outline-variant p-sm">
+            <p className="text-secondary font-medium text-on-surface">프로젝트 역할 관리</p>
             {projectControls}
             <Button
               size="sm"
@@ -171,8 +225,25 @@ export function MemberActions({ userId, status, projects, isCurrentUser }: Membe
                 )
               }
             >
-              프로젝트 역할 저장
+              {selectedMembership ? "역할 변경 저장" : "프로젝트에 추가"}
             </Button>
+            {selectedMembership ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="w-full"
+                disabled={isSubmitting || isCurrentUser}
+                onClick={() =>
+                  run(() =>
+                    deleteAction(`/api/admin/users/${userId}/project-members`, {
+                      projectId,
+                    }),
+                  )
+                }
+              >
+                프로젝트에서 해제
+              </Button>
+            ) : null}
           </div>
         </>
       )}

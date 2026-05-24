@@ -183,6 +183,13 @@ AI review UX refinement:
 - Improve local fallback review text, privacy detection, caption timing, and OpenAI response parsing
 - Confirm local fallback AI review API creates summary, privacy flags, captions, and BGM keywords
 - Confirm /admin/storybook renders the latest AI result, rerun action, and production build passes
+Member and project settings finalization:
+- Separate account status actions from project role management on /admin/members
+- Support changing an existing project role, adding another project role, and removing a project role
+- Keep activeProjectId aligned when a project role is removed
+- Improve /settings/project cards with active badge, role, storybook status, and project counts
+- Confirm signup, approval, role change, second project assignment, project role removal, active project switching, and inactive-user blocking
+- Confirm lint, typecheck, production build, and cleanup of isolated QA member/project data
 ```
 
 Current local super admin:
