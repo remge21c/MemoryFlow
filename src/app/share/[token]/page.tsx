@@ -1,10 +1,9 @@
-import { BookOpen, CalendarDays, Link2 } from "lucide-react";
+import { Link2 } from "lucide-react";
+import { StorybookPreview } from "@/components/storybook/storybook-preview";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { MediaPreview } from "@/components/media/media-preview";
 import { prisma } from "@/lib/db";
 import { hashShareToken } from "@/lib/share-links/token";
-import { formatDate } from "@/lib/utils";
 
 type SharePageProps = {
   params: Promise<{ token: string }>;
@@ -54,6 +53,7 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
                       id: true,
                       type: true,
                       memo: true,
+                      adminNote: true,
                       files: {
                         orderBy: { sortOrder: "asc" },
                         select: { id: true, fileType: true, mimeType: true },
@@ -81,29 +81,44 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
     return <InvalidLink />;
   }
 
-  const { project } = shareLink;
   const days = new Map<
     string,
     {
       id: string;
       dayNumber: number;
       title: string | null;
-      date: Date;
-      items: typeof storybook.items;
+      date: string;
+      uploads: {
+        id: string;
+        type: "photo" | "video";
+        memo: string | null;
+        adminNote: string | null;
+        files: { id: string; fileType: "image" | "video"; mimeType: string | null }[];
+        schedule: { id: string; time: string | null; title: string; location: string | null };
+      }[];
     }
   >();
 
   for (const item of storybook.items) {
+    const upload = {
+      id: item.upload.id,
+      type: item.upload.type,
+      memo: item.caption ?? item.upload.memo,
+      adminNote: item.caption ?? item.upload.adminNote,
+      files: item.upload.files,
+      schedule: item.schedule,
+    };
     const current = days.get(item.day.id);
+
     if (current) {
-      current.items.push(item);
+      current.uploads.push(upload);
     } else {
       days.set(item.day.id, {
         id: item.day.id,
         dayNumber: item.day.dayNumber,
         title: item.day.title,
-        date: item.day.date,
-        items: [item],
+        date: item.day.date.toISOString(),
+        uploads: [upload],
       });
     }
   }
@@ -119,7 +134,7 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
             <div className="min-w-0">
               <p className="truncate text-body font-semibold text-on-surface">MemoryFlow</p>
               <p className="truncate text-metadata text-on-surface-variant">
-                {project.name} / {project.orgName ?? "소속 없음"}
+                {shareLink.project.name} / {shareLink.project.orgName ?? "소속 없음"}
               </p>
             </div>
           </div>
@@ -129,82 +144,20 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
         </div>
       </header>
 
-      <article className="mx-auto max-w-5xl space-y-xl px-md py-xl">
-        <section className="space-y-sm">
-          <Badge className="border-primary bg-primary-fixed text-on-primary-fixed">
-            승인된 스토리북
-          </Badge>
-          <h1 className="korean-text text-major-title text-on-surface">
-            {storybook.title ?? `${project.name} 스토리북`}
-          </h1>
-          <p className="text-secondary text-on-surface-variant">
-            {formatDate(project.startDate)} - {formatDate(project.endDate)}
-          </p>
-          {storybook.openingText ? (
-            <p className="korean-text max-w-3xl text-body text-on-surface-variant">
-              {storybook.openingText}
-            </p>
-          ) : null}
-        </section>
-
-        {[...days.values()].map((day) => (
-          <section key={day.id} className="space-y-md">
-            <div className="flex items-start gap-md">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-primary bg-primary-fixed text-primary">
-                {day.dayNumber}
-              </div>
-              <div>
-                <p className="flex items-center gap-xs text-metadata text-primary">
-                  <CalendarDays className="h-4 w-4" />
-                  Day {day.dayNumber} · {formatDate(day.date)}
-                </p>
-                <h2 className="korean-text text-screen-title text-on-surface">
-                  {day.title ?? "여행 일정"}
-                </h2>
-              </div>
-            </div>
-
-            <div className="space-y-md sm:ml-14">
-              {day.items.map((item) => (
-                <Card key={item.id} className="overflow-hidden p-0">
-                  <MediaPreview
-                    files={item.upload.files}
-                    srcPrefix={`/api/share/${token}/media`}
-                    className="aspect-[16/9] rounded-none"
-                  />
-                  <div className="space-y-sm p-lg">
-                    <div className="flex flex-wrap items-center gap-xs">
-                      <Badge>{item.upload.type === "video" ? "영상" : "사진"}</Badge>
-                      <Badge>
-                        {item.schedule.time ? `${item.schedule.time} · ` : ""}
-                        {item.schedule.title}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-sm">
-                      <BookOpen className="h-5 w-5 text-primary" />
-                      <p className="text-section-title text-on-surface">
-                        {item.schedule.location ?? "기록"}
-                      </p>
-                    </div>
-                    <p className="korean-text text-body text-on-surface-variant">
-                      {item.caption ?? item.upload.memo ?? "메모 없음"}
-                    </p>
-                    <p className="text-metadata text-on-surface-variant">
-                      파일 {item.upload.files.length}개
-                    </p>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-        ))}
-
-        {storybook.closingText ? (
-          <Card>
-            <p className="korean-text text-body text-on-surface-variant">{storybook.closingText}</p>
-          </Card>
-        ) : null}
-      </article>
+      <div className="px-md py-xl">
+        <StorybookPreview
+          project={{
+            name: shareLink.project.name,
+            orgName: shareLink.project.orgName,
+            startDate: shareLink.project.startDate.toISOString(),
+            endDate: shareLink.project.endDate.toISOString(),
+          }}
+          storybook={storybook}
+          days={[...days.values()]}
+          mediaSrcPrefix={`/api/share/${token}/media`}
+          modeLabel="승인된 스토리북"
+        />
+      </div>
     </main>
   );
 }

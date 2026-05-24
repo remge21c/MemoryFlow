@@ -12,7 +12,8 @@ f6d4ae2 Add local upload foundation
 5181db2 Add storybook editing and approval flow
 b416e81 Add public storybook share links
 25964a8 Add protected and shared media streaming
-current Add upload edit and delete management
+5a8779f Add upload edit and delete management
+current Add storybook ordering and preview
 ```
 
 Verified:
@@ -50,6 +51,12 @@ Upload management smoke test:
 - Delete one upload file and confirm physical file removal
 - Soft delete upload
 - Clean up test upload folder
+Storybook ordering and preview smoke test:
+- Create two test uploads in the same schedule
+- Move the second upload upward
+- Confirm DB sort order changed
+- Confirm /admin/storybook/preview renders the reordered items
+- Clean up test uploads and files
 ```
 
 Current local super admin:

@@ -109,6 +109,7 @@ export default async function AdminStorybookPage() {
         memo: upload.memo,
         isInStorybook: upload.isInStorybook,
         adminNote: upload.adminNote,
+        sortOrder: upload.sortOrder,
         user: upload.user,
         files: upload.files,
       })),

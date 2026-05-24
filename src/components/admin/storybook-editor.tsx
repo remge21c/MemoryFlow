@@ -1,8 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Eye, EyeOff, Lock, Sparkles, Unlock } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  Lock,
+  Sparkles,
+  Unlock,
+} from "lucide-react";
 import { ShareLinkManager } from "@/components/admin/share-link-manager";
 import { MediaPreview } from "@/components/media/media-preview";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +25,7 @@ type Upload = {
   memo: string | null;
   isInStorybook: boolean;
   adminNote: string | null;
+  sortOrder: number;
   user: { name: string };
   files: { id: string; fileType: "image" | "video"; mimeType: string | null }[];
 };
@@ -149,6 +160,14 @@ export function StorybookEditor({
     );
   }
 
+  async function moveUpload(uploadId: string, direction: "up" | "down") {
+    await requestJson(
+      `/api/admin/projects/${projectId}/uploads/${uploadId}/order`,
+      "PATCH",
+      { direction },
+    );
+  }
+
   async function approve() {
     await saveMetadata();
     await requestJson(`/api/admin/projects/${projectId}/storybook/approve`, "POST");
@@ -165,13 +184,21 @@ export function StorybookEditor({
           <div>
             <h1 className="text-major-title text-on-surface">스토리북 편집</h1>
             <p className="text-secondary text-on-surface-variant">
-              업로드 기록을 정리하고 승인하면 이후 업로드가 읽기 전용으로 잠깁니다.
+              업로드 기록을 정리하고 순서를 조정한 뒤 최종 형태를 미리 확인합니다.
             </p>
           </div>
-          <Button variant="secondary" disabled>
-            <Sparkles className="h-4 w-4" />
-            AI 검수 준비 중
-          </Button>
+          <div className="flex flex-wrap gap-xs">
+            <Button asChild variant="secondary">
+              <Link href="/admin/storybook/preview">
+                <Eye className="h-4 w-4" />
+                미리보기
+              </Link>
+            </Button>
+            <Button variant="secondary" disabled>
+              <Sparkles className="h-4 w-4" />
+              AI 검수 준비 중
+            </Button>
+          </div>
         </div>
 
         <Card className="space-y-md">
@@ -221,7 +248,7 @@ export function StorybookEditor({
                 <div key={schedule.id} className="space-y-sm">
                   <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
                     <p className="text-secondary font-medium">
-                      {schedule.time ? `${schedule.time} · ` : ""}
+                      {schedule.time ? `${schedule.time} - ` : ""}
                       {schedule.title}
                     </p>
                     <p className="text-metadata text-on-surface-variant">
@@ -229,7 +256,7 @@ export function StorybookEditor({
                     </p>
                   </div>
 
-                  {schedule.uploads.map((upload) => {
+                  {schedule.uploads.map((upload, index) => {
                     const form = uploadForms[upload.id] ?? {
                       isInStorybook: upload.isInStorybook,
                       adminNote: upload.adminNote ?? "",
@@ -269,6 +296,26 @@ export function StorybookEditor({
                           />
                         </div>
                         <div className="flex flex-row gap-xs lg:flex-col">
+                          <Button
+                            variant="secondary"
+                            disabled={isSubmitting || isApproved || index === 0}
+                            onClick={() => run(() => moveUpload(upload.id, "up"))}
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                            위
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            disabled={
+                              isSubmitting ||
+                              isApproved ||
+                              index === schedule.uploads.length - 1
+                            }
+                            onClick={() => run(() => moveUpload(upload.id, "down"))}
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                            아래
+                          </Button>
                           <Button
                             variant={form.isInStorybook ? "secondary" : "primary"}
                             disabled={isSubmitting || isApproved}
@@ -316,7 +363,7 @@ export function StorybookEditor({
           <p className="mt-sm text-secondary text-on-surface-variant">
             {isApproved
               ? "승인 완료 상태입니다. 업로더의 추가 업로드와 수정이 잠깁니다."
-              : "승인 전입니다. 포함 여부와 캡션을 정리할 수 있습니다."}
+              : "승인 전입니다. 포함 여부, 캡션, 표시 순서를 정리할 수 있습니다."}
           </p>
           <div className="mt-md space-y-xs text-secondary text-on-surface-variant">
             <p>전체 업로드 {uploads.length}개</p>

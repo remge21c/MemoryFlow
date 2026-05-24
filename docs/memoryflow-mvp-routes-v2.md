@@ -70,6 +70,7 @@ MVP password reset is handled by super admin temporary password reset, so `/forg
 |---|---|---|
 | `/admin/schedules` | Project manager, super admin | Day and schedule management |
 | `/admin/storybook` | Project manager, super admin | Storybook edit/approve |
+| `/admin/storybook/preview` | Project manager, super admin | Preview storybook before approval |
 | `/admin/share-links` | Project manager, super admin | Create and manage share links |
 
 Project managers can create share links only for assigned projects and approved storybooks/videos allowed by policy.
@@ -168,6 +169,7 @@ Hash token
 | `GET` | `/api/projects/:projectId/storybook` | Get storybook |
 | `PATCH` | `/api/admin/projects/:projectId/storybook` | Edit storybook metadata |
 | `PATCH` | `/api/admin/projects/:projectId/uploads/:uploadId/storybook` | Update storybook include flag and admin caption |
+| `PATCH` | `/api/admin/projects/:projectId/uploads/:uploadId/order` | Move upload order within its schedule |
 | `POST` | `/api/admin/projects/:projectId/storybook/items` | Add item |
 | `PATCH` | `/api/admin/projects/:projectId/storybook/items/:itemId` | Update caption/order/visibility |
 | `POST` | `/api/admin/projects/:projectId/storybook/reorder` | Reorder items |
