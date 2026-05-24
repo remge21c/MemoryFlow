@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 import { BookOpen, CheckCircle2, Image as ImageIcon, Link2 } from "lucide-react";
 import { AppShell } from "@/components/app/app-shell";
-import { StorybookEditor } from "@/components/admin/storybook-editor";
+import {
+  StorybookEditor,
+  type AiReviewResult,
+} from "@/components/admin/storybook-editor";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -81,6 +84,19 @@ export default async function AdminStorybookPage() {
           creator: { select: { name: true } },
         },
       },
+      aiJobs: {
+        where: {
+          type: "storybook_review",
+          status: "completed",
+        },
+        orderBy: { completedAt: "desc" },
+        take: 1,
+        select: {
+          model: true,
+          resultJson: true,
+          completedAt: true,
+        },
+      },
     },
   });
 
@@ -125,6 +141,7 @@ export default async function AdminStorybookPage() {
   const activeShareLinks = project.shareLinks.filter(
     (shareLink) => shareLink.isActive && shareLink.expiresAt.getTime() > Date.now(),
   ).length;
+  const latestAiReview = project.aiJobs[0];
 
   return (
     <AppShell title="스토리북 승인" section="admin">
@@ -175,6 +192,15 @@ export default async function AdminStorybookPage() {
               approvedAt: storybook.approvedAt?.toISOString() ?? null,
             }}
             days={serializedDays}
+            initialAiReview={
+              latestAiReview
+                ? {
+                    model: latestAiReview.model,
+                    completedAt: latestAiReview.completedAt?.toISOString() ?? null,
+                    result: latestAiReview.resultJson as AiReviewResult,
+                  }
+                : null
+            }
             shareLinks={project.shareLinks.map((shareLink) => ({
               ...shareLink,
               expiresAt: shareLink.expiresAt.toISOString(),

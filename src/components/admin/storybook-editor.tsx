@@ -6,11 +6,15 @@ import { useRouter } from "next/navigation";
 import {
   ArrowDown,
   ArrowUp,
+  AlertTriangle,
   CheckCircle2,
+  Clock3,
   Eye,
   EyeOff,
   FileText,
   Lock,
+  Music2,
+  ShieldCheck,
   Sparkles,
   Unlock,
 } from "lucide-react";
@@ -67,13 +71,25 @@ type StorybookEditorProps = {
   };
   days: Day[];
   shareLinks: ShareLink[];
+  initialAiReview: {
+    model: string | null;
+    completedAt: string | null;
+    result: AiReviewResult | null;
+  } | null;
 };
 
-type AiReviewResult = {
+export type AiReviewResult = {
   summary?: string;
   privacyFlags?: string[];
   captionDrafts?: { scheduleTitle: string; caption: string; seconds: number }[];
   bgmKeywords?: string[];
+};
+
+type AiReviewResponse = {
+  aiJob?: {
+    model?: string | null;
+    resultJson?: AiReviewResult;
+  };
 };
 
 const inputClass =
@@ -100,6 +116,7 @@ export function StorybookEditor({
   storybook,
   days,
   shareLinks,
+  initialAiReview,
 }: StorybookEditorProps) {
   const router = useRouter();
   const isApproved = storybook.status === "approved";
@@ -124,7 +141,15 @@ export function StorybookEditor({
     ),
   );
   const [error, setError] = useState<string | null>(null);
-  const [aiReview, setAiReview] = useState<AiReviewResult | null>(null);
+  const [aiReview, setAiReview] = useState<AiReviewResult | null>(
+    initialAiReview?.result ?? null,
+  );
+  const [aiReviewModel, setAiReviewModel] = useState<string | null>(
+    initialAiReview?.model ?? null,
+  );
+  const [aiReviewRanAt, setAiReviewRanAt] = useState<string | null>(
+    initialAiReview?.completedAt ?? null,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const uploads = useMemo(
@@ -137,6 +162,9 @@ export function StorybookEditor({
   ).length;
   const hasRequiredText = title.trim().length > 0 && openingText.trim().length > 0;
   const canApprove = includedCount > 0 && hasRequiredText;
+  const aiPrivacyFlagCount = aiReview?.privacyFlags?.length ?? 0;
+  const aiCaptionDraftCount = aiReview?.captionDrafts?.length ?? 0;
+  const aiBgmKeywordCount = aiReview?.bgmKeywords?.length ?? 0;
 
   function setUploadForm(
     uploadId: string,
@@ -198,9 +226,11 @@ export function StorybookEditor({
     const data = (await requestJson(
       `/api/admin/projects/${projectId}/ai/storybook-review`,
       "POST",
-    )) as { aiJob?: { resultJson?: AiReviewResult } } | null;
+    )) as AiReviewResponse | null;
 
     setAiReview(data?.aiJob?.resultJson ?? null);
+    setAiReviewModel(data?.aiJob?.model ?? null);
+    setAiReviewRanAt(new Date().toISOString());
   }
 
   return (
@@ -455,57 +485,144 @@ export function StorybookEditor({
           {error ? <p className="mt-sm text-secondary text-error">{error}</p> : null}
         </Card>
 
-        <Card>
-          <div className="flex items-center gap-sm">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h2 className="text-section-title text-on-surface">AI 검수</h2>
+        <Card className="space-y-md">
+          <div className="flex items-start gap-sm">
+            <Sparkles className="mt-1 h-5 w-5 text-primary" />
+            <div>
+              <h2 className="text-section-title text-on-surface">AI 검수</h2>
+              <p className="mt-xs text-secondary text-on-surface-variant">
+                승인 전 메모 요약, 민감정보 의심 문구, 영상 자막 초안, BGM 키워드를 한 번에
+                확인합니다.
+              </p>
+            </div>
           </div>
-          <p className="mt-sm text-secondary text-on-surface-variant">
-            슈퍼관리자 전용으로 메모 요약, 민감정보 의심 문구, 영상 자막 초안을 검토합니다.
-          </p>
+
+          <div className="grid gap-xs">
+            <ChecklistItem checked={Boolean(aiReview)} label="AI 검수 결과 확인" />
+            <ChecklistItem checked={aiPrivacyFlagCount === 0 && Boolean(aiReview)} label="민감정보 경고 확인" />
+            <ChecklistItem checked={aiCaptionDraftCount > 0} label="영상 자막 후보 생성" />
+            <ChecklistItem checked={aiBgmKeywordCount > 0} label="BGM 키워드 생성" />
+          </div>
+
+          {!isSuperAdmin ? (
+            <p className="rounded border border-outline-variant bg-surface-container-lowest p-sm text-secondary text-on-surface-variant">
+              AI 검수는 슈퍼관리자 전용입니다. 프로젝트 관리자는 직접 편집과 승인만 진행할 수 있습니다.
+            </p>
+          ) : null}
+
           <Button
-            className="mt-md w-full"
+            className="w-full"
             variant="secondary"
             disabled={!isSuperAdmin || isSubmitting || uploads.length === 0}
             onClick={() => run(runAiReview)}
           >
             <Sparkles className="h-4 w-4" />
-            AI 검수 실행
+            {aiReview ? "AI 검수 다시 실행" : "AI 검수 실행"}
           </Button>
+
           {aiReview ? (
-            <div className="mt-md space-y-sm rounded border border-outline-variant bg-surface-container-lowest p-sm">
-              <div>
-                <p className="text-metadata text-on-surface-variant">요약</p>
-                <p className="text-secondary text-on-surface">{aiReview.summary}</p>
-              </div>
-              <div>
-                <p className="text-metadata text-on-surface-variant">민감정보 의심</p>
-                <p className="text-secondary text-on-surface">
-                  {aiReview.privacyFlags?.length
-                    ? aiReview.privacyFlags.join(" / ")
-                    : "의심 문구 없음"}
+            <div className="space-y-sm">
+              <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
+                <div className="flex flex-wrap items-center gap-xs">
+                  <Badge className="border-primary text-primary">
+                    {aiReviewModel?.includes("fallback") ? "로컬 검수" : "AI 검수"}
+                  </Badge>
+                  {aiReviewModel ? <Badge>{aiReviewModel}</Badge> : null}
+                  {aiReviewRanAt ? (
+                    <Badge>{new Date(aiReviewRanAt).toLocaleTimeString("ko-KR")}</Badge>
+                  ) : null}
+                </div>
+                <p className="mt-sm text-metadata text-on-surface-variant">요약</p>
+                <p className="mt-xs text-secondary text-on-surface">
+                  {aiReview.summary ?? "요약 결과가 없습니다."}
                 </p>
               </div>
-              <div>
-                <p className="text-metadata text-on-surface-variant">자막 초안</p>
+
+              <div
+                className={`rounded border p-sm ${
+                  aiPrivacyFlagCount > 0
+                    ? "border-error bg-error-container text-on-error-container"
+                    : "border-outline-variant bg-surface-container-lowest"
+                }`}
+              >
+                <div className="flex items-center gap-xs">
+                  {aiPrivacyFlagCount > 0 ? (
+                    <AlertTriangle className="h-4 w-4" />
+                  ) : (
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                  )}
+                  <p className="text-metadata">
+                    민감정보 의심 {aiPrivacyFlagCount > 0 ? `${aiPrivacyFlagCount}건` : "없음"}
+                  </p>
+                </div>
                 <div className="mt-xs space-y-xs">
-                  {(aiReview.captionDrafts ?? []).slice(0, 3).map((draft) => (
-                    <p key={`${draft.scheduleTitle}-${draft.seconds}`} className="text-secondary">
-                      {draft.seconds}s · {draft.scheduleTitle}: {draft.caption}
+                  {aiPrivacyFlagCount > 0 ? (
+                    aiReview.privacyFlags?.map((flag) => (
+                      <p key={flag} className="text-secondary">
+                        {flag}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="text-secondary text-on-surface-variant">
+                      전화번호, 이메일, 여권, 카드, 비밀번호처럼 보이는 문구가 발견되지 않았습니다.
                     </p>
-                  ))}
+                  )}
                 </div>
               </div>
-              <div>
-                <p className="text-metadata text-on-surface-variant">BGM 키워드</p>
+
+              <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
+                <div className="flex items-center gap-xs">
+                  <Clock3 className="h-4 w-4 text-primary" />
+                  <p className="text-metadata text-on-surface-variant">
+                    영상 자막 후보 {aiCaptionDraftCount}개
+                  </p>
+                </div>
+                <div className="mt-sm space-y-xs">
+                  {(aiReview.captionDrafts ?? []).slice(0, 5).map((draft) => (
+                    <div
+                      key={`${draft.scheduleTitle}-${draft.seconds}-${draft.caption}`}
+                      className="rounded border border-outline-variant bg-surface p-xs"
+                    >
+                      <div className="flex flex-wrap items-center gap-xs">
+                        <Badge>{draft.seconds}s</Badge>
+                        <p className="text-metadata text-on-surface-variant">
+                          {draft.scheduleTitle}
+                        </p>
+                      </div>
+                      <p className="mt-xs text-secondary text-on-surface">{draft.caption}</p>
+                    </div>
+                  ))}
+                  {aiCaptionDraftCount === 0 ? (
+                    <p className="text-secondary text-on-surface-variant">
+                      자막 후보를 만들 메모가 부족합니다.
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
+                <div className="flex items-center gap-xs">
+                  <Music2 className="h-4 w-4 text-primary" />
+                  <p className="text-metadata text-on-surface-variant">BGM 키워드</p>
+                </div>
                 <div className="mt-xs flex flex-wrap gap-xs">
                   {(aiReview.bgmKeywords ?? []).map((keyword) => (
                     <Badge key={keyword}>{keyword}</Badge>
                   ))}
+                  {aiBgmKeywordCount === 0 ? (
+                    <p className="text-secondary text-on-surface-variant">
+                      추천 키워드가 없습니다.
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </div>
-          ) : null}
+          ) : (
+            <p className="text-metadata text-on-surface-variant">
+              API 키가 없어도 로컬 검수 결과로 UX를 확인할 수 있고, 운영 환경에서
+              OPENAI_API_KEY를 설정하면 실제 AI 검수 결과가 표시됩니다.
+            </p>
+          )}
         </Card>
 
         <ShareLinkManager

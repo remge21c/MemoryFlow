@@ -177,6 +177,12 @@ Gallery flow finalization:
 - Confirm final WebM upload, authenticated range streaming, public share range streaming, and share page video player
 - Generate and download HTML, PDF, and DOC outputs from an approved storybook
 - Confirm lint, typecheck, production build, and cleanup of isolated QA project/media/output data
+AI review UX refinement:
+- Convert AI review from plain text output into approval-readiness cards for summary, privacy warnings, caption drafts, and BGM keywords
+- Persist and reload the latest completed AI review result on /admin/storybook
+- Improve local fallback review text, privacy detection, caption timing, and OpenAI response parsing
+- Confirm local fallback AI review API creates summary, privacy flags, captions, and BGM keywords
+- Confirm /admin/storybook renders the latest AI result, rerun action, and production build passes
 ```
 
 Current local super admin:
