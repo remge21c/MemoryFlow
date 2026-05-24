@@ -64,6 +64,18 @@ export default async function AdminStorybookPage() {
           },
         },
       },
+      shareLinks: {
+        where: { type: "storybook" },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          isActive: true,
+          expiresAt: true,
+          createdAt: true,
+          disabledAt: true,
+          creator: { select: { name: true } },
+        },
+      },
     },
   });
 
@@ -117,6 +129,12 @@ export default async function AdminStorybookPage() {
             approvedAt: storybook.approvedAt?.toISOString() ?? null,
           }}
           days={serializedDays}
+          shareLinks={project.shareLinks.map((shareLink) => ({
+            ...shareLink,
+            expiresAt: shareLink.expiresAt.toISOString(),
+            createdAt: shareLink.createdAt.toISOString(),
+            disabledAt: shareLink.disabledAt?.toISOString() ?? null,
+          }))}
         />
       ) : (
         <Card>

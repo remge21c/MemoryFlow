@@ -29,10 +29,14 @@ function isPublicApi(pathname: string) {
   );
 }
 
+function isPublicSharePath(pathname: string) {
+  return pathname.startsWith("/share/");
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (isPublicAsset(pathname) || isPublicApi(pathname)) {
+  if (isPublicAsset(pathname) || isPublicApi(pathname) || isPublicSharePath(pathname)) {
     return NextResponse.next();
   }
 

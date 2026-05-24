@@ -9,7 +9,8 @@ a8de1de Add super admin project management
 3e2d53c Add admin schedule management
 a3b9524 Connect core pages to project data
 f6d4ae2 Add local upload foundation
-current Add storybook editing and approval flow
+5181db2 Add storybook editing and approval flow
+current Add public storybook share links
 ```
 
 Verified:
@@ -27,6 +28,14 @@ Storybook approval smoke test:
 - Confirm upload API is locked with 409
 - Unlock storybook
 - Clean up test upload/file/storybook item
+Share link smoke test:
+- Create test upload
+- Approve storybook
+- Issue 30-day share link
+- Confirm /share/:token renders without login
+- Disable link
+- Confirm disabled token no longer renders the storybook
+- Clean up test upload/file/storybook item/share link
 ```
 
 Current local super admin:

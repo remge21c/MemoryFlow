@@ -215,7 +215,7 @@ Hash token
 |---|---|---|
 | `GET` | `/api/admin/projects/:projectId/share-links` | List share links |
 | `POST` | `/api/admin/projects/:projectId/share-links` | Create share link |
-| `PATCH` | `/api/admin/projects/:projectId/share-links/:shareLinkId` | Disable/extend share link |
+| `PATCH` | `/api/admin/projects/:projectId/share-links/:shareLinkId` | Disable share link |
 | `GET` | `/api/share/:token` | Public share data |
 
 ### Media API

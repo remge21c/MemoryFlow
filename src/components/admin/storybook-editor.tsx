@@ -6,6 +6,7 @@ import { CheckCircle2, Eye, EyeOff, Lock, Sparkles, Unlock } from "lucide-react"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ShareLinkManager } from "@/components/admin/share-link-manager";
 
 type Upload = {
   id: string;
@@ -43,6 +44,14 @@ type StorybookEditorProps = {
     approvedAt: string | null;
   };
   days: Day[];
+  shareLinks: {
+    id: string;
+    isActive: boolean;
+    expiresAt: string;
+    createdAt: string;
+    disabledAt: string | null;
+    creator?: { name: string } | null;
+  }[];
 };
 
 const inputClass =
@@ -68,6 +77,7 @@ export function StorybookEditor({
   isSuperAdmin,
   storybook,
   days,
+  shareLinks,
 }: StorybookEditorProps) {
   const router = useRouter();
   const isApproved = storybook.status === "approved";
@@ -337,6 +347,12 @@ export function StorybookEditor({
             AI 검수는 다음 단계에서 슈퍼어드민 전용 Codex CLI Worker로 연결합니다.
           </p>
         </Card>
+
+        <ShareLinkManager
+          projectId={projectId}
+          isApproved={isApproved}
+          initialShareLinks={shareLinks}
+        />
       </aside>
     </div>
   );
