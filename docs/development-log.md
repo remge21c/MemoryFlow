@@ -16,6 +16,7 @@ b416e81 Add public storybook share links
 current Add storybook ordering and preview
 current Add account management and approval assignment flow
 current Add admin permission boundaries
+current Tighten first-use role UX
 ```
 
 Verified:
@@ -76,6 +77,15 @@ Admin permission matrix smoke test:
 - Uploader does not see admin links
 - Uploader is redirected from all /admin pages to /forbidden
 - Temporary test users are removed after verification
+First-use role flow smoke test:
+- Sign up temporary users and confirm pending users redirect to /pending
+- Approve one user as uploader and one as project manager
+- Confirm uploader lands on dashboard with upload entry and can create a small test upload
+- Confirm uploader is blocked from admin pages
+- Confirm project manager sees admin schedule entry but no upload nav/CTA
+- Confirm project manager can access schedules/storybook and is blocked from member management
+- Confirm project manager /upload page does not expose file controls
+- Browser smoke test confirms uploader and project manager mobile UX
 ```
 
 Current local super admin:

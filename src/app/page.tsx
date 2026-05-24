@@ -22,8 +22,9 @@ function projectProgress(startDate: Date, endDate: Date) {
 
 export default async function HomePage() {
   const currentUser = await getCurrentUser();
-  const project = currentUser?.activeProjectId
-    ? await prisma.project.findUnique({
+  const [project, membership] = currentUser?.activeProjectId
+    ? await Promise.all([
+        prisma.project.findUnique({
         where: { id: currentUser.activeProjectId },
         include: {
           days: {
@@ -55,8 +56,17 @@ export default async function HomePage() {
             take: 1,
           },
         },
-      })
-    : null;
+        }),
+        prisma.projectMember.findFirst({
+          where: {
+            projectId: currentUser.activeProjectId,
+            userId: currentUser.id,
+            status: "active",
+          },
+          select: { role: true },
+        }),
+      ])
+    : [null, null];
 
   if (!project) {
     return (
@@ -75,6 +85,8 @@ export default async function HomePage() {
   }
 
   const progress = projectProgress(project.startDate, project.endDate);
+  const canUpload =
+    currentUser?.globalRole === "super_admin" || membership?.role === "uploader";
   const nextSchedule =
     project.days.flatMap((day) =>
       day.schedules.map((schedule) => ({
@@ -98,12 +110,14 @@ export default async function HomePage() {
                   {formatDate(project.startDate)} - {formatDate(project.endDate)}
                 </p>
               </div>
-              <Button asChild className="self-start">
-                <Link href="/upload">
-                  새 업로드
-                  <Plus className="h-4 w-4" />
-                </Link>
-              </Button>
+              {canUpload ? (
+                <Button asChild className="self-start">
+                  <Link href="/upload">
+                    새 업로드
+                    <Plus className="h-4 w-4" />
+                  </Link>
+                </Button>
+              ) : null}
             </div>
 
             <div className="mt-xl">

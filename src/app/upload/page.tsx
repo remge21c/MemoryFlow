@@ -9,8 +9,9 @@ import { prisma } from "@/lib/db";
 
 export default async function UploadPage() {
   const currentUser = await getCurrentUser();
-  const project = currentUser?.activeProjectId
-    ? await prisma.project.findUnique({
+  const [project, membership] = currentUser?.activeProjectId
+    ? await Promise.all([
+        prisma.project.findUnique({
         where: { id: currentUser.activeProjectId },
         include: {
           storybook: { select: { status: true } },
@@ -36,8 +37,17 @@ export default async function UploadPage() {
             },
           },
         },
-      })
-    : null;
+        }),
+        prisma.projectMember.findFirst({
+          where: {
+            projectId: currentUser.activeProjectId,
+            userId: currentUser.id,
+            status: "active",
+          },
+          select: { role: true },
+        }),
+      ])
+    : [null, null];
 
   const serializedDays =
     project?.days.map((day) => ({
@@ -61,6 +71,8 @@ export default async function UploadPage() {
     })) ?? [];
 
   const isLocked = project?.storybook?.status === "approved";
+  const canUpload =
+    currentUser?.globalRole === "super_admin" || membership?.role === "uploader";
 
   return (
     <AppShell title="업로드">
@@ -82,8 +94,16 @@ export default async function UploadPage() {
           </div>
         </section>
 
-        {project ? (
+        {project && canUpload ? (
           <UploadManager days={serializedDays} isLocked={Boolean(isLocked)} />
+        ) : project ? (
+          <Card>
+            <h2 className="text-section-title text-on-surface">업로드 권한이 없습니다</h2>
+            <p className="mt-xs text-secondary text-on-surface-variant">
+              프로젝트 관리자는 일정과 스토리북을 정리할 수 있지만 사진/영상 업로드는 할 수
+              없습니다. 업로드가 필요하면 슈퍼관리자에게 업로더 역할을 요청해 주세요.
+            </p>
+          </Card>
         ) : (
           <Card>
             <p className="text-secondary text-on-surface-variant">
@@ -92,7 +112,7 @@ export default async function UploadPage() {
           </Card>
         )}
 
-        {project ? (
+        {project && canUpload ? (
           <UploadListManager
             days={serializedDays}
             uploads={serializedUploads}

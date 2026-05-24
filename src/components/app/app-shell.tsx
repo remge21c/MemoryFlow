@@ -62,6 +62,32 @@ async function getAdminStartPath(user: {
   return managerMembership ? "/admin/schedules" : null;
 }
 
+async function canUseUpload(user: {
+  id: string;
+  globalRole: "super_admin" | null;
+  activeProjectId: string | null;
+}) {
+  if (user.globalRole === "super_admin") {
+    return true;
+  }
+
+  if (!user.activeProjectId) {
+    return false;
+  }
+
+  const uploaderMembership = await prisma.projectMember.findFirst({
+    where: {
+      userId: user.id,
+      projectId: user.activeProjectId,
+      role: "uploader",
+      status: "active",
+    },
+    select: { id: true },
+  });
+
+  return Boolean(uploaderMembership);
+}
+
 export async function AppShell({
   children,
   title,
@@ -84,12 +110,16 @@ export async function AppShell({
   }
 
   const adminStartPath = await getAdminStartPath(currentUser);
+  const uploadAllowed = await canUseUpload(currentUser);
+  const visibleUserNav = uploadAllowed
+    ? userNav
+    : userNav.filter((item) => item.href !== "/upload");
   const navItems =
     section === "admin"
       ? adminNav.filter((item) => currentUser.globalRole === "super_admin" || !item.superAdminOnly)
       : adminStartPath
-        ? [...userNav, { label: "관리자", href: adminStartPath, icon: ShieldCheck }]
-        : userNav;
+        ? [...visibleUserNav, { label: "관리자", href: adminStartPath, icon: ShieldCheck }]
+        : visibleUserNav;
   const activeProject = await getActiveProjectSummary(currentUser);
   const activeProjectName = activeProject?.name ?? "활성 프로젝트 없음";
   const activeProjectOrg = activeProject?.orgName ?? "프로젝트 설정에서 선택";
