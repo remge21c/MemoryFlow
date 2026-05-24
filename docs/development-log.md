@@ -162,6 +162,14 @@ Operations readiness:
 - Add .env.production.example, deploy script, backup script, and operations guide
 - Validate docker compose production config with required env vars
 - Confirm lint, typecheck, and production build pass after operations files are added
+Full-screen role QA:
+- Create isolated QA project, manager account, uploader account, Day schedule, and local media upload
+- Confirm super admin can access dashboard, upload, storybook, project/member/schedule/storybook/gallery admin screens
+- Confirm project manager can access schedule/storybook admin screens only and cannot use media upload
+- Confirm uploader can upload media, has no admin entry, and is blocked from admin storybook
+- Approve storybook, confirm new uploader uploads are locked with 409, and issue a 30-day share link
+- Confirm public share page renders media without login, exposes no admin entry, and invalid token renders no media
+- Clean up isolated QA project, users, upload, and share link
 ```
 
 Current local super admin:
