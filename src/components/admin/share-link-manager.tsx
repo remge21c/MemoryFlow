@@ -42,12 +42,14 @@ export function ShareLinkManager({
   const router = useRouter();
   const [expiresInDays, setExpiresInDays] = useState(30);
   const [newLink, setNewLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function createLink() {
     setError(null);
     setNewLink(null);
+    setCopied(false);
     setIsSubmitting(true);
 
     try {
@@ -101,6 +103,7 @@ export function ShareLinkManager({
   async function copyNewLink() {
     if (!newLink) return;
     await navigator.clipboard.writeText(newLink);
+    setCopied(true);
   }
 
   return (
@@ -110,7 +113,7 @@ export function ShareLinkManager({
         <h2 className="text-section-title text-on-surface">공유 링크</h2>
       </div>
       <p className="mt-sm text-secondary text-on-surface-variant">
-        승인된 스토리북을 외부에서 로그인 없이 읽기 전용으로 볼 수 있습니다.
+        승인된 스토리북을 로그인 없이 읽기 전용으로 볼 수 있는 링크를 발급합니다.
       </p>
 
       <div className="mt-md flex gap-xs">
@@ -142,7 +145,7 @@ export function ShareLinkManager({
           <p className="break-all text-secondary text-on-surface">{newLink}</p>
           <Button className="mt-sm" size="sm" variant="secondary" onClick={copyNewLink}>
             <Copy className="h-4 w-4" />
-            복사
+            {copied ? "복사됨" : "복사"}
           </Button>
         </div>
       ) : null}
@@ -189,7 +192,9 @@ export function ShareLinkManager({
           );
         })}
         {initialShareLinks.length === 0 ? (
-          <p className="text-secondary text-on-surface-variant">아직 발급된 링크가 없습니다.</p>
+          <p className="text-secondary text-on-surface-variant">
+            아직 발급된 링크가 없습니다.
+          </p>
         ) : null}
       </div>
 

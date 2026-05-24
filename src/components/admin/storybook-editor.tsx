@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowDown,
@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  FileText,
   Lock,
   Sparkles,
   Unlock,
@@ -118,8 +119,16 @@ export function StorybookEditor({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const uploads = days.flatMap((day) => day.schedules.flatMap((schedule) => schedule.uploads));
+  const uploads = useMemo(
+    () => days.flatMap((day) => day.schedules.flatMap((schedule) => schedule.uploads)),
+    [days],
+  );
   const includedCount = Object.values(uploadForms).filter((form) => form.isInStorybook).length;
+  const captionedCount = Object.values(uploadForms).filter(
+    (form) => form.isInStorybook && form.adminNote.trim().length > 0,
+  ).length;
+  const hasRequiredText = title.trim().length > 0 && openingText.trim().length > 0;
+  const canApprove = includedCount > 0 && hasRequiredText;
 
   function setUploadForm(
     uploadId: string,
@@ -180,173 +189,201 @@ export function StorybookEditor({
   return (
     <div className="grid gap-lg lg:grid-cols-[1fr_360px]">
       <section className="space-y-md">
-        <div className="flex flex-col gap-md sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-major-title text-on-surface">스토리북 편집</h1>
-            <p className="text-secondary text-on-surface-variant">
-              업로드 기록을 정리하고 순서를 조정한 뒤 최종 형태를 미리 확인합니다.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-xs">
+        <Card className="space-y-md">
+          <div className="flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start gap-sm">
+              <FileText className="mt-1 h-5 w-5 text-primary" />
+              <div>
+                <h2 className="text-section-title text-on-surface">스토리북 문구</h2>
+                <p className="mt-xs text-secondary text-on-surface-variant">
+                  최종 공유 페이지와 이후 PDF/영상 패키지의 기본 문구로 사용됩니다.
+                </p>
+              </div>
+            </div>
             <Button asChild variant="secondary">
               <Link href="/admin/storybook/preview">
                 <Eye className="h-4 w-4" />
-                미리보기
+                승인 전 미리보기
               </Link>
             </Button>
-            <Button variant="secondary" disabled>
-              <Sparkles className="h-4 w-4" />
-              AI 검수 준비 중
-            </Button>
           </div>
-        </div>
 
-        <Card className="space-y-md">
-          <div>
-            <h2 className="text-section-title text-on-surface">스토리북 문구</h2>
-            <p className="text-secondary text-on-surface-variant">
-              최종 공유 페이지와 PDF/VideoFlow 패키지의 기본 문구로 사용됩니다.
-            </p>
-          </div>
-          <input
-            className={`${inputClass} w-full`}
-            value={title}
-            disabled={isApproved}
-            placeholder="스토리북 제목"
-            onChange={(event) => setTitle(event.target.value)}
-          />
-          <textarea
-            className={`${inputClass} min-h-28 w-full resize-y`}
-            value={openingText}
-            disabled={isApproved}
-            placeholder="오프닝 문구"
-            onChange={(event) => setOpeningText(event.target.value)}
-          />
-          <textarea
-            className={`${inputClass} min-h-28 w-full resize-y`}
-            value={closingText}
-            disabled={isApproved}
-            placeholder="클로징 문구"
-            onChange={(event) => setClosingText(event.target.value)}
-          />
+          <label className="grid gap-xs">
+            <span className="text-metadata text-on-surface-variant">스토리북 제목</span>
+            <input
+              className={`${inputClass} w-full`}
+              value={title}
+              disabled={isApproved}
+              placeholder="예: 비 오는 교토에서 완성한 가족의 4일"
+              onChange={(event) => setTitle(event.target.value)}
+            />
+          </label>
+          <label className="grid gap-xs">
+            <span className="text-metadata text-on-surface-variant">오프닝 문구</span>
+            <textarea
+              className={`${inputClass} min-h-24 w-full resize-y`}
+              value={openingText}
+              disabled={isApproved}
+              placeholder="여행을 시작하는 짧은 소개 문구"
+              onChange={(event) => setOpeningText(event.target.value)}
+            />
+          </label>
+          <label className="grid gap-xs">
+            <span className="text-metadata text-on-surface-variant">클로징 문구</span>
+            <textarea
+              className={`${inputClass} min-h-24 w-full resize-y`}
+              value={closingText}
+              disabled={isApproved}
+              placeholder="여행을 마무리하는 문구"
+              onChange={(event) => setClosingText(event.target.value)}
+            />
+          </label>
           <Button disabled={isSubmitting || isApproved} onClick={() => run(saveMetadata)}>
             문구 저장
           </Button>
         </Card>
 
         <div className="space-y-md">
-          {days.map((day) => (
-            <Card key={day.id} className="space-y-md">
-              <div>
-                <p className="text-metadata text-primary">Day {day.dayNumber}</p>
-                <h2 className="text-section-title text-on-surface">
-                  {day.title ?? "여행 일정"}
-                </h2>
-              </div>
+          {days.map((day) => {
+            const dayUploads = day.schedules.flatMap((schedule) => schedule.uploads);
+            const dayIncluded = dayUploads.filter(
+              (upload) => uploadForms[upload.id]?.isInStorybook,
+            ).length;
 
-              {day.schedules.map((schedule) => (
-                <div key={schedule.id} className="space-y-sm">
-                  <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
-                    <p className="text-secondary font-medium">
-                      {schedule.time ? `${schedule.time} - ` : ""}
-                      {schedule.title}
-                    </p>
-                    <p className="text-metadata text-on-surface-variant">
-                      {schedule.location ?? "장소 미정"}
-                    </p>
+            return (
+              <Card key={day.id} className="space-y-md">
+                <div className="flex flex-col gap-sm sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-xs">
+                      <Badge className="border-primary text-primary">Day {day.dayNumber}</Badge>
+                      <Badge>
+                        포함 {dayIncluded}/{dayUploads.length}
+                      </Badge>
+                    </div>
+                    <h2 className="mt-sm text-section-title text-on-surface">
+                      {day.title ?? "여행 일정"}
+                    </h2>
                   </div>
+                </div>
 
-                  {schedule.uploads.map((upload, index) => {
-                    const form = uploadForms[upload.id] ?? {
-                      isInStorybook: upload.isInStorybook,
-                      adminNote: upload.adminNote ?? "",
-                    };
+                {day.schedules.map((schedule) => (
+                  <div key={schedule.id} className="space-y-sm">
+                    <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
+                      <p className="text-secondary font-medium">
+                        {schedule.time ? `${schedule.time} - ` : ""}
+                        {schedule.title}
+                      </p>
+                      <p className="text-metadata text-on-surface-variant">
+                        {schedule.location ?? "장소 미정"} · 업로드 {schedule.uploads.length}개
+                      </p>
+                    </div>
 
-                    return (
-                      <div
-                        key={upload.id}
-                        className="grid gap-sm rounded border border-outline-variant p-sm lg:grid-cols-[72px_1fr_auto]"
-                      >
-                        <MediaPreview files={upload.files} compact />
-                        <div className="min-w-0 space-y-xs">
-                          <div className="flex flex-wrap items-center gap-xs">
-                            <Badge>{upload.type === "video" ? "영상" : "사진"}</Badge>
-                            <Badge>{upload.user.name}</Badge>
-                            <Badge
-                              className={
-                                form.isInStorybook
-                                  ? "border-primary bg-primary-fixed text-on-primary-fixed"
-                                  : ""
+                    {schedule.uploads.length === 0 ? (
+                      <p className="rounded border border-dashed border-outline-variant p-sm text-secondary text-on-surface-variant">
+                        이 세부일정에는 아직 업로드가 없습니다.
+                      </p>
+                    ) : null}
+
+                    {schedule.uploads.map((upload, index) => {
+                      const form = uploadForms[upload.id] ?? {
+                        isInStorybook: upload.isInStorybook,
+                        adminNote: upload.adminNote ?? "",
+                      };
+
+                      return (
+                        <div
+                          key={upload.id}
+                          className={`grid gap-sm rounded border p-sm lg:grid-cols-[88px_1fr_auto] ${
+                            form.isInStorybook
+                              ? "border-outline-variant"
+                              : "border-dashed border-outline-variant bg-surface-container-low"
+                          }`}
+                        >
+                          <MediaPreview files={upload.files} compact />
+                          <div className="min-w-0 space-y-xs">
+                            <div className="flex flex-wrap items-center gap-xs">
+                              <Badge>{upload.type === "video" ? "영상" : "사진"}</Badge>
+                              <Badge>{upload.user.name}</Badge>
+                              <Badge
+                                className={
+                                  form.isInStorybook
+                                    ? "border-primary bg-primary-fixed text-on-primary-fixed"
+                                    : ""
+                                }
+                              >
+                                {form.isInStorybook ? "포함" : "제외"}
+                              </Badge>
+                            </div>
+                            <p className="line-clamp-2 text-secondary text-on-surface-variant">
+                              {upload.memo ?? "업로더 메모 없음"}
+                            </p>
+                            <textarea
+                              className={`${inputClass} min-h-20 w-full resize-y`}
+                              disabled={isApproved}
+                              placeholder="관리자 캡션 또는 정리 메모"
+                              value={form.adminNote}
+                              onChange={(event) =>
+                                setUploadForm(upload.id, { adminNote: event.target.value })
+                              }
+                            />
+                          </div>
+                          <div className="flex flex-row flex-wrap gap-xs lg:w-28 lg:flex-col">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              disabled={isSubmitting || isApproved || index === 0}
+                              onClick={() => run(() => moveUpload(upload.id, "up"))}
+                            >
+                              <ArrowUp className="h-4 w-4" />
+                              위
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              disabled={
+                                isSubmitting ||
+                                isApproved ||
+                                index === schedule.uploads.length - 1
+                              }
+                              onClick={() => run(() => moveUpload(upload.id, "down"))}
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                              아래
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={form.isInStorybook ? "secondary" : "primary"}
+                              disabled={isSubmitting || isApproved}
+                              onClick={() =>
+                                setUploadForm(upload.id, {
+                                  isInStorybook: !form.isInStorybook,
+                                })
                               }
                             >
-                              {form.isInStorybook ? "포함" : "제외"}
-                            </Badge>
+                              {form.isInStorybook ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                              {form.isInStorybook ? "제외" : "포함"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              disabled={isSubmitting || isApproved}
+                              onClick={() => run(() => saveUpload(upload.id))}
+                            >
+                              저장
+                            </Button>
                           </div>
-                          <p className="line-clamp-2 text-secondary text-on-surface-variant">
-                            {upload.memo ?? "메모 없음"}
-                          </p>
-                          <textarea
-                            className={`${inputClass} min-h-20 w-full resize-y`}
-                            disabled={isApproved}
-                            placeholder="관리자 캡션 또는 정리 메모"
-                            value={form.adminNote}
-                            onChange={(event) =>
-                              setUploadForm(upload.id, { adminNote: event.target.value })
-                            }
-                          />
                         </div>
-                        <div className="flex flex-row gap-xs lg:flex-col">
-                          <Button
-                            variant="secondary"
-                            disabled={isSubmitting || isApproved || index === 0}
-                            onClick={() => run(() => moveUpload(upload.id, "up"))}
-                          >
-                            <ArrowUp className="h-4 w-4" />
-                            위
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            disabled={
-                              isSubmitting ||
-                              isApproved ||
-                              index === schedule.uploads.length - 1
-                            }
-                            onClick={() => run(() => moveUpload(upload.id, "down"))}
-                          >
-                            <ArrowDown className="h-4 w-4" />
-                            아래
-                          </Button>
-                          <Button
-                            variant={form.isInStorybook ? "secondary" : "primary"}
-                            disabled={isSubmitting || isApproved}
-                            onClick={() =>
-                              setUploadForm(upload.id, {
-                                isInStorybook: !form.isInStorybook,
-                              })
-                            }
-                          >
-                            {form.isInStorybook ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                            {form.isInStorybook ? "제외" : "포함"}
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            disabled={isSubmitting || isApproved}
-                            onClick={() => run(() => saveUpload(upload.id))}
-                          >
-                            저장
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </Card>
-          ))}
+                      );
+                    })}
+                  </div>
+                ))}
+              </Card>
+            );
+          })}
         </div>
       </section>
 
@@ -358,16 +395,18 @@ export function StorybookEditor({
             ) : (
               <Unlock className="h-5 w-5 text-primary" />
             )}
-            <h2 className="text-section-title text-on-surface">승인 상태</h2>
+            <h2 className="text-section-title text-on-surface">승인 준비 상태</h2>
           </div>
-          <p className="mt-sm text-secondary text-on-surface-variant">
-            {isApproved
-              ? "승인 완료 상태입니다. 업로더의 추가 업로드와 수정이 잠깁니다."
-              : "승인 전입니다. 포함 여부, 캡션, 표시 순서를 정리할 수 있습니다."}
-          </p>
-          <div className="mt-md space-y-xs text-secondary text-on-surface-variant">
+          <div className="mt-md space-y-sm">
+            <ChecklistItem checked={title.trim().length > 0} label="스토리북 제목 입력" />
+            <ChecklistItem checked={openingText.trim().length > 0} label="오프닝 문구 입력" />
+            <ChecklistItem checked={includedCount > 0} label="포함할 업로드 1개 이상" />
+            <ChecklistItem checked={captionedCount > 0} label="관리자 캡션 1개 이상" />
+          </div>
+          <div className="mt-md rounded border border-outline-variant bg-surface-container-lowest p-sm text-secondary text-on-surface-variant">
             <p>전체 업로드 {uploads.length}개</p>
             <p>스토리북 포함 {includedCount}개</p>
+            <p>캡션 작성 {captionedCount}개</p>
             {storybook.approvedAt ? (
               <p>승인일 {new Date(storybook.approvedAt).toLocaleString("ko-KR")}</p>
             ) : null}
@@ -384,20 +423,29 @@ export function StorybookEditor({
           ) : (
             <Button
               className="mt-md w-full"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !canApprove}
               onClick={() => run(approve)}
             >
               <CheckCircle2 className="h-4 w-4" />
               스토리북 승인
             </Button>
           )}
+          {!canApprove && !isApproved ? (
+            <p className="mt-xs text-metadata text-on-surface-variant">
+              제목, 오프닝 문구, 포함 업로드가 있어야 승인할 수 있습니다.
+            </p>
+          ) : null}
           {error ? <p className="mt-sm text-secondary text-error">{error}</p> : null}
         </Card>
 
         <Card>
-          <h2 className="text-section-title text-on-surface">AI 검수 요약</h2>
+          <div className="flex items-center gap-sm">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <h2 className="text-section-title text-on-surface">AI 검수</h2>
+          </div>
           <p className="mt-sm text-secondary text-on-surface-variant">
-            AI 검수는 다음 단계에서 슈퍼어드민 전용 Codex CLI Worker로 연결합니다.
+            다음 단계에서 슈퍼관리자 전용 Codex CLI 검수로 메모 요약, 개인정보 의심 문구,
+            자막 초안을 연결합니다.
           </p>
         </Card>
 
@@ -407,6 +455,23 @@ export function StorybookEditor({
           initialShareLinks={shareLinks}
         />
       </aside>
+    </div>
+  );
+}
+
+function ChecklistItem({ checked, label }: { checked: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-sm text-secondary">
+      <span
+        className={`flex h-5 w-5 items-center justify-center rounded border ${
+          checked
+            ? "border-primary bg-primary text-on-primary"
+            : "border-outline-variant bg-surface-container-lowest"
+        }`}
+      >
+        {checked ? <CheckCircle2 className="h-4 w-4" /> : null}
+      </span>
+      <span className={checked ? "text-on-surface" : "text-on-surface-variant"}>{label}</span>
     </div>
   );
 }

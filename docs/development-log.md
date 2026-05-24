@@ -20,6 +20,7 @@ current Tighten first-use role UX
 current Improve member approval UX
 current Improve project management UX
 current Improve schedule management UX
+current Improve storybook approval UX
 ```
 
 Verified:
@@ -105,6 +106,14 @@ Schedule management UX smoke test:
 - Confirm /admin/schedules renders schedule summary and create controls
 - Create, update, and delete a temporary schedule through the API
 - Confirm browser renders day/category selectors, time inputs, and schedule action buttons
+Storybook approval UX smoke test:
+- Confirm /admin/storybook renders review summary, approval readiness, preview, and share link controls
+- Create a temporary upload with local media file
+- Save storybook title/opening/closing text
+- Save upload include state and admin caption
+- Approve storybook and confirm generated storybook item caption
+- Unlock storybook and clean up temporary upload/media
+- Browser smoke test confirms textareas, action buttons, and status badges render
 ```
 
 Current local super admin:

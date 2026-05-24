@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
+import { BookOpen, CheckCircle2, Image as ImageIcon, Link2 } from "lucide-react";
 import { AppShell } from "@/components/app/app-shell";
 import { StorybookEditor } from "@/components/admin/storybook-editor";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
@@ -116,39 +118,80 @@ export default async function AdminStorybookPage() {
     })),
   }));
 
-  const uploadCount = serializedDays.reduce(
-    (total, day) =>
-      total + day.schedules.reduce((dayTotal, schedule) => dayTotal + schedule.uploads.length, 0),
-    0,
+  const uploads = serializedDays.flatMap((day) =>
+    day.schedules.flatMap((schedule) => schedule.uploads),
   );
+  const includedCount = uploads.filter((upload) => upload.isInStorybook).length;
+  const activeShareLinks = project.shareLinks.filter(
+    (shareLink) => shareLink.isActive && shareLink.expiresAt.getTime() > Date.now(),
+  ).length;
 
   return (
     <AppShell title="스토리북 승인" section="admin">
-      {uploadCount > 0 ? (
-        <StorybookEditor
-          projectId={project.id}
-          isSuperAdmin={currentUser.globalRole === "super_admin"}
-          storybook={{
-            ...storybook,
-            approvedAt: storybook.approvedAt?.toISOString() ?? null,
-          }}
-          days={serializedDays}
-          shareLinks={project.shareLinks.map((shareLink) => ({
-            ...shareLink,
-            expiresAt: shareLink.expiresAt.toISOString(),
-            createdAt: shareLink.createdAt.toISOString(),
-            disabledAt: shareLink.disabledAt?.toISOString() ?? null,
-          }))}
-        />
-      ) : (
-        <Card>
-          <h1 className="text-major-title text-on-surface">스토리북 편집</h1>
-          <p className="mt-sm text-secondary text-on-surface-variant">
-            아직 업로드된 사진이나 영상이 없습니다. 업로드가 모이면 이곳에서 포함 여부와
-            캡션을 정리하고 승인할 수 있습니다.
-          </p>
-        </Card>
-      )}
+      <div className="space-y-lg">
+        <section className="flex flex-col gap-md sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-major-title text-on-surface">스토리북 편집/승인</h1>
+            <p className="text-secondary text-on-surface-variant">
+              업로드된 기록을 최종 스토리북으로 정리하고 공유 링크 발급 전 상태를 검토합니다.
+            </p>
+          </div>
+          <Badge className="border-primary bg-primary-fixed text-on-primary-fixed">
+            {project.name}
+          </Badge>
+        </section>
+
+        <section className="grid gap-md md:grid-cols-4">
+          <Card>
+            <BookOpen className="h-5 w-5 text-primary" />
+            <p className="mt-xs text-metadata text-on-surface-variant">승인 상태</p>
+            <p className="text-section-title text-on-surface">
+              {storybook.status === "approved" ? "승인 완료" : "초안"}
+            </p>
+          </Card>
+          <Card>
+            <ImageIcon className="h-5 w-5 text-primary" />
+            <p className="mt-xs text-metadata text-on-surface-variant">전체 업로드</p>
+            <p className="text-section-title text-on-surface">{uploads.length}개</p>
+          </Card>
+          <Card>
+            <CheckCircle2 className="h-5 w-5 text-primary" />
+            <p className="mt-xs text-metadata text-on-surface-variant">스토리북 포함</p>
+            <p className="text-section-title text-on-surface">{includedCount}개</p>
+          </Card>
+          <Card>
+            <Link2 className="h-5 w-5 text-primary" />
+            <p className="mt-xs text-metadata text-on-surface-variant">활성 공유 링크</p>
+            <p className="text-section-title text-on-surface">{activeShareLinks}개</p>
+          </Card>
+        </section>
+
+        {uploads.length > 0 ? (
+          <StorybookEditor
+            projectId={project.id}
+            isSuperAdmin={currentUser.globalRole === "super_admin"}
+            storybook={{
+              ...storybook,
+              approvedAt: storybook.approvedAt?.toISOString() ?? null,
+            }}
+            days={serializedDays}
+            shareLinks={project.shareLinks.map((shareLink) => ({
+              ...shareLink,
+              expiresAt: shareLink.expiresAt.toISOString(),
+              createdAt: shareLink.createdAt.toISOString(),
+              disabledAt: shareLink.disabledAt?.toISOString() ?? null,
+            }))}
+          />
+        ) : (
+          <Card>
+            <h2 className="text-section-title text-on-surface">아직 정리할 업로드가 없습니다</h2>
+            <p className="mt-sm text-secondary text-on-surface-variant">
+              업로더가 사진이나 영상을 올리면 이 화면에서 포함 여부, 순서, 캡션을 정리하고 최종
+              승인할 수 있습니다.
+            </p>
+          </Card>
+        )}
+      </div>
     </AppShell>
   );
 }
