@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: ${POSTGRES_DB:-memoryflow}
     volumes:
-      - /mnt/data/postgres/memoryflow:/var/lib/postgresql/data
+      - ${POSTGRES_DATA_DIR:-/mnt/data/postgres/memoryflow}:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-memoryflow} -d ${POSTGRES_DB:-memoryflow}"]
       interval: 10s
@@ -32,6 +32,11 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
     ports:
-      - "3000:3000"
+      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-3000}:3000"
     volumes:
-      - /mnt/data/storage/memoryflow:/app/storage
+      - ${STORAGE_DIR:-/mnt/data/storage/memoryflow}:/app/storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health | grep -q 'memoryflow'"]
+      interval: 30s
+      timeout: 5s
+      retries: 5

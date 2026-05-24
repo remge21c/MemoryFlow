@@ -190,6 +190,15 @@ Member and project settings finalization:
 - Improve /settings/project cards with active badge, role, storybook status, and project counts
 - Confirm signup, approval, role change, second project assignment, project role removal, active project switching, and inactive-user blocking
 - Confirm lint, typecheck, production build, and cleanup of isolated QA member/project data
+Production operations preparation:
+- Make production Compose configurable for /mnt/data postgres/storage paths and localhost app binding behind Nginx
+- Add .env.production.example values for storage, backup, app bind/port, and production secrets
+- Add production preflight script for env validation, writable data directories, and Compose config validation
+- Add destructive restore script with CONFIRM=RESTORE guard
+- Add backup retention pruning via RETENTION_DAYS
+- Update deployment script to use .env.production by default
+- Rewrite operations guide for first deploy, preflight, update deploy, health checks, backup, restore, Nginx, and Cloudflare
+- Confirm Compose config, shell syntax, lint, typecheck, production build, and local health endpoint
 ```
 
 Current local super admin:
