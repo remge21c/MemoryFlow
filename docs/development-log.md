@@ -21,6 +21,7 @@ current Improve member approval UX
 current Improve project management UX
 current Improve schedule management UX
 current Improve storybook approval UX
+current Improve upload UX
 ```
 
 Verified:
@@ -114,6 +115,11 @@ Storybook approval UX smoke test:
 - Approve storybook and confirm generated storybook item caption
 - Unlock storybook and clean up temporary upload/media
 - Browser smoke test confirms textareas, action buttons, and status badges render
+Upload UX smoke test:
+- Confirm /upload renders summary cards, upload controls, file input, Day/schedule selectors, and memo textarea
+- Create a small image upload through the browser UI
+- Confirm the upload is persisted with one media file
+- Delete the temporary upload through the authenticated API
 ```
 
 Current local super admin:
