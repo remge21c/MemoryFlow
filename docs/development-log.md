@@ -11,7 +11,8 @@ a3b9524 Connect core pages to project data
 f6d4ae2 Add local upload foundation
 5181db2 Add storybook editing and approval flow
 b416e81 Add public storybook share links
-current Add protected and shared media streaming
+25964a8 Add protected and shared media streaming
+current Add upload edit and delete management
 ```
 
 Verified:
@@ -43,6 +44,12 @@ Media streaming smoke test:
 - Approve storybook and issue share link
 - Confirm /api/share/:token/media/:fileId streams image/jpeg without login
 - Clean up test upload/file/storybook item/share link
+Upload management smoke test:
+- Create two-file photo upload
+- Update Day, schedule, and memo
+- Delete one upload file and confirm physical file removal
+- Soft delete upload
+- Clean up test upload folder
 ```
 
 Current local super admin:

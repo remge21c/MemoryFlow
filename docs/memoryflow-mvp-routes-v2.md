@@ -155,8 +155,11 @@ Hash token
 | `GET` | `/api/projects/:projectId/uploads/:uploadId` | Upload detail |
 | `PATCH` | `/api/projects/:projectId/uploads/:uploadId` | Update own upload before approval |
 | `DELETE` | `/api/projects/:projectId/uploads/:uploadId` | Soft delete own upload before approval |
+| `PATCH` | `/api/uploads/:uploadId` | Update current user's upload before approval |
+| `DELETE` | `/api/uploads/:uploadId` | Soft delete current user's upload before approval |
 | `POST` | `/api/projects/:projectId/uploads/:uploadId/files` | Upload media files |
 | `DELETE` | `/api/projects/:projectId/uploads/:uploadId/files/:fileId` | Remove file before approval |
+| `DELETE` | `/api/uploads/:uploadId/files/:fileId` | Remove current user's upload file before approval |
 
 ### Storybook API
 

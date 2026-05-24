@@ -1,5 +1,5 @@
 import path from "node:path";
-import { mkdir, stat, writeFile } from "node:fs/promises";
+import { mkdir, rm, stat, writeFile } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
@@ -51,6 +51,11 @@ export async function saveUploadFile({
   await writeFile(absolutePath, Buffer.from(await file.arrayBuffer()));
 
   return relativePath;
+}
+
+export async function deleteStorageFile(storagePath: string) {
+  const absolutePath = resolveStoragePath(storagePath);
+  await rm(absolutePath, { force: true });
 }
 
 export function resolveStoragePath(storagePath: string) {

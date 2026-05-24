@@ -1,13 +1,11 @@
 import { Grid2X2, List } from "lucide-react";
 import { AppShell } from "@/components/app/app-shell";
-import { MediaPreview } from "@/components/media/media-preview";
+import { UploadListManager } from "@/components/upload/upload-list-manager";
 import { UploadManager } from "@/components/upload/upload-manager";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
-import { formatDate } from "@/lib/utils";
 
 export default async function UploadPage() {
   const currentUser = await getCurrentUser();
@@ -29,8 +27,8 @@ export default async function UploadPage() {
             where: { userId: currentUser.id, deletedAt: null },
             orderBy: { createdAt: "desc" },
             include: {
-              day: { select: { dayNumber: true } },
-              schedule: { select: { title: true } },
+              day: { select: { id: true, dayNumber: true } },
+              schedule: { select: { id: true, title: true } },
               files: {
                 orderBy: { sortOrder: "asc" },
                 select: { id: true, fileType: true, mimeType: true },
@@ -49,6 +47,21 @@ export default async function UploadPage() {
       schedules: day.schedules,
     })) ?? [];
 
+  const serializedUploads =
+    project?.uploads.map((upload) => ({
+      id: upload.id,
+      type: upload.type,
+      memo: upload.memo,
+      createdAt: upload.createdAt.toISOString(),
+      dayId: upload.day.id,
+      scheduleId: upload.schedule.id,
+      day: { dayNumber: upload.day.dayNumber },
+      schedule: upload.schedule,
+      files: upload.files,
+    })) ?? [];
+
+  const isLocked = project?.storybook?.status === "approved";
+
   return (
     <AppShell title="업로드">
       <div className="space-y-lg">
@@ -56,7 +69,7 @@ export default async function UploadPage() {
           <div>
             <h1 className="text-major-title text-on-surface">업로드</h1>
             <p className="text-secondary text-on-surface-variant">
-              Day와 세부일정에 맞춰 사진, 영상, 메모를 남깁니다.
+              Day와 세부일정에 맞춰 사진, 영상, 메모를 남기고 관리합니다.
             </p>
           </div>
           <div className="flex gap-xs">
@@ -70,10 +83,7 @@ export default async function UploadPage() {
         </section>
 
         {project ? (
-          <UploadManager
-            days={serializedDays}
-            isLocked={project.storybook?.status === "approved"}
-          />
+          <UploadManager days={serializedDays} isLocked={Boolean(isLocked)} />
         ) : (
           <Card>
             <p className="text-secondary text-on-surface-variant">
@@ -82,36 +92,13 @@ export default async function UploadPage() {
           </Card>
         )}
 
-        <section className="grid gap-md md:grid-cols-2 xl:grid-cols-3">
-          {project?.uploads.map((upload) => (
-            <Card key={upload.id} className="overflow-hidden p-0">
-              <MediaPreview files={upload.files} className="rounded-none" />
-              <div className="space-y-sm p-md">
-                <div className="flex items-center justify-between gap-sm">
-                  <Badge>
-                    Day {upload.day.dayNumber} / {upload.schedule.title}
-                  </Badge>
-                  <span className="text-metadata text-on-surface-variant">
-                    {formatDate(upload.createdAt)}
-                  </span>
-                </div>
-                <h2 className="korean-text text-section-title text-on-surface">
-                  {upload.type === "video" ? "영상" : `사진 ${upload.files.length}장`}
-                </h2>
-                <p className="line-clamp-2 text-secondary text-on-surface-variant">
-                  {upload.memo ?? "메모 없음"}
-                </p>
-              </div>
-            </Card>
-          ))}
-          {project && project.uploads.length === 0 ? (
-            <Card>
-              <p className="text-secondary text-on-surface-variant">
-                아직 내 업로드가 없습니다.
-              </p>
-            </Card>
-          ) : null}
-        </section>
+        {project ? (
+          <UploadListManager
+            days={serializedDays}
+            uploads={serializedUploads}
+            isLocked={Boolean(isLocked)}
+          />
+        ) : null}
       </div>
     </AppShell>
   );

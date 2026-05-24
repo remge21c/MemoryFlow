@@ -34,6 +34,7 @@ export function UploadManager({ days, isLocked }: UploadManagerProps) {
   const [scheduleId, setScheduleId] = useState(days[0]?.schedules[0]?.id ?? "");
   const [memo, setMemo] = useState("");
   const [files, setFiles] = useState<FileList | null>(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -73,6 +74,7 @@ export function UploadManager({ days, isLocked }: UploadManagerProps) {
 
       setMemo("");
       setFiles(null);
+      setFileInputKey((current) => current + 1);
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "업로드에 실패했습니다.");
@@ -84,7 +86,7 @@ export function UploadManager({ days, isLocked }: UploadManagerProps) {
   if (isLocked) {
     return (
       <Card className="border-primary bg-primary-fixed/30">
-        <p className="text-section-title text-on-surface">승인 완료 — 읽기 전용</p>
+        <p className="text-section-title text-on-surface">승인 완료 - 읽기 전용</p>
         <p className="mt-xs text-secondary text-on-surface-variant">
           스토리북 승인 후에는 새 업로드와 수정이 잠깁니다.
         </p>
@@ -133,7 +135,7 @@ export function UploadManager({ days, isLocked }: UploadManagerProps) {
         >
           {(selectedDay?.schedules ?? []).map((schedule) => (
             <option key={schedule.id} value={schedule.id}>
-              {schedule.time ? `${schedule.time} · ` : ""}
+              {schedule.time ? `${schedule.time} - ` : ""}
               {schedule.title}
             </option>
           ))}
@@ -149,10 +151,14 @@ export function UploadManager({ days, isLocked }: UploadManagerProps) {
 
       <input
         className={inputClass}
-        key={type}
+        key={`${type}-${fileInputKey}`}
         type="file"
         multiple={type === "photo"}
-        accept={type === "photo" ? "image/jpeg,image/png,image/webp,image/heic" : "video/mp4,video/quicktime,video/webm"}
+        accept={
+          type === "photo"
+            ? "image/jpeg,image/png,image/webp,image/heic"
+            : "video/mp4,video/quicktime,video/webm"
+        }
         onChange={(event) => setFiles(event.target.files)}
       />
 
@@ -168,4 +174,3 @@ export function UploadManager({ days, isLocked }: UploadManagerProps) {
     </Card>
   );
 }
-
