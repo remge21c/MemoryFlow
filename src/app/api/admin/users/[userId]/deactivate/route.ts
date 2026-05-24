@@ -6,13 +6,18 @@ export async function POST(
   _request: Request,
   { params }: { params: Promise<{ userId: string }> },
 ) {
-  const { response } = await requireSuperAdminForApi();
+  const { user: currentUser, response } = await requireSuperAdminForApi();
 
   if (response) {
     return response;
   }
 
   const { userId } = await params;
+
+  if (currentUser?.id === userId) {
+    return NextResponse.json({ error: "내 계정은 비활성화할 수 없습니다." }, { status: 400 });
+  }
+
   const user = await prisma.user.update({
     where: { id: userId },
     data: { status: "inactive" },

@@ -14,7 +14,7 @@ const statusLabel: Record<string, string> = {
 };
 
 const roleLabel: Record<string, string> = {
-  super_admin: "슈퍼 어드민",
+  super_admin: "슈퍼관리자",
   project_manager: "프로젝트 관리자",
   uploader: "업로더",
 };
@@ -70,7 +70,7 @@ export default async function AdminMembersPage() {
           <div>
             <h1 className="text-major-title text-on-surface">회원 승인</h1>
             <p className="text-secondary text-on-surface-variant">
-              가입 요청을 승인하고 프로젝트별 역할을 배정합니다.
+              가입 요청을 승인하면서 프로젝트와 역할을 함께 배정합니다.
             </p>
           </div>
           <Badge className="border-primary bg-primary-fixed text-on-primary-fixed">
@@ -92,6 +92,7 @@ export default async function AdminMembersPage() {
                       {roleLabel[user.globalRole]}
                     </Badge>
                   ) : null}
+                  {user.id === currentUser.id ? <Badge>내 계정</Badge> : null}
                 </div>
                 <p className="korean-text mt-sm text-body font-semibold text-on-surface">
                   {user.name}
@@ -113,12 +114,19 @@ export default async function AdminMembersPage() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-secondary text-on-surface-variant">배정된 프로젝트 없음</p>
+                    <p className="text-secondary text-on-surface-variant">
+                      배정된 프로젝트 없음
+                    </p>
                   )}
                 </div>
               </div>
 
-              <MemberActions userId={user.id} status={user.status} projects={projects} />
+              <MemberActions
+                userId={user.id}
+                status={user.status}
+                projects={projects}
+                isCurrentUser={user.id === currentUser.id}
+              />
             </div>
           ))}
         </Card>

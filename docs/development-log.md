@@ -14,6 +14,7 @@ b416e81 Add public storybook share links
 25964a8 Add protected and shared media streaming
 5a8779f Add upload edit and delete management
 current Add storybook ordering and preview
+current Add account management and approval assignment flow
 ```
 
 Verified:
@@ -57,6 +58,16 @@ Storybook ordering and preview smoke test:
 - Confirm DB sort order changed
 - Confirm /admin/storybook/preview renders the reordered items
 - Clean up test uploads and files
+Account and member approval smoke test:
+- Add /settings account profile and password forms
+- Add account profile/password API routes
+- Approve a temporary pending user with project and role in one API call
+- Confirm user status, active project, and project membership
+- Clean up temporary user
+Browser smoke test:
+- Login as super admin
+- Confirm /settings renders account forms
+- Confirm /admin/members renders project and role controls
 ```
 
 Current local super admin:
