@@ -6,12 +6,13 @@ import {
   Home,
   ImagePlus,
   Layers3,
-  LogOut,
   Settings,
   ShieldCheck,
   Upload,
 } from "lucide-react";
+import { LogoutIconButton } from "@/components/app/logout-icon-button";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { prisma } from "@/lib/db";
 import { getActiveProjectSummary } from "@/lib/projects/current";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,32 @@ function destinationForStatus(status: string) {
   return null;
 }
 
+async function getAdminStartPath(user: {
+  id: string;
+  globalRole: "super_admin" | null;
+  activeProjectId: string | null;
+}) {
+  if (user.globalRole === "super_admin") {
+    return "/admin/projects";
+  }
+
+  if (!user.activeProjectId) {
+    return null;
+  }
+
+  const managerMembership = await prisma.projectMember.findFirst({
+    where: {
+      userId: user.id,
+      projectId: user.activeProjectId,
+      role: "project_manager",
+      status: "active",
+    },
+    select: { id: true },
+  });
+
+  return managerMembership ? "/admin/schedules" : null;
+}
+
 export async function AppShell({
   children,
   title,
@@ -56,10 +83,13 @@ export async function AppShell({
     redirect(statusDestination);
   }
 
+  const adminStartPath = await getAdminStartPath(currentUser);
   const navItems =
     section === "admin"
       ? adminNav.filter((item) => currentUser.globalRole === "super_admin" || !item.superAdminOnly)
-      : userNav;
+      : adminStartPath
+        ? [...userNav, { label: "관리자", href: adminStartPath, icon: ShieldCheck }]
+        : userNav;
   const activeProject = await getActiveProjectSummary(currentUser);
   const activeProjectName = activeProject?.name ?? "활성 프로젝트 없음";
   const activeProjectOrg = activeProject?.orgName ?? "프로젝트 설정에서 선택";
@@ -90,6 +120,7 @@ export async function AppShell({
             <Link
               key={item.href}
               href={item.href}
+              data-testid={item.href.startsWith("/admin") ? "admin-entry-link" : undefined}
               className={cn(
                 "focus-ring flex h-tap-target items-center gap-sm rounded px-sm text-secondary text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface",
                 item.href === "/" && section === "user"
@@ -110,8 +141,15 @@ export async function AppShell({
               <p className="truncate text-secondary font-semibold">{currentUser.name}</p>
               <p className="truncate text-metadata text-on-surface-variant">{currentUser.email}</p>
             </div>
-            <Settings className="h-5 w-5 text-on-surface-variant" />
-            <LogOut className="h-5 w-5 text-on-surface-variant" />
+            <Link
+              href="/settings"
+              className="focus-ring flex h-9 w-9 items-center justify-center rounded text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
+              aria-label="설정"
+              title="설정"
+            >
+              <Settings className="h-5 w-5" />
+            </Link>
+            <LogoutIconButton />
           </div>
         </div>
       </aside>
@@ -135,6 +173,9 @@ export async function AppShell({
               </p>
             </div>
           </div>
+          <div className="lg:hidden">
+            <LogoutIconButton />
+          </div>
           <Link
             href="/settings/project"
             className="hidden h-tap-target items-center rounded border border-outline-variant px-sm text-metadata text-on-surface-variant lg:flex"
@@ -149,11 +190,17 @@ export async function AppShell({
       </div>
 
       {section === "user" ? (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-4 border-t border-outline-variant bg-surface-container-lowest px-xs lg:hidden">
-          {userNav.map((item) => (
+        <nav
+          className={cn(
+            "fixed bottom-0 left-0 right-0 z-40 grid border-t border-outline-variant bg-surface-container-lowest px-xs lg:hidden",
+            adminStartPath ? "grid-cols-5" : "grid-cols-4",
+          )}
+        >
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
+              data-testid={item.href.startsWith("/admin") ? "admin-entry-link" : undefined}
               className="flex h-16 flex-col items-center justify-center gap-base text-metadata text-on-surface-variant"
             >
               <item.icon className="h-5 w-5" />
