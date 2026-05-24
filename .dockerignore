@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+storage
+backup
+tmp
+*.log
+.env
+.env.*
+!.env.example

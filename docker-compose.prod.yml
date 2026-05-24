@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: memoryflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-memoryflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-memoryflow}
+    volumes:
+      - /mnt/data/postgres/memoryflow:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-memoryflow} -d ${POSTGRES_DB:-memoryflow}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: memoryflow-web
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-memoryflow}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-memoryflow}?schema=public
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      APP_BASE_URL: ${APP_BASE_URL:-https://vibeflow.com}
+      LOCAL_STORAGE_ROOT: /app/storage
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+    ports:
+      - "3000:3000"
+    volumes:
+      - /mnt/data/storage/memoryflow:/app/storage

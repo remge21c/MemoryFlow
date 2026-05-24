@@ -157,6 +157,11 @@ AI review smoke test:
 - Create a temporary upload containing a phone-like sensitive string
 - Confirm AI review stores a completed aiJob with summary, privacy flags, caption drafts, and BGM keywords
 - Confirm /admin/storybook renders the AI review action and clean up temporary upload/job
+Operations readiness:
+- Add production Dockerfile and docker-compose.prod.yml for web + PostgreSQL
+- Add .env.production.example, deploy script, backup script, and operations guide
+- Validate docker compose production config with required env vars
+- Confirm lint, typecheck, and production build pass after operations files are added
 ```
 
 Current local super admin:
