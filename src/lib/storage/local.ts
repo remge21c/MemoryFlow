@@ -33,6 +33,17 @@ export function isAllowedVideoMime(mimeType: string) {
   return mimeType in videoExtensions;
 }
 
+export function mimeForStoragePath(storagePath: string) {
+  const extension = path.extname(storagePath).toLowerCase();
+  if (extension === ".mov") return "video/quicktime";
+  if (extension === ".webm") return "video/webm";
+  if (extension === ".jpg" || extension === ".jpeg") return "image/jpeg";
+  if (extension === ".png") return "image/png";
+  if (extension === ".webp") return "image/webp";
+  if (extension === ".heic") return "image/heic";
+  return "video/mp4";
+}
+
 export async function saveUploadFile({
   projectId,
   uploadId,
@@ -45,6 +56,26 @@ export async function saveUploadFile({
   const extension = extensionForMime(file.type);
   const fileName = `${randomUUID()}${extension}`;
   const relativePath = path.posix.join("projects", projectId, "uploads", uploadId, fileName);
+  const absolutePath = path.join(getLocalStorageRoot(), relativePath);
+
+  await mkdir(path.dirname(absolutePath), { recursive: true });
+  await writeFile(absolutePath, Buffer.from(await file.arrayBuffer()));
+
+  return relativePath;
+}
+
+export async function saveProjectVideoFile({
+  projectId,
+  videoId,
+  file,
+}: {
+  projectId: string;
+  videoId: string;
+  file: File;
+}) {
+  const extension = extensionForMime(file.type);
+  const fileName = `${randomUUID()}${extension}`;
+  const relativePath = path.posix.join("projects", projectId, "videos", videoId, fileName);
   const absolutePath = path.join(getLocalStorageRoot(), relativePath);
 
   await mkdir(path.dirname(absolutePath), { recursive: true });

@@ -138,6 +138,11 @@ Share page UX smoke test:
 - Confirm /share/:token renders without login with expiry/read-only status and media preview
 - Disable the share link and confirm the public page no longer renders story content
 - Unlock storybook and clean up the temporary upload/media
+Final video upload smoke test:
+- Upload a temporary WebM final video through the super-admin project video API
+- Confirm authenticated video streaming from /api/videos/:videoId
+- Confirm /admin/gallery renders the uploaded final video
+- Confirm / renders the latest video title/player and soft-delete the temporary video
 ```
 
 Current local super admin:

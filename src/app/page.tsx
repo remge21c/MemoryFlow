@@ -388,6 +388,14 @@ export default async function HomePage() {
                 <Film className="h-5 w-5 text-primary" />
                 <p className="text-section-title text-on-surface">최종 영상</p>
               </div>
+              {latestVideo ? (
+                <video
+                  src={`/api/videos/${latestVideo.id}`}
+                  className="mt-md aspect-video w-full rounded bg-black object-contain"
+                  controls
+                  preload="metadata"
+                />
+              ) : null}
               <p className="mt-sm text-secondary text-on-surface-variant">
                 {latestVideo
                   ? `${latestVideo.title} 영상이 업로드되었습니다.`

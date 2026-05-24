@@ -1,4 +1,4 @@
-import { CalendarDays, Link2, LockKeyhole } from "lucide-react";
+import { CalendarDays, Film, Link2, LockKeyhole } from "lucide-react";
 import { StorybookPreview } from "@/components/storybook/storybook-preview";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -70,6 +70,16 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
               },
             },
           },
+          videos: {
+            where: { deletedAt: null, status: "published" },
+            orderBy: { uploadedAt: "desc" },
+            take: 1,
+            select: {
+              id: true,
+              title: true,
+              uploadedAt: true,
+            },
+          },
         },
       },
     },
@@ -133,6 +143,7 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
   }
 
   const storybookDays = [...days.values()];
+  const latestVideo = shareLink.project.videos[0];
 
   if (storybookDays.length === 0) {
     return (
@@ -192,6 +203,28 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
             </div>
           </Card>
         </section>
+
+        {latestVideo ? (
+          <section className="mx-auto mb-xl max-w-5xl">
+            <Card className="overflow-hidden p-0">
+              <video
+                src={`/api/share/${token}/videos/${latestVideo.id}`}
+                className="aspect-video w-full bg-black object-contain"
+                controls
+                preload="metadata"
+              />
+              <div className="space-y-sm p-md">
+                <div className="flex items-center gap-sm">
+                  <Film className="h-5 w-5 text-primary" />
+                  <h2 className="text-section-title text-on-surface">{latestVideo.title}</h2>
+                </div>
+                <p className="text-secondary text-on-surface-variant">
+                  최종 영상 · {formatDate(latestVideo.uploadedAt)}
+                </p>
+              </div>
+            </Card>
+          </section>
+        ) : null}
 
         <StorybookPreview
           project={{

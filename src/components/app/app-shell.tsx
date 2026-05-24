@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import {
   BookOpen,
   CalendarDays,
+  Film,
   Home,
   ImagePlus,
   Layers3,
@@ -27,6 +28,7 @@ const adminNav = [
   { label: "회원 승인", href: "/admin/members", icon: ImagePlus, superAdminOnly: true },
   { label: "일정 관리", href: "/admin/schedules", icon: CalendarDays },
   { label: "스토리북 승인", href: "/admin/storybook", icon: ShieldCheck },
+  { label: "산출물 갤러리", href: "/admin/gallery", icon: Film, superAdminOnly: true },
 ];
 
 function destinationForStatus(status: string) {
