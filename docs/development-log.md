@@ -22,6 +22,7 @@ current Improve project management UX
 current Improve schedule management UX
 current Improve storybook approval UX
 current Improve upload UX
+current Improve home dashboard UX
 ```
 
 Verified:
@@ -120,6 +121,9 @@ Upload UX smoke test:
 - Create a small image upload through the browser UI
 - Confirm the upload is persisted with one media file
 - Delete the temporary upload through the authenticated API
+Home dashboard UX smoke test:
+- Confirm / renders project status, schedule progress, Day timeline, recent uploads, storybook status, and video status
+- Confirm desktop and mobile viewports render the dashboard cards and primary links
 ```
 
 Current local super admin:
