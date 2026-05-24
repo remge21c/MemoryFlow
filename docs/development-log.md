@@ -128,6 +128,11 @@ Upload UX v2 smoke test:
 - Confirm /upload renders the drag/drop file area, browse button, selected schedule summary, memo counter, and file list
 - Confirm client upload flow creates one image upload with one media file
 - Confirm the temporary upload can be deleted through the authenticated API
+Storybook viewer UX smoke test:
+- Confirm /storybook empty state renders useful actions when no storybook uploads exist
+- Create a temporary storybook upload with local media
+- Confirm /storybook renders summary cards, Day timeline, media preview, and story text
+- Clean up the temporary upload through the authenticated API
 ```
 
 Current local super admin:
