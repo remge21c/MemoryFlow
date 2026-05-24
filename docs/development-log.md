@@ -143,6 +143,10 @@ Final video upload smoke test:
 - Confirm authenticated video streaming from /api/videos/:videoId
 - Confirm /admin/gallery renders the uploaded final video
 - Confirm / renders the latest video title/player and soft-delete the temporary video
+Output gallery UX smoke test:
+- Confirm /admin/gallery renders summary counts for videos, share links, and reports
+- Confirm video, share link, and report tabs can be switched in the browser
+- Confirm empty report state and share-link management state render without errors
 ```
 
 Current local super admin:

@@ -25,17 +25,41 @@ export default async function AdminGalleryPage() {
     );
   }
 
-  const videos = await prisma.projectVideo.findMany({
-    where: { projectId: currentUser.activeProjectId, deletedAt: null },
-    orderBy: { uploadedAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      status: true,
-      sizeBytes: true,
-      uploadedAt: true,
-    },
-  });
+  const [videos, shareLinks, outputs] = await Promise.all([
+    prisma.projectVideo.findMany({
+      where: { projectId: currentUser.activeProjectId, deletedAt: null },
+      orderBy: { uploadedAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        sizeBytes: true,
+        uploadedAt: true,
+      },
+    }),
+    prisma.shareLink.findMany({
+      where: { projectId: currentUser.activeProjectId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        type: true,
+        isActive: true,
+        expiresAt: true,
+        createdAt: true,
+        disabledAt: true,
+      },
+    }),
+    prisma.output.findMany({
+      where: { projectId: currentUser.activeProjectId, deletedAt: null },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        createdAt: true,
+      },
+    }),
+  ]);
 
   return (
     <AppShell title="산출물 갤러리" section="admin">
@@ -45,6 +69,16 @@ export default async function AdminGalleryPage() {
           ...video,
           sizeBytes: Number(video.sizeBytes),
           uploadedAt: video.uploadedAt.toISOString(),
+        }))}
+        shareLinks={shareLinks.map((link) => ({
+          ...link,
+          expiresAt: link.expiresAt.toISOString(),
+          createdAt: link.createdAt.toISOString(),
+          disabledAt: link.disabledAt?.toISOString() ?? null,
+        }))}
+        outputs={outputs.map((output) => ({
+          ...output,
+          createdAt: output.createdAt.toISOString(),
         }))}
       />
     </AppShell>

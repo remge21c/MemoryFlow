@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Film, Trash2, UploadCloud } from "lucide-react";
+import { FileText, Film, Link2Off, Trash2, UploadCloud } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,6 +18,20 @@ type ProjectVideo = {
 type VideoManagerProps = {
   projectId: string;
   videos: ProjectVideo[];
+  shareLinks: {
+    id: string;
+    type: string;
+    isActive: boolean;
+    expiresAt: string;
+    createdAt: string;
+    disabledAt: string | null;
+  }[];
+  outputs: {
+    id: string;
+    type: string;
+    title: string;
+    createdAt: string;
+  }[];
 };
 
 function formatBytes(bytes: number) {
@@ -33,9 +47,10 @@ function formatDate(value: string) {
   });
 }
 
-export function VideoManager({ projectId, videos }: VideoManagerProps) {
+export function VideoManager({ projectId, videos, shareLinks, outputs }: VideoManagerProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<"videos" | "links" | "reports">("videos");
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -97,8 +112,76 @@ export function VideoManager({ projectId, videos }: VideoManagerProps) {
     }
   }
 
+  async function disableShareLink(shareLinkId: string) {
+    if (!window.confirm("이 공유 링크를 비활성화할까요?")) return;
+
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`/api/admin/projects/${projectId}/share-links/${shareLinkId}`, {
+        method: "PATCH",
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(data?.error ?? "공유 링크 비활성화에 실패했습니다.");
+      }
+
+      router.refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "공유 링크 비활성화에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <div className="space-y-lg">
+      <section className="grid gap-md md:grid-cols-3">
+        <Card>
+          <Film className="h-5 w-5 text-primary" />
+          <p className="mt-xs text-metadata text-on-surface-variant">영상</p>
+          <p className="text-section-title text-on-surface">{videos.length}개</p>
+        </Card>
+        <Card>
+          <Link2Off className="h-5 w-5 text-primary" />
+          <p className="mt-xs text-metadata text-on-surface-variant">공유 링크</p>
+          <p className="text-section-title text-on-surface">{shareLinks.length}개</p>
+        </Card>
+        <Card>
+          <FileText className="h-5 w-5 text-primary" />
+          <p className="mt-xs text-metadata text-on-surface-variant">보고서</p>
+          <p className="text-section-title text-on-surface">{outputs.length}개</p>
+        </Card>
+      </section>
+
+      <div className="flex flex-wrap gap-xs">
+        <Button
+          size="sm"
+          variant={tab === "videos" ? "primary" : "secondary"}
+          onClick={() => setTab("videos")}
+        >
+          영상
+        </Button>
+        <Button
+          size="sm"
+          variant={tab === "links" ? "primary" : "secondary"}
+          onClick={() => setTab("links")}
+        >
+          공유 링크
+        </Button>
+        <Button
+          size="sm"
+          variant={tab === "reports" ? "primary" : "secondary"}
+          onClick={() => setTab("reports")}
+        >
+          보고서
+        </Button>
+      </div>
+
+      {tab === "videos" ? (
+        <>
       <Card className="space-y-md">
         <div className="flex flex-col gap-sm sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -208,6 +291,92 @@ export function VideoManager({ projectId, videos }: VideoManagerProps) {
           </Card>
         )}
       </section>
+        </>
+      ) : null}
+
+      {tab === "links" ? (
+        <section className="space-y-md">
+          <div>
+            <h2 className="text-screen-title text-on-surface">공유 링크</h2>
+            <p className="text-secondary text-on-surface-variant">
+              스토리북 승인 페이지에서 발급된 외부 공유 링크를 관리합니다.
+            </p>
+          </div>
+          {shareLinks.length > 0 ? (
+            <div className="space-y-md">
+              {shareLinks.map((link) => (
+                <Card key={link.id}>
+                  <div className="flex flex-col gap-sm sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="flex flex-wrap gap-xs">
+                        <Badge className={link.isActive ? "border-primary text-primary" : ""}>
+                          {link.isActive ? "활성" : "비활성"}
+                        </Badge>
+                        <Badge>{link.type}</Badge>
+                      </div>
+                      <p className="mt-sm text-section-title text-on-surface">
+                        만료 {formatDate(link.expiresAt)}
+                      </p>
+                      <p className="text-secondary text-on-surface-variant">
+                        생성 {formatDate(link.createdAt)}
+                        {link.disabledAt ? ` · 비활성 ${formatDate(link.disabledAt)}` : ""}
+                      </p>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      disabled={!link.isActive || isSubmitting}
+                      onClick={() => disableShareLink(link.id)}
+                    >
+                      <Link2Off className="h-4 w-4" />
+                      비활성화
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <Link2Off className="h-6 w-6 text-primary" />
+              <p className="mt-sm text-section-title text-on-surface">발급된 공유 링크가 없습니다</p>
+              <p className="mt-xs text-secondary text-on-surface-variant">
+                스토리북 승인 후 스토리북 승인 페이지에서 공유 링크를 발급할 수 있습니다.
+              </p>
+            </Card>
+          )}
+        </section>
+      ) : null}
+
+      {tab === "reports" ? (
+        <section className="space-y-md">
+          <div>
+            <h2 className="text-screen-title text-on-surface">보고서 산출물</h2>
+            <p className="text-secondary text-on-surface-variant">
+              PDF/DOC/HTML 생성 기능이 연결되면 이곳에 산출물이 모입니다.
+            </p>
+          </div>
+          {outputs.length > 0 ? (
+            <div className="grid gap-md xl:grid-cols-2">
+              {outputs.map((output) => (
+                <Card key={output.id}>
+                  <Badge>{output.type}</Badge>
+                  <h3 className="mt-sm text-section-title text-on-surface">{output.title}</h3>
+                  <p className="mt-xs text-secondary text-on-surface-variant">
+                    생성 {formatDate(output.createdAt)}
+                  </p>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <FileText className="h-6 w-6 text-primary" />
+              <p className="mt-sm text-section-title text-on-surface">생성된 보고서가 없습니다</p>
+              <p className="mt-xs text-secondary text-on-surface-variant">
+                다음 단계에서 승인된 스토리북 기반 PDF/HTML 생성을 연결합니다.
+              </p>
+            </Card>
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }
