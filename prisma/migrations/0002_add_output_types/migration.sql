@@ -1,0 +1,2 @@
+ALTER TYPE "OutputType" ADD VALUE IF NOT EXISTS 'html';
+ALTER TYPE "OutputType" ADD VALUE IF NOT EXISTS 'doc';

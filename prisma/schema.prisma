@@ -93,7 +93,9 @@ enum BgmSource {
 }
 
 enum OutputType {
+  html
   pdf
+  doc
 }
 
 enum BackupType {

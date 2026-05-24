@@ -41,6 +41,9 @@ export function mimeForStoragePath(storagePath: string) {
   if (extension === ".png") return "image/png";
   if (extension === ".webp") return "image/webp";
   if (extension === ".heic") return "image/heic";
+  if (extension === ".html") return "text/html; charset=utf-8";
+  if (extension === ".doc") return "application/msword";
+  if (extension === ".pdf") return "application/pdf";
   return "video/mp4";
 }
 
@@ -80,6 +83,26 @@ export async function saveProjectVideoFile({
 
   await mkdir(path.dirname(absolutePath), { recursive: true });
   await writeFile(absolutePath, Buffer.from(await file.arrayBuffer()));
+
+  return relativePath;
+}
+
+export async function saveOutputFile({
+  projectId,
+  outputId,
+  fileName,
+  bytes,
+}: {
+  projectId: string;
+  outputId: string;
+  fileName: string;
+  bytes: Buffer;
+}) {
+  const relativePath = path.posix.join("projects", projectId, "outputs", outputId, fileName);
+  const absolutePath = path.join(getLocalStorageRoot(), relativePath);
+
+  await mkdir(path.dirname(absolutePath), { recursive: true });
+  await writeFile(absolutePath, bytes);
 
   return relativePath;
 }

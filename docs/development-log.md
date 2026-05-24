@@ -147,6 +147,11 @@ Output gallery UX smoke test:
 - Confirm /admin/gallery renders summary counts for videos, share links, and reports
 - Confirm video, share link, and report tabs can be switched in the browser
 - Confirm empty report state and share-link management state render without errors
+Output generation smoke test:
+- Extend OutputType to html/pdf/doc and apply migration 0002_add_output_types
+- Generate temporary HTML, PDF, and DOC outputs from an approved storybook
+- Confirm /api/outputs/:outputId streams text/html, application/pdf, and application/msword
+- Confirm generated outputs render in /admin/gallery and clean up temporary output files
 ```
 
 Current local super admin:

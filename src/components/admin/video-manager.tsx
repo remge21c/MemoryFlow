@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Film, Link2Off, Trash2, UploadCloud } from "lucide-react";
+import { Download, FileText, Film, Link2Off, Trash2, UploadCloud } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -131,6 +131,31 @@ export function VideoManager({ projectId, videos, shareLinks, outputs }: VideoMa
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "공유 링크 비활성화에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function createOutput(type: "html" | "pdf" | "doc") {
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`/api/admin/projects/${projectId}/outputs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type }),
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(data?.error ?? "산출물 생성에 실패했습니다.");
+      }
+
+      router.refresh();
+      setTab("reports");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "산출물 생성에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -351,8 +376,29 @@ export function VideoManager({ projectId, videos, shareLinks, outputs }: VideoMa
           <div>
             <h2 className="text-screen-title text-on-surface">보고서 산출물</h2>
             <p className="text-secondary text-on-surface-variant">
-              PDF/DOC/HTML 생성 기능이 연결되면 이곳에 산출물이 모입니다.
+              승인된 스토리북을 HTML, PDF, DOC 산출물로 생성합니다.
             </p>
+          </div>
+          <div className="flex flex-wrap gap-xs">
+            <Button size="sm" disabled={isSubmitting} onClick={() => createOutput("html")}>
+              HTML 생성
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={isSubmitting}
+              onClick={() => createOutput("pdf")}
+            >
+              PDF 생성
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={isSubmitting}
+              onClick={() => createOutput("doc")}
+            >
+              DOC 생성
+            </Button>
           </div>
           {outputs.length > 0 ? (
             <div className="grid gap-md xl:grid-cols-2">
@@ -363,6 +409,12 @@ export function VideoManager({ projectId, videos, shareLinks, outputs }: VideoMa
                   <p className="mt-xs text-secondary text-on-surface-variant">
                     생성 {formatDate(output.createdAt)}
                   </p>
+                  <Button asChild variant="secondary" className="mt-md">
+                    <a href={`/api/outputs/${output.id}`} target="_blank" rel="noreferrer">
+                      <Download className="h-4 w-4" />
+                      열기
+                    </a>
+                  </Button>
                 </Card>
               ))}
             </div>
