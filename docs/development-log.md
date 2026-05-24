@@ -19,6 +19,7 @@ current Add admin permission boundaries
 current Tighten first-use role UX
 current Improve member approval UX
 current Improve project management UX
+current Improve schedule management UX
 ```
 
 Verified:
@@ -100,6 +101,10 @@ Project management UX smoke test:
 - Confirm active project can be switched with the project apply API
 - Confirm /admin/projects renders project creation, manager selector, current project label, and project status summary
 - Clean up temporary project and manager candidate
+Schedule management UX smoke test:
+- Confirm /admin/schedules renders schedule summary and create controls
+- Create, update, and delete a temporary schedule through the API
+- Confirm browser renders day/category selectors, time inputs, and schedule action buttons
 ```
 
 Current local super admin:

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { CalendarPlus, MapPin, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -37,6 +39,8 @@ type FormState = {
 const inputClass =
   "min-h-tap-target rounded border border-outline-variant bg-surface-container-lowest px-sm py-xs text-secondary text-on-surface outline-none focus:border-primary";
 
+const categoryOptions = ["이동", "관광", "식사", "예배", "휴식", "기타"];
+
 async function requestJson(url: string, method: "POST" | "PATCH" | "DELETE", body?: unknown) {
   const response = await fetch(url, {
     method,
@@ -70,9 +74,20 @@ function scheduleToForm(dayId: string, schedule: Schedule): FormState {
   };
 }
 
+function formatDayDate(value: string) {
+  return new Date(value).toLocaleDateString("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  });
+}
+
 export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
   const router = useRouter();
-  const [createForm, setCreateForm] = useState<FormState>(emptyForm(days[0]?.id ?? ""));
+  const firstEmptyDay = days.find((day) => day.schedules.length === 0);
+  const [createForm, setCreateForm] = useState<FormState>(
+    emptyForm(firstEmptyDay?.id ?? days[0]?.id ?? ""),
+  );
   const [editForms, setEditForms] = useState<Record<string, FormState>>(() =>
     Object.fromEntries(
       days.flatMap((day) =>
@@ -82,6 +97,11 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
   );
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const selectedDay = useMemo(
+    () => days.find((day) => day.id === createForm.dayId) ?? days[0],
+    [createForm.dayId, days],
+  );
 
   function updateCreate(field: keyof FormState, value: string) {
     setCreateForm((current) => ({ ...current, [field]: value }));
@@ -125,68 +145,131 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
   }
 
   return (
-    <div className="space-y-lg">
-      <Card className="space-y-md">
-        <div>
-          <h2 className="text-section-title text-on-surface">세부일정 추가</h2>
-          <p className="text-secondary text-on-surface-variant">
-            업로더가 사진과 메모를 연결할 기준 일정을 먼저 만듭니다.
-          </p>
-        </div>
-        <div className="grid gap-sm lg:grid-cols-[1fr_120px_1.4fr_1.2fr_1fr_auto]">
-          <select
-            className={inputClass}
-            value={createForm.dayId}
-            onChange={(event) => updateCreate("dayId", event.target.value)}
-          >
-            {days.map((day) => (
-              <option key={day.id} value={day.id}>
-                Day {day.dayNumber} {day.title ?? ""}
-              </option>
-            ))}
-          </select>
-          <input
-            className={inputClass}
-            type="time"
-            value={createForm.time}
-            onChange={(event) => updateCreate("time", event.target.value)}
-          />
-          <input
-            className={inputClass}
-            placeholder="일정 제목"
-            value={createForm.title}
-            onChange={(event) => updateCreate("title", event.target.value)}
-          />
-          <input
-            className={inputClass}
-            placeholder="장소"
-            value={createForm.location}
-            onChange={(event) => updateCreate("location", event.target.value)}
-          />
-          <input
-            className={inputClass}
-            placeholder="카테고리"
-            value={createForm.category}
-            onChange={(event) => updateCreate("category", event.target.value)}
-          />
-          <Button disabled={isSubmitting || !createForm.title} onClick={() => run(createSchedule)}>
-            추가
-          </Button>
-        </div>
-        {error ? <p className="text-secondary text-error">{error}</p> : null}
-      </Card>
+    <div className="grid gap-lg xl:grid-cols-[380px_1fr]">
+      <aside className="space-y-md">
+        <Card className="space-y-md">
+          <div className="flex items-start gap-sm">
+            <CalendarPlus className="mt-1 h-5 w-5 text-primary" />
+            <div>
+              <h2 className="text-section-title text-on-surface">세부일정 추가</h2>
+              <p className="mt-xs text-secondary text-on-surface-variant">
+                사진과 메모가 연결될 기준 일정을 먼저 만듭니다.
+              </p>
+            </div>
+          </div>
 
-      <div className="space-y-md">
+          <label className="grid gap-xs">
+            <span className="text-metadata text-on-surface-variant">Day 선택</span>
+            <select
+              className={inputClass}
+              value={createForm.dayId}
+              onChange={(event) => updateCreate("dayId", event.target.value)}
+            >
+              {days.map((day) => (
+                <option key={day.id} value={day.id}>
+                  Day {day.dayNumber} · {formatDayDate(day.date)}
+                  {day.title ? ` · ${day.title}` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="grid gap-sm sm:grid-cols-2 xl:grid-cols-1">
+            <label className="grid gap-xs">
+              <span className="text-metadata text-on-surface-variant">시간</span>
+              <input
+                className={inputClass}
+                type="time"
+                value={createForm.time}
+                onChange={(event) => updateCreate("time", event.target.value)}
+              />
+            </label>
+            <label className="grid gap-xs">
+              <span className="text-metadata text-on-surface-variant">카테고리</span>
+              <select
+                className={inputClass}
+                value={createForm.category}
+                onChange={(event) => updateCreate("category", event.target.value)}
+              >
+                <option value="">선택 안 함</option>
+                {categoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <label className="grid gap-xs">
+            <span className="text-metadata text-on-surface-variant">일정 제목</span>
+            <input
+              className={inputClass}
+              placeholder="예: 성산일출봉 탐방"
+              value={createForm.title}
+              onChange={(event) => updateCreate("title", event.target.value)}
+            />
+          </label>
+
+          <label className="grid gap-xs">
+            <span className="text-metadata text-on-surface-variant">장소</span>
+            <input
+              className={inputClass}
+              placeholder="예: 성산일출봉"
+              value={createForm.location}
+              onChange={(event) => updateCreate("location", event.target.value)}
+            />
+          </label>
+
+          <Button
+            disabled={isSubmitting || !createForm.dayId || !createForm.title}
+            onClick={() => run(createSchedule)}
+          >
+            일정 추가
+          </Button>
+          {error ? <p className="text-secondary text-error">{error}</p> : null}
+        </Card>
+
+        {selectedDay ? (
+          <Card>
+            <p className="text-metadata text-primary">현재 추가 대상</p>
+            <h3 className="mt-xs text-section-title text-on-surface">
+              Day {selectedDay.dayNumber} {selectedDay.title ?? ""}
+            </h3>
+            <p className="mt-base text-secondary text-on-surface-variant">
+              {formatDayDate(selectedDay.date)} · 세부일정 {selectedDay.schedules.length}개
+            </p>
+          </Card>
+        ) : null}
+      </aside>
+
+      <section className="space-y-md">
         {days.map((day) => (
           <Card key={day.id} className="space-y-md">
-            <div className="flex flex-col gap-base sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-sm sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-metadata text-primary">Day {day.dayNumber}</p>
-                <h2 className="text-section-title text-on-surface">{day.title ?? "여행 일정"}</h2>
+                <div className="flex flex-wrap items-center gap-xs">
+                  <Badge className="border-primary text-primary">Day {day.dayNumber}</Badge>
+                  {day.schedules.length === 0 ? (
+                    <Badge className="border-error text-error">일정 없음</Badge>
+                  ) : (
+                    <Badge>{day.schedules.length}개 일정</Badge>
+                  )}
+                </div>
+                <h2 className="mt-sm text-section-title text-on-surface">
+                  {day.title ?? "여행 일정"}
+                </h2>
+                <p className="mt-base text-secondary text-on-surface-variant">
+                  {formatDayDate(day.date)}
+                </p>
               </div>
-              <p className="text-secondary text-on-surface-variant">
-                {new Date(day.date).toLocaleDateString("ko-KR")}
-              </p>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => updateCreate("dayId", day.id)}
+              >
+                이 Day에 추가
+              </Button>
             </div>
 
             {day.schedules.length > 0 ? (
@@ -197,7 +280,7 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
                   return (
                     <div
                       key={schedule.id}
-                      className="grid gap-sm rounded border border-outline-variant bg-surface-container-lowest p-sm lg:grid-cols-[120px_1.5fr_1.2fr_1fr_auto_auto]"
+                      className="grid gap-sm rounded border border-outline-variant bg-surface-container-lowest p-sm lg:grid-cols-[96px_1.35fr_1fr_120px_auto_auto]"
                     >
                       <input
                         className={inputClass}
@@ -210,22 +293,31 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
                         value={form.title}
                         onChange={(event) => updateEdit(schedule.id, "title", event.target.value)}
                       />
-                      <input
-                        className={inputClass}
-                        value={form.location}
-                        placeholder="장소"
-                        onChange={(event) =>
-                          updateEdit(schedule.id, "location", event.target.value)
-                        }
-                      />
-                      <input
+                      <div className="relative">
+                        <MapPin className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
+                        <input
+                          className={`${inputClass} w-full pl-8`}
+                          value={form.location}
+                          placeholder="장소"
+                          onChange={(event) =>
+                            updateEdit(schedule.id, "location", event.target.value)
+                          }
+                        />
+                      </div>
+                      <select
                         className={inputClass}
                         value={form.category}
-                        placeholder="카테고리"
                         onChange={(event) =>
                           updateEdit(schedule.id, "category", event.target.value)
                         }
-                      />
+                      >
+                        <option value="">분류 없음</option>
+                        {categoryOptions.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        ))}
+                      </select>
                       <Button
                         variant="secondary"
                         disabled={isSubmitting || !form.title}
@@ -238,6 +330,7 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
                         disabled={isSubmitting}
                         onClick={() => run(() => deleteSchedule(schedule.id))}
                       >
+                        <Trash2 className="h-4 w-4" />
                         삭제
                       </Button>
                     </div>
@@ -245,13 +338,16 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
                 })}
               </div>
             ) : (
-              <p className="rounded border border-dashed border-outline-variant p-md text-secondary text-on-surface-variant">
-                아직 등록된 세부일정이 없습니다.
-              </p>
+              <div className="rounded border border-dashed border-outline-variant p-md">
+                <p className="text-secondary text-on-surface-variant">
+                  아직 등록된 세부일정이 없습니다. 왼쪽 입력 영역에서 이 Day를 선택해 일정을
+                  추가해 주세요.
+                </p>
+              </div>
             )}
           </Card>
         ))}
-      </div>
+      </section>
     </div>
   );
 }
