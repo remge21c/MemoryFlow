@@ -138,7 +138,7 @@ export async function AppShell({
           className="focus-ring flex h-16 items-center gap-sm border-b border-outline-variant px-md hover:bg-surface-container-low"
           aria-label="MemoryFlow 홈"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded bg-primary text-on-primary">
+          <div className="flex h-9 w-9 items-center justify-center rounded bg-primary text-white">
             MF
           </div>
           <div>
@@ -196,7 +196,7 @@ export async function AppShell({
             </p>
           </div>
           <div className="flex min-w-0 flex-1 items-center gap-sm lg:hidden">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded bg-primary text-secondary font-semibold text-on-primary">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded bg-primary text-secondary font-semibold text-white">
               MF
             </div>
             <p className="shrink-0 text-section-title font-semibold text-on-surface">MemoryFlow</p>

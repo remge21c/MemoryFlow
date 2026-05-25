@@ -159,7 +159,7 @@ export default async function ShareStorybookPage({ params }: SharePageProps) {
       <header className="sticky top-0 z-20 border-b border-outline-variant bg-surface/95 px-md py-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-md">
           <div className="flex min-w-0 items-center gap-sm">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded bg-primary text-secondary font-semibold text-on-primary">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded bg-primary text-secondary font-semibold text-white">
               MF
             </div>
             <div className="min-w-0">
