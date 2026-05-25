@@ -188,9 +188,8 @@ export async function AppShell({
       <div className="lg:pl-64">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-outline-variant bg-surface/95 px-md backdrop-blur-none lg:px-lg">
           <div className="hidden min-w-0 lg:block">
-            <p className="truncate text-section-title text-primary">{activeProjectName}</p>
-            <p className="truncate text-secondary text-on-surface-variant">
-              {activeProjectDescription}
+            <p className="truncate text-secondary font-medium text-primary">
+              {activeProjectName} / {activeProjectDescription}
             </p>
           </div>
           <div className="flex min-w-0 items-center gap-sm lg:hidden">
