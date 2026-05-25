@@ -195,16 +195,14 @@ export async function AppShell({
               {activeProjectName} / {activeProjectDescription}
             </p>
           </div>
-          <div className="flex min-w-0 items-center gap-sm lg:hidden">
+          <div className="flex min-w-0 flex-1 items-center gap-sm lg:hidden">
             <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded bg-primary text-secondary font-semibold text-on-primary">
               MF
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-body font-semibold text-on-surface">MemoryFlow</p>
-              <p className="truncate text-metadata text-on-surface-variant">
-                {activeProjectName} / {activeProjectDescription}
-              </p>
-            </div>
+            <p className="shrink-0 text-section-title font-semibold text-on-surface">MemoryFlow</p>
+            <p className="min-w-0 truncate border-l border-outline-variant pl-sm text-secondary font-medium text-primary">
+              {activeProjectName}
+            </p>
           </div>
           <div className="lg:hidden">
             <LogoutIconButton />
