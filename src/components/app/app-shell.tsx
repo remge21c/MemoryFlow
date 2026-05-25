@@ -196,10 +196,16 @@ export async function AppShell({
             </p>
           </div>
           <div className="flex min-w-0 flex-1 items-center gap-sm lg:hidden">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded bg-primary text-secondary font-semibold text-white">
-              MF
-            </div>
-            <p className="shrink-0 text-section-title font-semibold text-on-surface">MemoryFlow</p>
+            <Link
+              href="/"
+              className="focus-ring flex shrink-0 items-center gap-sm rounded hover:bg-surface-container-low"
+              aria-label="MemoryFlow 홈"
+            >
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded bg-primary text-secondary font-semibold text-white">
+                MF
+              </div>
+              <p className="text-section-title font-semibold text-on-surface">MemoryFlow</p>
+            </Link>
             <p className="min-w-0 truncate border-l border-outline-variant pl-sm text-secondary font-medium text-primary">
               {activeProjectName}
             </p>
