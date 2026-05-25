@@ -133,14 +133,18 @@ export async function AppShell({
   return (
     <div className="min-h-dvh bg-background text-on-background">
       <aside className="fixed left-0 top-0 z-30 hidden h-dvh w-64 border-r border-outline-variant bg-surface-container-lowest lg:flex lg:flex-col">
-        <div className="flex h-16 items-center gap-sm border-b border-outline-variant px-md">
+        <Link
+          href="/"
+          className="focus-ring flex h-16 items-center gap-sm border-b border-outline-variant px-md hover:bg-surface-container-low"
+          aria-label="MemoryFlow 홈"
+        >
           <div className="flex h-9 w-9 items-center justify-center rounded bg-primary text-on-primary">
             MF
           </div>
           <div>
             <p className="text-section-title font-semibold text-on-surface">MemoryFlow</p>
           </div>
-        </div>
+        </Link>
 
         <div className="border-b border-outline-variant px-md py-sm">
           <p className="text-metadata text-on-surface-variant">현재 프로젝트</p>
