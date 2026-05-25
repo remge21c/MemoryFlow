@@ -138,8 +138,7 @@ export async function AppShell({
             MF
           </div>
           <div>
-            <p className="text-body font-semibold">MemoryFlow</p>
-            <p className="text-metadata text-on-surface-variant">기록을 정리하는 곳</p>
+            <p className="text-section-title font-semibold text-on-surface">MemoryFlow</p>
           </div>
         </div>
 
