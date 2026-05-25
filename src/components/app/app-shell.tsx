@@ -1,35 +1,33 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import {
-  BookOpen,
-  CalendarDays,
-  Film,
-  Home,
-  ImagePlus,
-  Layers3,
-  Settings,
-  ShieldCheck,
-  Upload,
-} from "lucide-react";
+import { Settings } from "lucide-react";
+import { AppNavLink, type AppNavIcon } from "@/components/app/app-nav-link";
 import { LogoutIconButton } from "@/components/app/logout-icon-button";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { getActiveProjectSummary } from "@/lib/projects/current";
 import { cn } from "@/lib/utils";
 
+type NavItem = {
+  label: string;
+  href: string;
+  icon: AppNavIcon;
+  superAdminOnly?: boolean;
+};
+
 const userNav = [
-  { label: "홈", href: "/", icon: Home },
-  { label: "업로드", href: "/upload", icon: Upload },
-  { label: "스토리북", href: "/storybook", icon: BookOpen },
-];
+  { label: "홈", href: "/", icon: "home" },
+  { label: "업로드", href: "/upload", icon: "upload" },
+  { label: "스토리북", href: "/storybook", icon: "bookOpen" },
+] satisfies NavItem[];
 
 const adminNav = [
-  { label: "프로젝트 관리", href: "/admin/projects", icon: Layers3, superAdminOnly: true },
-  { label: "회원 승인", href: "/admin/members", icon: ImagePlus, superAdminOnly: true },
-  { label: "일정 관리", href: "/admin/schedules", icon: CalendarDays },
-  { label: "스토리북 승인", href: "/admin/storybook", icon: ShieldCheck },
-  { label: "산출물 갤러리", href: "/admin/gallery", icon: Film, superAdminOnly: true },
-];
+  { label: "프로젝트 관리", href: "/admin/projects", icon: "layers3", superAdminOnly: true },
+  { label: "회원 승인", href: "/admin/members", icon: "imagePlus", superAdminOnly: true },
+  { label: "일정 관리", href: "/admin/schedules", icon: "calendarDays" },
+  { label: "스토리북 승인", href: "/admin/storybook", icon: "shieldCheck" },
+  { label: "산출물 갤러리", href: "/admin/gallery", icon: "film", superAdminOnly: true },
+] satisfies NavItem[];
 
 function destinationForStatus(status: string) {
   if (status === "pending") return "/pending";
@@ -116,15 +114,21 @@ export async function AppShell({
   const visibleUserNav = uploadAllowed
     ? userNav
     : userNav.filter((item) => item.href !== "/upload");
-  const navItems =
+  const managerNavItem: NavItem = {
+    label: "관리자",
+    href: adminStartPath ?? "/admin/schedules",
+    icon: "shieldCheck",
+  };
+  const navItems: NavItem[] =
     section === "admin"
       ? adminNav.filter((item) => currentUser.globalRole === "super_admin" || !item.superAdminOnly)
       : adminStartPath
-        ? [...visibleUserNav, { label: "관리자", href: adminStartPath, icon: ShieldCheck }]
+        ? [...visibleUserNav, managerNavItem]
         : visibleUserNav;
   const activeProject = await getActiveProjectSummary(currentUser);
   const activeProjectName = activeProject?.name ?? "활성 프로젝트 없음";
-  const activeProjectOrg = activeProject?.orgName ?? "프로젝트 설정에서 선택";
+  const activeProjectDescription =
+    activeProject?.description?.trim() || activeProject?.orgName || "프로젝트 설정에서 선택";
 
   return (
     <div className="min-h-dvh bg-background text-on-background">
@@ -144,25 +148,20 @@ export async function AppShell({
           <p className="korean-text mt-base text-secondary font-medium text-on-surface">
             {activeProjectName}
           </p>
-          <p className="mt-1 text-metadata text-on-surface-variant">{activeProjectOrg}</p>
+          <p className="mt-1 line-clamp-2 text-metadata text-on-surface-variant">
+            {activeProjectDescription}
+          </p>
         </div>
 
         <nav className="flex-1 space-y-base p-sm">
           {navItems.map((item) => (
-            <Link
+            <AppNavLink
               key={item.href}
               href={item.href}
-              data-testid={item.href.startsWith("/admin") ? "admin-entry-link" : undefined}
-              className={cn(
-                "focus-ring flex h-tap-target items-center gap-sm rounded px-sm text-secondary text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface",
-                item.href === "/" && section === "user"
-                  ? "border border-primary bg-primary-fixed text-on-primary-fixed"
-                  : "",
-              )}
-            >
-              <item.icon className="h-5 w-5" strokeWidth={2} />
-              {item.label}
-            </Link>
+              icon={item.icon}
+              label={item.label}
+              testId={item.href.startsWith("/admin") ? "admin-entry-link" : undefined}
+            />
           ))}
         </nav>
 
@@ -189,9 +188,9 @@ export async function AppShell({
       <div className="lg:pl-64">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-outline-variant bg-surface/95 px-md backdrop-blur-none lg:px-lg">
           <div className="hidden min-w-0 lg:block">
-            <p className="truncate text-screen-title text-primary">{title}</p>
-            <p className="truncate text-metadata text-on-surface-variant">
-              {activeProjectName} / {activeProjectOrg}
+            <p className="truncate text-section-title text-primary">{activeProjectName}</p>
+            <p className="truncate text-secondary text-on-surface-variant">
+              {activeProjectDescription}
             </p>
           </div>
           <div className="flex min-w-0 items-center gap-sm lg:hidden">
@@ -201,7 +200,7 @@ export async function AppShell({
             <div className="min-w-0">
               <p className="truncate text-body font-semibold text-on-surface">MemoryFlow</p>
               <p className="truncate text-metadata text-on-surface-variant">
-                {activeProjectName} / {activeProjectOrg}
+                {activeProjectName} / {activeProjectDescription}
               </p>
             </div>
           </div>
@@ -216,7 +215,10 @@ export async function AppShell({
           </Link>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-md py-lg pb-32 lg:px-lg lg:pb-lg">
+        <main
+          aria-label={title}
+          className="mx-auto w-full max-w-6xl px-md py-lg pb-32 lg:px-lg lg:pb-lg"
+        >
           {children}
         </main>
       </div>
@@ -229,15 +231,14 @@ export async function AppShell({
           )}
         >
           {navItems.map((item) => (
-            <Link
+            <AppNavLink
               key={item.href}
               href={item.href}
-              data-testid={item.href.startsWith("/admin") ? "admin-entry-link" : undefined}
-              className="flex h-16 flex-col items-center justify-center gap-base text-metadata text-on-surface-variant"
-            >
-              <item.icon className="h-5 w-5" />
-              {item.label}
-            </Link>
+              icon={item.icon}
+              label={item.label}
+              testId={item.href.startsWith("/admin") ? "admin-entry-link" : undefined}
+              variant="mobile"
+            />
           ))}
           <Link
             href="/settings"

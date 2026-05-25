@@ -91,9 +91,9 @@ export async function getActiveProjectSummary(user: CurrentUser) {
       id: true,
       name: true,
       orgName: true,
+      description: true,
       startDate: true,
       endDate: true,
     },
   });
 }
-
