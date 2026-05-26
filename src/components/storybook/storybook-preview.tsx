@@ -1,6 +1,19 @@
-import { BookOpen, CalendarDays, CheckCircle2, Clock, Film, Images } from "lucide-react";
-import { MediaPreview } from "@/components/media/media-preview";
+"use client";
+
+import { useState } from "react";
+import {
+  BookOpen,
+  CalendarDays,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Film,
+  Images,
+  MapPin,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 
@@ -32,6 +45,22 @@ type PreviewDay = {
   uploads: PreviewUpload[];
 };
 
+type ScheduleStory = {
+  id: string;
+  time: string | null;
+  title: string;
+  location: string | null;
+  uploads: PreviewUpload[];
+};
+
+type MediaStoryItem = {
+  id: string;
+  fileType: "image" | "video";
+  caption: string;
+  uploadType: "photo" | "video";
+  uploadIndex: number;
+};
+
 type StorybookPreviewProps = {
   project: {
     name: string;
@@ -49,6 +78,29 @@ type StorybookPreviewProps = {
   mediaSrcPrefix?: string;
   modeLabel?: string;
 };
+
+function groupUploadsBySchedule(uploads: PreviewUpload[]) {
+  const schedules = new Map<string, ScheduleStory>();
+
+  uploads.forEach((upload) => {
+    const current = schedules.get(upload.schedule.id);
+
+    if (current) {
+      current.uploads.push(upload);
+      return;
+    }
+
+    schedules.set(upload.schedule.id, {
+      id: upload.schedule.id,
+      time: upload.schedule.time,
+      title: upload.schedule.title,
+      location: upload.schedule.location,
+      uploads: [upload],
+    });
+  });
+
+  return Array.from(schedules.values());
+}
 
 export function StorybookPreview({
   project,
@@ -136,48 +188,13 @@ export function StorybookPreview({
             </div>
           </div>
 
-          <div className="space-y-md">
-            {day.uploads.map((upload, index) => (
-              <Card key={upload.id} className="overflow-hidden p-0">
-                <div className="grid gap-md lg:grid-cols-[minmax(280px,0.95fr)_1fr]">
-                  <MediaPreview
-                    files={upload.files}
-                    srcPrefix={mediaSrcPrefix}
-                    className="h-full min-h-[240px] rounded-none"
-                  />
-                  <div className="space-y-sm p-lg">
-                    <div className="flex flex-wrap items-center gap-xs">
-                      <Badge>{upload.type === "video" ? "영상" : "사진"}</Badge>
-                      <Badge>
-                        {upload.schedule.time ? `${upload.schedule.time} · ` : ""}
-                        {upload.schedule.title}
-                      </Badge>
-                      <Badge>#{index + 1}</Badge>
-                    </div>
-                    <div className="flex items-center gap-sm">
-                      <BookOpen className="h-5 w-5 text-primary" />
-                      <p className="text-section-title text-on-surface">
-                        {upload.schedule.location ?? "기록"}
-                      </p>
-                    </div>
-                    <p className="korean-text text-body text-on-surface-variant">
-                      {upload.adminNote ?? upload.memo ?? "메모 없음"}
-                    </p>
-                    <div className="flex flex-wrap gap-xs text-metadata text-on-surface-variant">
-                      <span className="inline-flex items-center gap-1">
-                        <Images className="h-4 w-4" />
-                        파일 {upload.files.length}개
-                      </span>
-                      {upload.schedule.time ? (
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {upload.schedule.time}
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              </Card>
+          <div className="space-y-lg">
+            {groupUploadsBySchedule(day.uploads).map((schedule) => (
+              <ScheduleStoryCard
+                key={schedule.id}
+                schedule={schedule}
+                mediaSrcPrefix={mediaSrcPrefix}
+              />
             ))}
           </div>
         </section>
@@ -192,5 +209,161 @@ export function StorybookPreview({
         </Card>
       ) : null}
     </article>
+  );
+}
+
+function ScheduleStoryCard({
+  schedule,
+  mediaSrcPrefix = "/api/media",
+}: {
+  schedule: ScheduleStory;
+  mediaSrcPrefix?: string;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const mediaItems = schedule.uploads.flatMap((upload, uploadIndex) =>
+    upload.files.map((file, fileIndex) => ({
+      id: file.id,
+      fileType: file.fileType,
+      caption: upload.adminNote || upload.memo || "기록된 메모가 없습니다.",
+      uploadType: upload.type,
+      uploadIndex: uploadIndex + fileIndex,
+    })),
+  ) satisfies MediaStoryItem[];
+  const currentItem = mediaItems[currentIndex];
+  const hasMultipleItems = mediaItems.length > 1;
+  const mediaCount = mediaItems.length;
+
+  function move(direction: "previous" | "next") {
+    setCurrentIndex((current) =>
+      direction === "previous"
+        ? (current - 1 + mediaCount) % mediaCount
+        : (current + 1) % mediaCount,
+    );
+  }
+
+  return (
+    <Card className="overflow-hidden p-0">
+      <div className="border-b border-outline-variant p-md">
+        <div className="flex flex-wrap items-center gap-xs">
+          {schedule.time ? <Badge>{schedule.time}</Badge> : null}
+          <Badge>{schedule.uploads.length}개 기록</Badge>
+          <Badge>{mediaCount}개 미디어</Badge>
+        </div>
+        <h3 className="korean-text mt-sm text-screen-title text-on-surface">{schedule.title}</h3>
+        <div className="mt-xs flex flex-wrap gap-sm text-secondary text-on-surface-variant">
+          {schedule.location ? (
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="h-4 w-4" />
+              {schedule.location}
+            </span>
+          ) : null}
+          {schedule.time ? (
+            <span className="inline-flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              {schedule.time}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="relative aspect-[16/10] min-h-[320px] bg-black sm:aspect-video">
+        {currentItem ? (
+          currentItem.fileType === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`${mediaSrcPrefix}/${currentItem.id}`}
+              alt=""
+              className="h-full w-full object-contain"
+              loading="lazy"
+            />
+          ) : (
+            <video
+              src={`${mediaSrcPrefix}/${currentItem.id}`}
+              className="h-full w-full object-contain"
+              controls
+              preload="metadata"
+            />
+          )
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-secondary text-white/70">
+            표시할 미디어가 없습니다.
+          </div>
+        )}
+
+        {hasMultipleItems ? (
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              className="absolute left-sm top-1/2 -translate-y-1/2"
+              onClick={() => move("previous")}
+              aria-label="이전 미디어"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="absolute right-sm top-1/2 -translate-y-1/2"
+              onClick={() => move("next")}
+              aria-label="다음 미디어"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </>
+        ) : null}
+
+        {currentItem ? (
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/55 to-transparent px-md pb-md pt-xl text-white">
+            <div className="mb-xs flex flex-wrap items-center gap-xs">
+              <Badge className="border-white/40 bg-white/15 text-white">
+                {currentItem.fileType === "video" ? "영상" : "사진"}
+              </Badge>
+              <Badge className="border-white/40 bg-white/15 text-white">
+                {currentIndex + 1}/{mediaCount}
+              </Badge>
+            </div>
+            <p className="korean-text text-body font-medium leading-relaxed">
+              {currentItem.caption}
+            </p>
+          </div>
+        ) : null}
+      </div>
+
+      {hasMultipleItems ? (
+        <div className="flex items-center justify-between gap-sm border-t border-outline-variant p-sm">
+          <div className="flex min-w-0 flex-1 gap-xs overflow-x-auto">
+            {mediaItems.map((item, index) => (
+              <button
+                key={`${item.id}-${index}`}
+                type="button"
+                className={`h-14 w-20 shrink-0 overflow-hidden rounded border ${
+                  index === currentIndex ? "border-primary" : "border-outline-variant"
+                }`}
+                onClick={() => setCurrentIndex(index)}
+                aria-label={`${index + 1}번째 미디어 보기`}
+              >
+                {item.fileType === "image" ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`${mediaSrcPrefix}/${item.id}`}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-surface-container">
+                    <Film className="h-5 w-5 text-primary" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+          <p className="shrink-0 text-metadata text-on-surface-variant">
+            넘겨보기 {currentIndex + 1}/{mediaCount}
+          </p>
+        </div>
+      ) : null}
+    </Card>
   );
 }
