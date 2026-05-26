@@ -58,6 +58,17 @@ function formatDate(value: string) {
   });
 }
 
+function dayOptionLabel(day: Day) {
+  const defaultTitle = `Day ${day.dayNumber}`;
+  const title = day.title?.trim();
+
+  if (!title || title === defaultTitle) {
+    return defaultTitle;
+  }
+
+  return `${defaultTitle} ${title}`;
+}
+
 function UploadMediaCarousel({
   files,
   className,
@@ -372,7 +383,7 @@ export function UploadListManager({
                         >
                           {days.map((day) => (
                             <option key={day.id} value={day.id}>
-                              Day {day.dayNumber} {day.title ?? ""}
+                              {dayOptionLabel(day)}
                             </option>
                           ))}
                         </select>

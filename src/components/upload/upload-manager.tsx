@@ -52,6 +52,17 @@ function fileErrors(type: "photo" | "video", file: File) {
   return null;
 }
 
+function dayOptionLabel(day: Day) {
+  const defaultTitle = `Day ${day.dayNumber}`;
+  const title = day.title?.trim();
+
+  if (!title || title === defaultTitle) {
+    return defaultTitle;
+  }
+
+  return `${defaultTitle} ${title}`;
+}
+
 export function UploadManager({ days, isLocked }: UploadManagerProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -202,7 +213,7 @@ export function UploadManager({ days, isLocked }: UploadManagerProps) {
               >
                 {days.map((day) => (
                   <option key={day.id} value={day.id}>
-                    Day {day.dayNumber} {day.title ?? ""}
+                    {dayOptionLabel(day)}
                   </option>
                 ))}
               </select>
