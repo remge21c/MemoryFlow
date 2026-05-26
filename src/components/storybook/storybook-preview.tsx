@@ -295,7 +295,7 @@ function ScheduleStoryCard({
             <Button
               type="button"
               variant="secondary"
-              className="absolute left-sm top-1/2 -translate-y-1/2"
+              className="absolute left-sm top-1/2 h-10 w-10 -translate-y-1/2 rounded-full border-white/20 bg-black/30 p-0 text-white shadow-none backdrop-blur-sm transition-colors hover:bg-black/45"
               onClick={() => move("previous")}
               aria-label="이전 미디어"
             >
@@ -304,7 +304,7 @@ function ScheduleStoryCard({
             <Button
               type="button"
               variant="secondary"
-              className="absolute right-sm top-1/2 -translate-y-1/2"
+              className="absolute right-sm top-1/2 h-10 w-10 -translate-y-1/2 rounded-full border-white/20 bg-black/30 p-0 text-white shadow-none backdrop-blur-sm transition-colors hover:bg-black/45"
               onClick={() => move("next")}
               aria-label="다음 미디어"
             >
