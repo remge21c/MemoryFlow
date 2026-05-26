@@ -11,6 +11,10 @@ const updateScheduleSchema = z.object({
   category: z.string().trim().max(60).optional(),
 });
 
+const reorderScheduleSchema = z.object({
+  direction: z.enum(["up", "down"]),
+});
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ projectId: string; scheduleId: string }> },
@@ -22,7 +26,57 @@ export async function PATCH(
     return response;
   }
 
-  const parsed = updateScheduleSchema.safeParse(await request.json().catch(() => null));
+  const body = await request.json().catch(() => null);
+  const reorderParsed = reorderScheduleSchema.safeParse(body);
+
+  if (reorderParsed.success) {
+    const schedule = await prisma.projectSchedule.findFirst({
+      where: { id: scheduleId, projectId },
+      select: { id: true, dayId: true },
+    });
+
+    if (!schedule) {
+      return NextResponse.json(
+        { error: "순서를 변경할 일정을 찾을 수 없습니다." },
+        { status: 404 },
+      );
+    }
+
+    const siblings = await prisma.projectSchedule.findMany({
+      where: {
+        projectId,
+        dayId: schedule.dayId,
+      },
+      orderBy: [{ sortOrder: "asc" }, { time: "asc" }, { createdAt: "asc" }],
+      select: { id: true },
+    });
+
+    const currentIndex = siblings.findIndex((item) => item.id === schedule.id);
+    const targetIndex = reorderParsed.data.direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= siblings.length) {
+      return NextResponse.json({ ok: true, changed: false });
+    }
+
+    const reordered = [...siblings];
+    [reordered[currentIndex], reordered[targetIndex]] = [
+      reordered[targetIndex],
+      reordered[currentIndex],
+    ];
+
+    await prisma.$transaction(
+      reordered.map((item, index) =>
+        prisma.projectSchedule.update({
+          where: { id: item.id },
+          data: { sortOrder: index },
+        }),
+      ),
+    );
+
+    return NextResponse.json({ ok: true, changed: true });
+  }
+
+  const parsed = updateScheduleSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(

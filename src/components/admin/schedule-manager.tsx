@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarPlus, Clock, Edit3, MapPin, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarPlus, Clock, Edit3, MapPin, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -45,9 +45,15 @@ const categoryOptions = ["이동", "관광", "식사", "예배", "휴식", "기�
 async function requestJson(url: string, method: "POST" | "PATCH" | "DELETE", body?: unknown) {
   const response = await fetch(url, {
     method,
+    credentials: "same-origin",
+    redirect: "manual",
     headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
+
+  if (response.type === "opaqueredirect" || response.status === 0) {
+    throw new Error("로그인 상태가 만료되었습니다. 다시 로그인해 주세요.");
+  }
 
   if (!response.ok) {
     const data = (await response.json().catch(() => null)) as { error?: string } | null;
@@ -170,6 +176,16 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
       `/api/admin/projects/${projectId}/schedules/${scheduleId}`,
       "PATCH",
       editForms[scheduleId],
+    );
+    setEditingScheduleId(null);
+    setShowEditDetails(false);
+  }
+
+  async function moveSchedule(scheduleId: string, direction: "up" | "down") {
+    await requestJson(
+      `/api/admin/projects/${projectId}/schedules/${scheduleId}`,
+      "PATCH",
+      { direction },
     );
     setEditingScheduleId(null);
     setShowEditDetails(false);
@@ -364,6 +380,8 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
             <div className="space-y-sm">
               {selectedDay.schedules.map((schedule, index) => {
                 const isEditing = schedule.id === editingScheduleId;
+                const isFirst = index === 0;
+                const isLast = index === selectedDay.schedules.length - 1;
 
                 return (
                   <div
@@ -390,6 +408,28 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-xs">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={isSubmitting || isFirst}
+                          onClick={() => run(() => moveSchedule(schedule.id, "up"))}
+                          aria-label={`${schedule.title} 위로 이동`}
+                          title="위로"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                          위로
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={isSubmitting || isLast}
+                          onClick={() => run(() => moveSchedule(schedule.id, "down"))}
+                          aria-label={`${schedule.title} 아래로 이동`}
+                          title="아래로"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                          아래로
+                        </Button>
                         <Button
                           size="sm"
                           variant="secondary"
