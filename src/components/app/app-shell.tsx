@@ -146,17 +146,7 @@ export async function AppShell({
           </div>
         </Link>
 
-        <div className="border-b border-outline-variant px-md py-sm">
-          <p className="text-metadata text-on-surface-variant">현재 프로젝트</p>
-          <p className="korean-text mt-base text-secondary font-medium text-on-surface">
-            {activeProjectName}
-          </p>
-          <p className="mt-1 line-clamp-2 text-metadata text-on-surface-variant">
-            {activeProjectDescription}
-          </p>
-        </div>
-
-        <nav className="flex-1 space-y-base p-sm">
+        <nav className="flex-1 space-y-base p-sm pt-md">
           {navItems.map((item) => (
             <AppNavLink
               key={item.href}
