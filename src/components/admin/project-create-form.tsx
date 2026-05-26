@@ -24,10 +24,11 @@ export function ProjectCreateForm({ managerOptions }: ProjectCreateFormProps) {
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setError(null);
     setIsSubmitting(true);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const response = await fetch("/api/admin/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -49,7 +50,7 @@ export function ProjectCreateForm({ managerOptions }: ProjectCreateFormProps) {
       return;
     }
 
-    event.currentTarget.reset();
+    form.reset();
     router.refresh();
   }
 
