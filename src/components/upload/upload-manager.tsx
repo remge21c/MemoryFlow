@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileImage, ImagePlus, UploadCloud, Video, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +63,147 @@ function dayOptionLabel(day: Day) {
   return `${defaultTitle} ${title}`;
 }
 
+function UploadDraftPreview({
+  files,
+  type,
+  onRemove,
+}: {
+  files: File[];
+  type: "photo" | "video";
+  onRemove: (index: number) => void;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const previewItems = useMemo(
+    () =>
+      files.map((file) => ({
+        file,
+        url: URL.createObjectURL(file),
+      })),
+    [files],
+  );
+  const currentItem = previewItems[currentIndex];
+  const hasMultipleFiles = previewItems.length > 1;
+
+  useEffect(() => {
+    setCurrentIndex((current) => Math.min(current, Math.max(previewItems.length - 1, 0)));
+  }, [previewItems.length]);
+
+  useEffect(
+    () => () => {
+      previewItems.forEach((item) => URL.revokeObjectURL(item.url));
+    },
+    [previewItems],
+  );
+
+  function move(direction: "previous" | "next") {
+    setCurrentIndex((current) =>
+      direction === "previous"
+        ? (current - 1 + previewItems.length) % previewItems.length
+        : (current + 1) % previewItems.length,
+    );
+  }
+
+  if (!currentItem) {
+    return null;
+  }
+
+  return (
+    <div className="overflow-hidden rounded border border-outline-variant bg-surface-container-lowest">
+      <div className="relative aspect-[16/10] min-h-[260px] bg-black">
+        {type === "photo" ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={currentItem.url}
+            alt=""
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          <video
+            src={currentItem.url}
+            className="h-full w-full object-contain"
+            controls
+            preload="metadata"
+          />
+        )}
+
+        {hasMultipleFiles ? (
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              className="absolute left-sm top-1/2 h-10 w-10 -translate-y-1/2 rounded-full border-white/15 bg-black/25 p-0 text-white shadow-none backdrop-blur-sm transition-colors hover:bg-black/40"
+              onClick={() => move("previous")}
+              aria-label="이전 미디어"
+            >
+              <span className="-mt-0.5 text-3xl font-light leading-none text-white drop-shadow">
+                ‹
+              </span>
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="absolute right-sm top-1/2 h-10 w-10 -translate-y-1/2 rounded-full border-white/15 bg-black/25 p-0 text-white shadow-none backdrop-blur-sm transition-colors hover:bg-black/40"
+              onClick={() => move("next")}
+              aria-label="다음 미디어"
+            >
+              <span className="-mt-0.5 text-3xl font-light leading-none text-white drop-shadow">
+                ›
+              </span>
+            </Button>
+          </>
+        ) : null}
+
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-sm bg-black/55 px-sm py-xs text-white">
+          <span className="truncate text-metadata">
+            {currentItem.file.name}
+          </span>
+          <span className="shrink-0 text-metadata">
+            {currentIndex + 1}/{previewItems.length}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-sm p-sm">
+        <div className="flex min-w-0 flex-1 gap-xs overflow-x-auto">
+          {previewItems.map((item, index) => (
+            <button
+              key={`${item.file.name}-${index}`}
+              type="button"
+              className={`relative h-16 w-20 shrink-0 overflow-hidden rounded border ${
+                index === currentIndex ? "border-primary" : "border-outline-variant"
+              }`}
+              onClick={() => setCurrentIndex(index)}
+              aria-label={`${index + 1}번째 선택 파일 보기`}
+            >
+              {type === "photo" ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.url}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-surface-container">
+                  <Video className="h-5 w-5 text-primary" />
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => onRemove(currentIndex)}
+          aria-label="현재 선택 파일 제거"
+        >
+          <X className="h-4 w-4" />
+          제거
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function UploadManager({ days, isLocked }: UploadManagerProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +234,11 @@ export function UploadManager({ days, isLocked }: UploadManagerProps) {
 
   function resetFiles() {
     setFiles([]);
+    setFileInputKey((current) => current + 1);
+  }
+
+  function removeFile(index: number) {
+    setFiles((current) => current.filter((_, currentIndex) => currentIndex !== index));
     setFileInputKey((current) => current + 1);
   }
 
@@ -194,6 +340,84 @@ export function UploadManager({ days, isLocked }: UploadManagerProps) {
         </Button>
       </div>
 
+      <div
+        className={cn(
+          "rounded border border-dashed border-outline-variant bg-surface-container-lowest p-md transition-colors",
+          isDragging && "border-primary bg-primary-fixed/30",
+        )}
+        onClick={() => fileInputRef.current?.click()}
+        onDragOver={(event) => {
+          event.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={(event) => {
+          event.preventDefault();
+          setIsDragging(false);
+          applyFiles(event.dataTransfer.files);
+        }}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
+      >
+        <div className="flex flex-col items-start gap-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-sm">
+            <div className="flex h-11 w-11 items-center justify-center rounded bg-primary-fixed text-primary">
+              <UploadCloud className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-section-title text-on-surface">
+                {files.length > 0 ? "선택된 미디어 확인" : "먼저 파일을 선택하세요"}
+              </p>
+              <p className="text-secondary text-on-surface-variant">
+                {type === "photo"
+                  ? "사진을 여러 장 끌어다 놓거나 눌러서 선택하세요."
+                  : "편집 완료된 영상 파일 1개를 끌어다 놓거나 선택하세요."}
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={(event) => {
+              event.stopPropagation();
+              fileInputRef.current?.click();
+            }}
+          >
+            찾아보기
+          </Button>
+        </div>
+        <input
+          ref={fileInputRef}
+          className="sr-only"
+          key={`${type}-${fileInputKey}`}
+          type="file"
+          multiple={type === "photo"}
+          accept={
+            type === "photo"
+              ? "image/jpeg,image/png,image/webp,image/heic"
+              : "video/mp4,video/quicktime,video/webm"
+          }
+          onChange={(event) => applyFiles(event.target.files ?? [])}
+        />
+      </div>
+
+      {files.length > 0 ? (
+        <UploadDraftPreview files={files} type={type} onRemove={removeFile} />
+      ) : (
+        <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
+          <p className="text-secondary font-medium text-on-surface">선택된 파일</p>
+          <p className="mt-xs text-secondary text-on-surface-variant">
+            아직 선택된 파일이 없습니다. 사진이나 영상을 먼저 선택하면 여기에서 미리 볼 수 있습니다.
+          </p>
+        </div>
+      )}
+
       {!hasSchedules ? (
         <div className="rounded border border-dashed border-outline-variant bg-surface-container-lowest p-md">
           <p className="text-section-title text-on-surface">등록된 세부일정이 없습니다</p>
@@ -255,55 +479,6 @@ export function UploadManager({ days, isLocked }: UploadManagerProps) {
         />
         <span className="text-right text-metadata text-on-surface-variant">{memo.length}/500</span>
       </label>
-
-      <div
-        className={cn(
-          "rounded border border-dashed border-outline-variant bg-surface-container-lowest p-md transition-colors",
-          isDragging && "border-primary bg-primary-fixed/30",
-        )}
-        onDragOver={(event) => {
-          event.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={(event) => {
-          event.preventDefault();
-          setIsDragging(false);
-          applyFiles(event.dataTransfer.files);
-        }}
-      >
-        <div className="flex flex-col items-start gap-sm sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-sm">
-            <div className="flex h-11 w-11 items-center justify-center rounded bg-primary-fixed text-primary">
-              <UploadCloud className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-section-title text-on-surface">파일 선택</p>
-              <p className="text-secondary text-on-surface-variant">
-                {type === "photo"
-                  ? "사진을 여러 장 선택하거나 이 영역에 끌어다 놓으세요."
-                  : "편집 완료된 영상 파일 1개를 선택하세요."}
-              </p>
-            </div>
-          </div>
-          <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()}>
-            찾아보기
-          </Button>
-        </div>
-        <input
-          ref={fileInputRef}
-          className="sr-only"
-          key={`${type}-${fileInputKey}`}
-          type="file"
-          multiple={type === "photo"}
-          accept={
-            type === "photo"
-              ? "image/jpeg,image/png,image/webp,image/heic"
-              : "video/mp4,video/quicktime,video/webm"
-          }
-          onChange={(event) => applyFiles(event.target.files ?? [])}
-        />
-      </div>
 
       <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
         <div className="flex flex-wrap items-center justify-between gap-xs">
