@@ -245,6 +245,24 @@ export async function AppShell({
           </Link>
         </nav>
       ) : null}
+
+      {section === "admin" ? (
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-40 grid border-t border-outline-variant bg-surface-container-lowest px-xs lg:hidden"
+          style={{ gridTemplateColumns: `repeat(${navItems.length}, minmax(0, 1fr))` }}
+        >
+          {navItems.map((item) => (
+            <AppNavLink
+              key={item.href}
+              href={item.href}
+              icon={item.icon}
+              label={item.label}
+              testId="admin-entry-link"
+              variant="mobile"
+            />
+          ))}
+        </nav>
+      ) : null}
     </div>
   );
 }
