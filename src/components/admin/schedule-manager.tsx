@@ -42,6 +42,16 @@ const inputClass =
 
 const categoryOptions = ["이동", "관광", "식사", "예배", "휴식", "기타"];
 
+const quickTimeOptions = [
+  { label: "시간 없음", value: "" },
+  { label: "오전 9시", value: "09:00" },
+  { label: "오전 11시", value: "11:00" },
+  { label: "점심", value: "12:00" },
+  { label: "오후 2시", value: "14:00" },
+  { label: "오후 4시", value: "16:00" },
+  { label: "저녁", value: "18:00" },
+];
+
 async function requestJson(url: string, method: "POST" | "PATCH" | "DELETE", body?: unknown) {
   const response = await fetch(url, {
     method,
@@ -92,6 +102,41 @@ function formatDayDate(value: string) {
 function scheduleMeta(schedule: Pick<Schedule, "time" | "location" | "category">) {
   const parts = [schedule.time, schedule.location, schedule.category].filter(Boolean);
   return parts.length > 0 ? parts.join(" · ") : "시간과 장소는 나중에 입력해도 됩니다";
+}
+
+function QuickTimePicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-xs">
+      <p className="text-metadata text-on-surface-variant">빠른 선택</p>
+      <div className="flex flex-wrap gap-xs">
+        {quickTimeOptions.map((option) => {
+          const isSelected = value === option.value;
+
+          return (
+            <button
+              key={option.label}
+              type="button"
+              onClick={() => onChange(option.value)}
+              className={cn(
+                "focus-ring min-h-8 rounded border px-sm text-metadata transition-colors",
+                isSelected
+                  ? "border-primary bg-primary-fixed text-primary"
+                  : "border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface",
+              )}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
@@ -323,6 +368,10 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
             <div className="grid gap-sm md:grid-cols-3">
               <label className="grid gap-xs">
                 <span className="text-metadata text-on-surface-variant">시간</span>
+                <QuickTimePicker
+                  value={createForm.time}
+                  onChange={(value) => updateCreate("time", value)}
+                />
                 <input
                   className={inputClass}
                   type="time"
@@ -473,6 +522,10 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
                           <div className="grid gap-sm md:grid-cols-3">
                             <label className="grid gap-xs">
                               <span className="text-metadata text-on-surface-variant">시간</span>
+                              <QuickTimePicker
+                                value={editingForm.time}
+                                onChange={(value) => updateEdit(schedule.id, "time", value)}
+                              />
                               <input
                                 className={inputClass}
                                 type="time"
