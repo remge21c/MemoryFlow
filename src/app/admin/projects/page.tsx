@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { CalendarDays, FolderKanban, Users } from "lucide-react";
 import { AppShell } from "@/components/app/app-shell";
 import { ProjectCreateForm } from "@/components/admin/project-create-form";
+import { ProjectEditPanel } from "@/components/admin/project-edit-panel";
 import { ProjectStatusActions } from "@/components/admin/project-status-actions";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -19,6 +20,10 @@ function statusBadgeClass(status: string) {
   if (status === "active") return "border-primary text-primary";
   if (status === "completed") return "border-primary bg-primary-fixed text-on-primary-fixed";
   return "";
+}
+
+function dateInputValue(date: Date) {
+  return date.toISOString().slice(0, 10);
 }
 
 export default async function AdminProjectsPage() {
@@ -123,6 +128,7 @@ export default async function AdminProjectsPage() {
                   member.role === "project_manager" && member.user.globalRole !== "super_admin",
               );
               const isActiveProject = currentUser.activeProjectId === project.id;
+              const managerUserId = managers[0]?.user.id ?? null;
 
               return (
                 <Card
@@ -192,6 +198,22 @@ export default async function AdminProjectsPage() {
                         {project.storybook?.status === "approved" ? "승인" : "초안"}
                       </p>
                     </div>
+                  </div>
+
+                  <div className="mt-md border-t border-outline-variant pt-md">
+                    <ProjectEditPanel
+                      project={{
+                        id: project.id,
+                        name: project.name,
+                        orgName: project.orgName,
+                        description: project.description,
+                        startDate: dateInputValue(project.startDate),
+                        endDate: dateInputValue(project.endDate),
+                        status: project.status,
+                        managerUserId,
+                      }}
+                      managerOptions={managerOptions}
+                    />
                   </div>
                 </Card>
               );
