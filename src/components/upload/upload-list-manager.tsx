@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, ImagePlus, RotateCcw, Trash2, Video, X } from "lucide-react";
+import { ImagePlus, RotateCcw, Trash2, Video, X } from "lucide-react";
 import { MediaPreview } from "@/components/media/media-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,20 +111,24 @@ function UploadMediaCarousel({
           <Button
             type="button"
             variant="secondary"
-            className="absolute left-sm top-1/2 h-10 w-10 -translate-y-1/2 rounded-full border-white/20 bg-black/30 p-0 text-white shadow-none backdrop-blur-sm transition-colors hover:bg-black/45"
+            className="absolute left-sm top-1/2 h-10 w-10 -translate-y-1/2 rounded-full border-white/15 bg-black/25 p-0 text-white shadow-none backdrop-blur-sm transition-colors hover:bg-black/40"
             onClick={() => move("previous")}
             aria-label="이전 미디어"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <span className="-mt-0.5 text-3xl font-light leading-none text-white drop-shadow">
+              ‹
+            </span>
           </Button>
           <Button
             type="button"
             variant="secondary"
-            className="absolute right-sm top-1/2 h-10 w-10 -translate-y-1/2 rounded-full border-white/20 bg-black/30 p-0 text-white shadow-none backdrop-blur-sm transition-colors hover:bg-black/45"
+            className="absolute right-sm top-1/2 h-10 w-10 -translate-y-1/2 rounded-full border-white/15 bg-black/25 p-0 text-white shadow-none backdrop-blur-sm transition-colors hover:bg-black/40"
             onClick={() => move("next")}
             aria-label="다음 미디어"
           >
-            <ChevronRight className="h-5 w-5" />
+            <span className="-mt-0.5 text-3xl font-light leading-none text-white drop-shadow">
+              ›
+            </span>
           </Button>
           <div className="absolute bottom-sm left-1/2 flex -translate-x-1/2 items-center gap-xs rounded-full bg-black/45 px-sm py-xs text-metadata text-white backdrop-blur-sm">
             {currentIndex + 1}/{files.length}
