@@ -7,16 +7,21 @@ import {
   ArrowDown,
   ArrowUp,
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
   CheckCircle2,
   Clock3,
   Eye,
   EyeOff,
   FileText,
   Lock,
+  Maximize2,
   Music2,
   ShieldCheck,
   Sparkles,
   Unlock,
+  Video,
+  X,
 } from "lucide-react";
 import { ShareLinkManager } from "@/components/admin/share-link-manager";
 import { MediaPreview } from "@/components/media/media-preview";
@@ -34,6 +39,15 @@ type Upload = {
   user: { name: string };
   files: { id: string; fileType: "image" | "video"; mimeType: string | null }[];
 };
+
+type MediaFile = Upload["files"][number];
+
+type MediaLightboxState = {
+  files: MediaFile[];
+  index: number;
+  title: string;
+  memo: string | null;
+} | null;
 
 type Schedule = {
   id: string;
@@ -151,6 +165,7 @@ export function StorybookEditor({
     initialAiReview?.completedAt ?? null,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mediaLightbox, setMediaLightbox] = useState<MediaLightboxState>(null);
 
   const uploads = useMemo(
     () => days.flatMap((day) => day.schedules.flatMap((schedule) => schedule.uploads)),
@@ -233,9 +248,38 @@ export function StorybookEditor({
     setAiReviewRanAt(new Date().toISOString());
   }
 
+  function openMediaLightbox(upload: Upload, title: string, index = 0) {
+    if (upload.files.length === 0) return;
+
+    setMediaLightbox({
+      files: upload.files,
+      index,
+      title,
+      memo: upload.memo,
+    });
+  }
+
+  function moveLightbox(direction: "previous" | "next") {
+    setMediaLightbox((current) => {
+      if (!current) return current;
+
+      const nextIndex =
+        direction === "previous"
+          ? (current.index - 1 + current.files.length) % current.files.length
+          : (current.index + 1) % current.files.length;
+
+      return { ...current, index: nextIndex };
+    });
+  }
+
+  function selectLightboxIndex(index: number) {
+    setMediaLightbox((current) => (current ? { ...current, index } : current));
+  }
+
   return (
-    <div className="grid gap-lg lg:grid-cols-[1fr_360px]">
-      <section className="space-y-md">
+    <>
+      <div className="grid gap-lg lg:grid-cols-[minmax(0,1fr)_360px]">
+        <section className="space-y-md">
         <Card className="space-y-md">
           <div className="flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-sm">
@@ -340,13 +384,31 @@ export function StorybookEditor({
                       return (
                         <div
                           key={upload.id}
-                          className={`grid gap-sm rounded border p-sm lg:grid-cols-[88px_1fr_auto] ${
+                          className={`grid gap-md rounded border p-sm xl:grid-cols-[minmax(320px,45%)_1fr_auto] ${
                             form.isInStorybook
                               ? "border-outline-variant"
                               : "border-dashed border-outline-variant bg-surface-container-low"
                           }`}
                         >
-                          <MediaPreview files={upload.files} compact />
+                          <button
+                            type="button"
+                            className="group relative block overflow-hidden rounded border border-outline-variant bg-surface-container-lowest text-left focus:outline-none focus:ring-2 focus:ring-primary"
+                            onClick={() => openMediaLightbox(upload, schedule.title)}
+                            aria-label="미디어 크게 보기"
+                          >
+                            <MediaPreview
+                              files={upload.files}
+                              className="aspect-[16/10] min-h-[220px] w-full"
+                            />
+                            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-sm bg-black/55 px-sm py-xs text-white opacity-100 transition-opacity group-hover:opacity-100">
+                              <span className="text-metadata">
+                                {upload.files.length > 1
+                                  ? `${upload.files.length}개 미디어 보기`
+                                  : "크게 보기"}
+                              </span>
+                              <Maximize2 className="h-4 w-4" />
+                            </div>
+                          </button>
                           <div className="min-w-0 space-y-xs">
                             <div className="flex flex-wrap items-center gap-xs">
                               <Badge>{upload.type === "video" ? "영상" : "사진"}</Badge>
@@ -374,7 +436,7 @@ export function StorybookEditor({
                               }
                             />
                           </div>
-                          <div className="flex flex-row flex-wrap gap-xs lg:w-28 lg:flex-col">
+                          <div className="flex flex-row flex-wrap gap-xs xl:w-28 xl:flex-col">
                             <Button
                               size="sm"
                               variant="secondary"
@@ -432,9 +494,9 @@ export function StorybookEditor({
             );
           })}
         </div>
-      </section>
+        </section>
 
-      <aside className="space-y-md">
+        <aside className="space-y-md">
         <Card>
           <div className="flex items-center gap-sm">
             {isApproved ? (
@@ -630,7 +692,130 @@ export function StorybookEditor({
           isApproved={isApproved}
           initialShareLinks={shareLinks}
         />
-      </aside>
+        </aside>
+      </div>
+
+      {mediaLightbox ? (
+        <MediaLightbox
+          state={mediaLightbox}
+          onClose={() => setMediaLightbox(null)}
+          onMove={moveLightbox}
+          onSelect={selectLightboxIndex}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function MediaLightbox({
+  state,
+  onClose,
+  onMove,
+  onSelect,
+}: {
+  state: NonNullable<MediaLightboxState>;
+  onClose: () => void;
+  onMove: (direction: "previous" | "next") => void;
+  onSelect: (index: number) => void;
+}) {
+  const currentFile = state.files[state.index];
+  const src = `/api/media/${currentFile.id}`;
+  const hasMultipleFiles = state.files.length > 1;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col bg-black/90 text-white"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="flex min-h-16 items-center justify-between gap-md border-b border-white/15 px-md py-sm">
+        <div className="min-w-0">
+          <p className="truncate text-section-title">{state.title}</p>
+          <p className="text-metadata text-white/70">
+            {state.index + 1}/{state.files.length}
+            {state.memo ? ` · ${state.memo}` : ""}
+          </p>
+        </div>
+        <Button variant="secondary" type="button" onClick={onClose}>
+          <X className="h-4 w-4" />
+          닫기
+        </Button>
+      </div>
+
+      <div className="relative flex min-h-0 flex-1 items-center justify-center p-md">
+        {hasMultipleFiles ? (
+          <Button
+            type="button"
+            variant="secondary"
+            className="absolute left-md top-1/2 z-10 -translate-y-1/2"
+            onClick={() => onMove("previous")}
+            aria-label="이전 미디어"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+        ) : null}
+
+        <div className="flex h-full w-full items-center justify-center">
+          {currentFile.fileType === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={src}
+              alt=""
+              className="max-h-full max-w-full rounded object-contain shadow-2xl"
+            />
+          ) : (
+            <video
+              src={src}
+              className="max-h-full max-w-full rounded object-contain shadow-2xl"
+              controls
+              autoPlay
+              preload="metadata"
+            />
+          )}
+        </div>
+
+        {hasMultipleFiles ? (
+          <Button
+            type="button"
+            variant="secondary"
+            className="absolute right-md top-1/2 z-10 -translate-y-1/2"
+            onClick={() => onMove("next")}
+            aria-label="다음 미디어"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        ) : null}
+      </div>
+
+      {hasMultipleFiles ? (
+        <div className="flex gap-xs overflow-x-auto border-t border-white/15 px-md py-sm">
+          {state.files.map((file, index) => (
+            <button
+              key={file.id}
+              type="button"
+              className={`h-16 w-20 shrink-0 overflow-hidden rounded border ${
+                index === state.index ? "border-primary" : "border-white/20"
+              }`}
+              onClick={() => onSelect(index)}
+              aria-label={`${index + 1}번째 미디어 보기`}
+            >
+              {file.fileType === "image" ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`/api/media/${file.id}`}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-white/10">
+                  <Video className="h-5 w-5" />
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
