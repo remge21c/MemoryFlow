@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ImagePlus, RotateCcw, Trash2, Video, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImagePlus, RotateCcw, Trash2, Video, X } from "lucide-react";
 import { MediaPreview } from "@/components/media/media-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,83 @@ function formatDate(value: string) {
     month: "2-digit",
     day: "2-digit",
   });
+}
+
+function UploadMediaCarousel({
+  files,
+  className,
+}: {
+  files: UploadFile[];
+  className?: string;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentFile = files[currentIndex];
+  const hasMultipleFiles = files.length > 1;
+
+  function move(direction: "previous" | "next") {
+    setCurrentIndex((current) =>
+      direction === "previous"
+        ? (current - 1 + files.length) % files.length
+        : (current + 1) % files.length,
+    );
+  }
+
+  return (
+    <div
+      className={`relative overflow-hidden bg-black ${
+        className ?? "aspect-[16/10] min-h-[260px]"
+      }`}
+    >
+      {currentFile ? (
+        currentFile.fileType === "image" ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={`/api/media/${currentFile.id}`}
+            alt=""
+            className="h-full w-full object-contain"
+            loading="lazy"
+          />
+        ) : (
+          <video
+            src={`/api/media/${currentFile.id}`}
+            className="h-full w-full object-contain"
+            controls
+            preload="metadata"
+          />
+        )
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-secondary text-white/70">
+          파일 없음
+        </div>
+      )}
+
+      {hasMultipleFiles ? (
+        <>
+          <Button
+            type="button"
+            variant="secondary"
+            className="absolute left-sm top-1/2 h-10 w-10 -translate-y-1/2 rounded-full border-white/20 bg-black/30 p-0 text-white shadow-none backdrop-blur-sm transition-colors hover:bg-black/45"
+            onClick={() => move("previous")}
+            aria-label="이전 미디어"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            className="absolute right-sm top-1/2 h-10 w-10 -translate-y-1/2 rounded-full border-white/20 bg-black/30 p-0 text-white shadow-none backdrop-blur-sm transition-colors hover:bg-black/45"
+            onClick={() => move("next")}
+            aria-label="다음 미디어"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+          <div className="absolute bottom-sm left-1/2 flex -translate-x-1/2 items-center gap-xs rounded-full bg-black/45 px-sm py-xs text-metadata text-white backdrop-blur-sm">
+            {currentIndex + 1}/{files.length}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
 }
 
 async function requestJson(url: string, method: "PATCH" | "DELETE", body?: unknown) {
@@ -234,11 +311,18 @@ export function UploadListManager({
                 <div
                   className={
                     view === "card"
-                      ? "grid gap-md lg:grid-cols-[220px_1fr]"
+                      ? "flex flex-col"
                       : "grid gap-md lg:grid-cols-[160px_1fr]"
                   }
                 >
-                  <MediaPreview files={upload.files} className="h-full min-h-[180px] rounded-none" />
+                  <UploadMediaCarousel
+                    files={upload.files}
+                    className={
+                      view === "card"
+                        ? "aspect-[16/10] min-h-[320px] w-full"
+                        : "h-full min-h-[180px] w-full"
+                    }
+                  />
                   <div className="space-y-md p-md">
                     <div className="flex flex-wrap items-center justify-between gap-xs">
                       <div className="flex flex-wrap items-center gap-xs">
