@@ -44,12 +44,23 @@ const categoryOptions = ["이동", "관광", "식사", "예배", "휴식", "기�
 
 const quickTimeOptions = [
   { label: "시간 없음", value: "" },
-  { label: "오전 9시", value: "09:00" },
-  { label: "오전 11시", value: "11:00" },
-  { label: "점심", value: "12:00" },
-  { label: "오후 2시", value: "14:00" },
-  { label: "오후 4시", value: "16:00" },
-  { label: "저녁", value: "18:00" },
+  ...Array.from({ length: 13 }, (_, hour) => {
+    const value = hour === 12 ? "00:00" : `${String(hour).padStart(2, "0")}:00`;
+
+    return {
+      label: `오전 ${hour}시 (${value})`,
+      value,
+    };
+  }),
+  ...Array.from({ length: 12 }, (_, index) => {
+    const hour = index + 1;
+    const value = hour === 12 ? "12:00" : `${hour + 12}:00`;
+
+    return {
+      label: `오후 ${hour}시 (${value})`,
+      value,
+    };
+  }),
 ];
 
 async function requestJson(url: string, method: "POST" | "PATCH" | "DELETE", body?: unknown) {
@@ -105,36 +116,27 @@ function scheduleMeta(schedule: Pick<Schedule, "time" | "location" | "category">
 }
 
 function QuickTimePicker({
-  value,
   onChange,
 }: {
-  value: string;
   onChange: (value: string) => void;
 }) {
   return (
     <div className="space-y-xs">
-      <p className="text-metadata text-on-surface-variant">빠른 선택</p>
-      <div className="flex flex-wrap gap-xs">
-        {quickTimeOptions.map((option) => {
-          const isSelected = value === option.value;
-
-          return (
-            <button
-              key={option.label}
-              type="button"
-              onClick={() => onChange(option.value)}
-              className={cn(
-                "focus-ring min-h-8 rounded border px-sm text-metadata transition-colors",
-                isSelected
-                  ? "border-primary bg-primary-fixed text-primary"
-                  : "border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface",
-              )}
-            >
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
+      <span className="text-metadata text-on-surface-variant">빠른 시간 선택</span>
+      <select
+        className={inputClass}
+        value="__placeholder__"
+        onChange={(event) => onChange(event.target.value)}
+      >
+        <option value="__placeholder__" disabled>
+          목록에서 시간 선택
+        </option>
+        {quickTimeOptions.map((option) => (
+          <option key={`${option.label}-${option.value}`} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
@@ -369,7 +371,6 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
               <label className="grid gap-xs">
                 <span className="text-metadata text-on-surface-variant">시간</span>
                 <QuickTimePicker
-                  value={createForm.time}
                   onChange={(value) => updateCreate("time", value)}
                 />
                 <input
@@ -523,7 +524,6 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
                             <label className="grid gap-xs">
                               <span className="text-metadata text-on-surface-variant">시간</span>
                               <QuickTimePicker
-                                value={editingForm.time}
                                 onChange={(value) => updateEdit(schedule.id, "time", value)}
                               />
                               <input
