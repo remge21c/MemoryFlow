@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarPlus, MapPin, Trash2 } from "lucide-react";
+import { CalendarPlus, Clock, Edit3, MapPin, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 type Schedule = {
   id: string;
@@ -82,12 +83,16 @@ function formatDayDate(value: string) {
   });
 }
 
+function scheduleMeta(schedule: Pick<Schedule, "time" | "location" | "category">) {
+  const parts = [schedule.time, schedule.location, schedule.category].filter(Boolean);
+  return parts.length > 0 ? parts.join(" · ") : "시간과 장소는 나중에 입력해도 됩니다";
+}
+
 export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
   const router = useRouter();
-  const firstEmptyDay = days.find((day) => day.schedules.length === 0);
-  const [createForm, setCreateForm] = useState<FormState>(
-    emptyForm(firstEmptyDay?.id ?? days[0]?.id ?? ""),
-  );
+  const firstDayId = days[0]?.id ?? "";
+  const [selectedDayId, setSelectedDayId] = useState(firstDayId);
+  const [createForm, setCreateForm] = useState<FormState>(emptyForm(firstDayId));
   const [editForms, setEditForms] = useState<Record<string, FormState>>(() =>
     Object.fromEntries(
       days.flatMap((day) =>
@@ -95,13 +100,28 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
       ),
     ),
   );
+  const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
+  const [showCreateDetails, setShowCreateDetails] = useState(false);
+  const [showEditDetails, setShowEditDetails] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedDay = useMemo(
-    () => days.find((day) => day.id === createForm.dayId) ?? days[0],
-    [createForm.dayId, days],
+    () => days.find((day) => day.id === selectedDayId) ?? days[0],
+    [selectedDayId, days],
   );
+
+  const selectedSchedule = selectedDay?.schedules.find(
+    (schedule) => schedule.id === editingScheduleId,
+  );
+
+  function selectDay(dayId: string) {
+    setSelectedDayId(dayId);
+    setCreateForm((current) => ({ ...current, dayId }));
+    setEditingScheduleId(null);
+    setShowEditDetails(false);
+    setError(null);
+  }
 
   function updateCreate(field: keyof FormState, value: string) {
     setCreateForm((current) => ({ ...current, [field]: value }));
@@ -112,6 +132,17 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
       ...current,
       [scheduleId]: { ...current[scheduleId], [field]: value },
     }));
+  }
+
+  function startEdit(schedule: Schedule) {
+    if (!selectedDay) return;
+    setEditingScheduleId(schedule.id);
+    setEditForms((current) => ({
+      ...current,
+      [schedule.id]: current[schedule.id] ?? scheduleToForm(selectedDay.id, schedule),
+    }));
+    setShowEditDetails(Boolean(schedule.time || schedule.location || schedule.category));
+    setError(null);
   }
 
   async function run(action: () => Promise<void>) {
@@ -128,8 +159,10 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
   }
 
   async function createSchedule() {
-    await requestJson(`/api/admin/projects/${projectId}/schedules`, "POST", createForm);
-    setCreateForm(emptyForm(createForm.dayId));
+    const form = { ...createForm, dayId: selectedDay.id };
+    await requestJson(`/api/admin/projects/${projectId}/schedules`, "POST", form);
+    setCreateForm(emptyForm(selectedDay.id));
+    setShowCreateDetails(false);
   }
 
   async function updateSchedule(scheduleId: string) {
@@ -138,215 +171,344 @@ export function ScheduleManager({ projectId, days }: ScheduleManagerProps) {
       "PATCH",
       editForms[scheduleId],
     );
+    setEditingScheduleId(null);
+    setShowEditDetails(false);
   }
 
   async function deleteSchedule(scheduleId: string) {
+    if (!window.confirm("이 세부일정을 삭제할까요? 업로드가 연결된 일정은 삭제할 수 없습니다.")) {
+      return;
+    }
+
     await requestJson(`/api/admin/projects/${projectId}/schedules/${scheduleId}`, "DELETE");
+    setEditingScheduleId(null);
   }
 
+  if (!selectedDay) {
+    return (
+      <Card>
+        <p className="text-secondary text-on-surface-variant">
+          프로젝트에 생성된 Day가 없습니다. 프로젝트 기간을 먼저 확인해 주세요.
+        </p>
+      </Card>
+    );
+  }
+
+  const editingForm =
+    selectedSchedule && editingScheduleId
+      ? editForms[editingScheduleId] ?? scheduleToForm(selectedDay.id, selectedSchedule)
+      : null;
+
   return (
-    <div className="grid gap-lg xl:grid-cols-[380px_1fr]">
+    <div className="grid gap-lg xl:grid-cols-[320px_1fr]">
       <aside className="space-y-md">
-        <Card className="space-y-md">
+        <Card className="space-y-sm">
           <div className="flex items-start gap-sm">
             <CalendarPlus className="mt-1 h-5 w-5 text-primary" />
             <div>
-              <h2 className="text-section-title text-on-surface">세부일정 추가</h2>
+              <h2 className="text-section-title text-on-surface">Day 선택</h2>
               <p className="mt-xs text-secondary text-on-surface-variant">
-                사진과 메모가 연결될 기준 일정을 먼저 만듭니다.
+                먼저 정리할 Day를 고른 뒤, 그 Day의 세부일정만 추가하거나 수정합니다.
               </p>
             </div>
           </div>
+          <div className="space-y-xs">
+            {days.map((day) => {
+              const isSelected = day.id === selectedDay.id;
 
-          <label className="grid gap-xs">
-            <span className="text-metadata text-on-surface-variant">Day 선택</span>
-            <select
-              className={inputClass}
-              value={createForm.dayId}
-              onChange={(event) => updateCreate("dayId", event.target.value)}
-            >
-              {days.map((day) => (
-                <option key={day.id} value={day.id}>
-                  Day {day.dayNumber} · {formatDayDate(day.date)}
-                  {day.title ? ` · ${day.title}` : ""}
-                </option>
-              ))}
-            </select>
-          </label>
+              return (
+                <button
+                  key={day.id}
+                  type="button"
+                  onClick={() => selectDay(day.id)}
+                  className={cn(
+                    "focus-ring w-full rounded border px-sm py-sm text-left transition-colors",
+                    isSelected
+                      ? "border-primary bg-primary-fixed text-on-primary-fixed"
+                      : "border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container-low",
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-sm">
+                    <span className="text-secondary font-semibold">Day {day.dayNumber}</span>
+                    <Badge
+                      className={cn(
+                        isSelected ? "border-primary bg-surface text-primary" : "",
+                        day.schedules.length === 0 && !isSelected ? "border-error text-error" : "",
+                      )}
+                    >
+                      {day.schedules.length === 0 ? "기준 없음" : `${day.schedules.length}개`}
+                    </Badge>
+                  </div>
+                  <p className="mt-base truncate text-secondary">{day.title ?? "여행 일정"}</p>
+                  <p className="mt-base text-metadata text-on-surface-variant">
+                    {formatDayDate(day.date)}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      </aside>
 
-          <div className="grid gap-sm sm:grid-cols-2 xl:grid-cols-1">
-            <label className="grid gap-xs">
-              <span className="text-metadata text-on-surface-variant">시간</span>
-              <input
-                className={inputClass}
-                type="time"
-                value={createForm.time}
-                onChange={(event) => updateCreate("time", event.target.value)}
-              />
-            </label>
-            <label className="grid gap-xs">
-              <span className="text-metadata text-on-surface-variant">카테고리</span>
-              <select
-                className={inputClass}
-                value={createForm.category}
-                onChange={(event) => updateCreate("category", event.target.value)}
-              >
-                <option value="">선택 안 함</option>
-                {categoryOptions.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </label>
+      <section className="space-y-md">
+        <Card className="space-y-md">
+          <div className="flex flex-col gap-sm sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex flex-wrap items-center gap-xs">
+                <Badge className="border-primary text-primary">Day {selectedDay.dayNumber}</Badge>
+                <Badge>{formatDayDate(selectedDay.date)}</Badge>
+                {selectedDay.schedules.length === 0 ? (
+                  <Badge className="border-error text-error">아직 기준 일정 없음</Badge>
+                ) : (
+                  <Badge>{selectedDay.schedules.length}개 세부일정</Badge>
+                )}
+              </div>
+              <h2 className="mt-sm text-screen-title text-on-surface">
+                {selectedDay.title ?? "여행 일정"}
+              </h2>
+              <p className="mt-xs text-secondary text-on-surface-variant">
+                사진과 메모를 담을 기준입니다. 정확한 계획이 아니어도 괜찮고, 여행 중 바뀌면
+                이곳에서 다시 고치면 됩니다.
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="space-y-md">
+          <div className="flex items-start justify-between gap-md">
+            <div>
+              <h3 className="text-section-title text-on-surface">세부일정 추가</h3>
+              <p className="mt-xs text-secondary text-on-surface-variant">
+                제목만 입력해도 업로드 분류 기준으로 사용할 수 있습니다.
+              </p>
+            </div>
+            <Plus className="h-5 w-5 text-primary" />
           </div>
 
           <label className="grid gap-xs">
             <span className="text-metadata text-on-surface-variant">일정 제목</span>
             <input
               className={inputClass}
-              placeholder="예: 성산일출봉 탐방"
-              value={createForm.title}
+              placeholder="예: 오래된 찻집"
+              value={createForm.dayId === selectedDay.id ? createForm.title : ""}
               onChange={(event) => updateCreate("title", event.target.value)}
             />
           </label>
 
-          <label className="grid gap-xs">
-            <span className="text-metadata text-on-surface-variant">장소</span>
-            <input
-              className={inputClass}
-              placeholder="예: 성산일출봉"
-              value={createForm.location}
-              onChange={(event) => updateCreate("location", event.target.value)}
-            />
-          </label>
-
-          <Button
-            disabled={isSubmitting || !createForm.dayId || !createForm.title}
-            onClick={() => run(createSchedule)}
+          <button
+            type="button"
+            className="text-left text-secondary font-medium text-primary"
+            onClick={() => setShowCreateDetails((current) => !current)}
           >
-            일정 추가
-          </Button>
-          {error ? <p className="text-secondary text-error">{error}</p> : null}
+            {showCreateDetails ? "선택 입력 닫기" : "시간·장소·분류 선택 입력"}
+          </button>
+
+          {showCreateDetails ? (
+            <div className="grid gap-sm md:grid-cols-3">
+              <label className="grid gap-xs">
+                <span className="text-metadata text-on-surface-variant">시간</span>
+                <input
+                  className={inputClass}
+                  type="time"
+                  value={createForm.time}
+                  onChange={(event) => updateCreate("time", event.target.value)}
+                />
+              </label>
+              <label className="grid gap-xs">
+                <span className="text-metadata text-on-surface-variant">장소</span>
+                <input
+                  className={inputClass}
+                  placeholder="예: 은각사 근처"
+                  value={createForm.location}
+                  onChange={(event) => updateCreate("location", event.target.value)}
+                />
+              </label>
+              <label className="grid gap-xs">
+                <span className="text-metadata text-on-surface-variant">분류</span>
+                <select
+                  className={inputClass}
+                  value={createForm.category}
+                  onChange={(event) => updateCreate("category", event.target.value)}
+                >
+                  <option value="">선택 안 함</option>
+                  {categoryOptions.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          ) : null}
+
+          <div className="flex flex-wrap items-center gap-sm">
+            <Button
+              disabled={isSubmitting || !createForm.title.trim()}
+              onClick={() => run(createSchedule)}
+            >
+              일정 추가
+            </Button>
+            {error ? <p className="text-secondary text-error">{error}</p> : null}
+          </div>
         </Card>
 
-        {selectedDay ? (
-          <Card>
-            <p className="text-metadata text-primary">현재 추가 대상</p>
-            <h3 className="mt-xs text-section-title text-on-surface">
-              Day {selectedDay.dayNumber} {selectedDay.title ?? ""}
-            </h3>
-            <p className="mt-base text-secondary text-on-surface-variant">
-              {formatDayDate(selectedDay.date)} · 세부일정 {selectedDay.schedules.length}개
+        <Card className="space-y-md">
+          <div>
+            <h3 className="text-section-title text-on-surface">세부일정</h3>
+            <p className="mt-xs text-secondary text-on-surface-variant">
+              평소에는 목록만 보고, 수정이 필요할 때만 항목을 열어 고칩니다.
             </p>
-          </Card>
-        ) : null}
-      </aside>
+          </div>
 
-      <section className="space-y-md">
-        {days.map((day) => (
-          <Card key={day.id} className="space-y-md">
-            <div className="flex flex-col gap-sm sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <div className="flex flex-wrap items-center gap-xs">
-                  <Badge className="border-primary text-primary">Day {day.dayNumber}</Badge>
-                  {day.schedules.length === 0 ? (
-                    <Badge className="border-error text-error">일정 없음</Badge>
-                  ) : (
-                    <Badge>{day.schedules.length}개 일정</Badge>
-                  )}
-                </div>
-                <h2 className="mt-sm text-section-title text-on-surface">
-                  {day.title ?? "여행 일정"}
-                </h2>
-                <p className="mt-base text-secondary text-on-surface-variant">
-                  {formatDayDate(day.date)}
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => updateCreate("dayId", day.id)}
-              >
-                이 Day에 추가
-              </Button>
-            </div>
+          {selectedDay.schedules.length > 0 ? (
+            <div className="space-y-sm">
+              {selectedDay.schedules.map((schedule, index) => {
+                const isEditing = schedule.id === editingScheduleId;
 
-            {day.schedules.length > 0 ? (
-              <div className="space-y-sm">
-                {day.schedules.map((schedule) => {
-                  const form = editForms[schedule.id] ?? scheduleToForm(day.id, schedule);
-
-                  return (
-                    <div
-                      key={schedule.id}
-                      className="grid gap-sm rounded border border-outline-variant bg-surface-container-lowest p-sm lg:grid-cols-[96px_1.35fr_1fr_120px_auto_auto]"
-                    >
-                      <input
-                        className={inputClass}
-                        type="time"
-                        value={form.time}
-                        onChange={(event) => updateEdit(schedule.id, "time", event.target.value)}
-                      />
-                      <input
-                        className={inputClass}
-                        value={form.title}
-                        onChange={(event) => updateEdit(schedule.id, "title", event.target.value)}
-                      />
-                      <div className="relative">
-                        <MapPin className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
-                        <input
-                          className={`${inputClass} w-full pl-8`}
-                          value={form.location}
-                          placeholder="장소"
-                          onChange={(event) =>
-                            updateEdit(schedule.id, "location", event.target.value)
-                          }
-                        />
+                return (
+                  <div
+                    key={schedule.id}
+                    className="rounded border border-outline-variant bg-surface-container-lowest"
+                  >
+                    <div className="flex flex-col gap-sm p-sm sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-xs">
+                          <Badge>#{index + 1}</Badge>
+                          {schedule.time ? (
+                            <Badge className="gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {schedule.time}
+                            </Badge>
+                          ) : null}
+                          {schedule.category ? <Badge>{schedule.category}</Badge> : null}
+                        </div>
+                        <p className="mt-xs truncate text-section-title text-on-surface">
+                          {schedule.title}
+                        </p>
+                        <p className="mt-base truncate text-secondary text-on-surface-variant">
+                          {scheduleMeta(schedule)}
+                        </p>
                       </div>
-                      <select
-                        className={inputClass}
-                        value={form.category}
-                        onChange={(event) =>
-                          updateEdit(schedule.id, "category", event.target.value)
-                        }
-                      >
-                        <option value="">분류 없음</option>
-                        {categoryOptions.map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                      </select>
-                      <Button
-                        variant="secondary"
-                        disabled={isSubmitting || !form.title}
-                        onClick={() => run(() => updateSchedule(schedule.id))}
-                      >
-                        저장
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        disabled={isSubmitting}
-                        onClick={() => run(() => deleteSchedule(schedule.id))}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        삭제
-                      </Button>
+                      <div className="flex flex-wrap gap-xs">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => startEdit(schedule)}
+                        >
+                          <Edit3 className="h-4 w-4" />
+                          수정
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={isSubmitting}
+                          onClick={() => run(() => deleteSchedule(schedule.id))}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          삭제
+                        </Button>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="rounded border border-dashed border-outline-variant p-md">
-                <p className="text-secondary text-on-surface-variant">
-                  아직 등록된 세부일정이 없습니다. 왼쪽 입력 영역에서 이 Day를 선택해 일정을
-                  추가해 주세요.
-                </p>
-              </div>
-            )}
-          </Card>
-        ))}
+
+                    {isEditing && editingForm ? (
+                      <div className="space-y-sm border-t border-outline-variant p-sm">
+                        <label className="grid gap-xs">
+                          <span className="text-metadata text-on-surface-variant">일정 제목</span>
+                          <input
+                            className={inputClass}
+                            value={editingForm.title}
+                            onChange={(event) =>
+                              updateEdit(schedule.id, "title", event.target.value)
+                            }
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          className="text-left text-secondary font-medium text-primary"
+                          onClick={() => setShowEditDetails((current) => !current)}
+                        >
+                          {showEditDetails ? "선택 입력 닫기" : "시간·장소·분류 선택 입력"}
+                        </button>
+                        {showEditDetails ? (
+                          <div className="grid gap-sm md:grid-cols-3">
+                            <label className="grid gap-xs">
+                              <span className="text-metadata text-on-surface-variant">시간</span>
+                              <input
+                                className={inputClass}
+                                type="time"
+                                value={editingForm.time}
+                                onChange={(event) =>
+                                  updateEdit(schedule.id, "time", event.target.value)
+                                }
+                              />
+                            </label>
+                            <label className="grid gap-xs">
+                              <span className="text-metadata text-on-surface-variant">장소</span>
+                              <div className="relative">
+                                <MapPin className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
+                                <input
+                                  className={`${inputClass} w-full pl-8`}
+                                  placeholder="예: 은각사 근처"
+                                  value={editingForm.location}
+                                  onChange={(event) =>
+                                    updateEdit(schedule.id, "location", event.target.value)
+                                  }
+                                />
+                              </div>
+                            </label>
+                            <label className="grid gap-xs">
+                              <span className="text-metadata text-on-surface-variant">분류</span>
+                              <select
+                                className={inputClass}
+                                value={editingForm.category}
+                                onChange={(event) =>
+                                  updateEdit(schedule.id, "category", event.target.value)
+                                }
+                              >
+                                <option value="">선택 안 함</option>
+                                {categoryOptions.map((category) => (
+                                  <option key={category} value={category}>
+                                    {category}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                          </div>
+                        ) : null}
+                        <div className="flex flex-wrap gap-xs">
+                          <Button
+                            size="sm"
+                            disabled={isSubmitting || !editingForm.title.trim()}
+                            onClick={() => run(() => updateSchedule(schedule.id))}
+                          >
+                            저장
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => {
+                              setEditingScheduleId(null);
+                              setShowEditDetails(false);
+                            }}
+                          >
+                            취소
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded border border-dashed border-outline-variant p-md">
+              <p className="text-secondary text-on-surface-variant">
+                아직 등록된 세부일정이 없습니다. 여행 중 사진을 묶을 기준이 생기면 위에서
+                제목만 먼저 추가해 주세요.
+              </p>
+            </div>
+          )}
+        </Card>
       </section>
     </div>
   );

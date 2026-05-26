@@ -77,13 +77,6 @@ export default async function AdminSchedulesPage() {
   }));
   const scheduleCount = project.days.reduce((total, day) => total + day.schedules.length, 0);
   const emptyDayCount = project.days.filter((day) => day.schedules.length === 0).length;
-  const nextSchedule =
-    project.days.flatMap((day) =>
-      day.schedules.map((schedule) => ({
-        ...schedule,
-        dayNumber: day.dayNumber,
-      })),
-    )[0] ?? null;
 
   return (
     <AppShell title="일정 관리" section="admin">
@@ -92,7 +85,7 @@ export default async function AdminSchedulesPage() {
           <div>
             <h1 className="text-major-title text-on-surface">일정 관리</h1>
             <p className="text-secondary text-on-surface-variant">
-              업로드가 연결될 Day와 세부일정을 미리 정리합니다.
+              사진과 메모를 정리할 Day별 기준 일정을 만듭니다. 여행 중 변경되어도 나중에 쉽게 고칠 수 있습니다.
             </p>
           </div>
           <Badge className="border-primary bg-primary-fixed text-on-primary-fixed">
@@ -100,7 +93,7 @@ export default async function AdminSchedulesPage() {
           </Badge>
         </section>
 
-        <section className="grid gap-md md:grid-cols-4">
+        <section className="grid gap-md md:grid-cols-3">
           <Card>
             <CalendarDays className="h-5 w-5 text-primary" />
             <p className="mt-xs text-metadata text-on-surface-variant">여행 기간</p>
@@ -115,19 +108,8 @@ export default async function AdminSchedulesPage() {
           </Card>
           <Card>
             <MapPin className="h-5 w-5 text-primary" />
-            <p className="mt-xs text-metadata text-on-surface-variant">비어 있는 Day</p>
+            <p className="mt-xs text-metadata text-on-surface-variant">기준 일정 없는 Day</p>
             <p className="text-section-title text-on-surface">{emptyDayCount}개</p>
-          </Card>
-          <Card>
-            <p className="text-metadata text-on-surface-variant">첫 일정</p>
-            <p className="mt-xs truncate text-secondary font-medium text-on-surface">
-              {nextSchedule
-                ? `Day ${nextSchedule.dayNumber} · ${nextSchedule.time ?? "시간 미정"}`
-                : "등록된 일정 없음"}
-            </p>
-            <p className="truncate text-metadata text-on-surface-variant">
-              {nextSchedule?.title ?? "세부일정을 추가해 주세요"}
-            </p>
           </Card>
         </section>
 
