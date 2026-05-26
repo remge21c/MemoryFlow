@@ -80,39 +80,39 @@ export default async function UploadPage() {
   return (
     <AppShell title="업로드">
       <div className="space-y-lg">
-        <section className="flex flex-col gap-md sm:flex-row sm:items-end sm:justify-between">
-          <div>
+        <Card className="space-y-md">
+          <div className="flex flex-col gap-xs">
             <h1 className="text-major-title text-on-surface">업로드</h1>
             <p className="text-secondary text-on-surface-variant">
               활성 프로젝트의 Day와 세부일정에 맞춰 사진, 영상, 메모를 올리고 관리합니다.
             </p>
           </div>
-        </section>
 
-        <section className="grid gap-md md:grid-cols-4">
-          <Card>
-            <CalendarDays className="h-5 w-5 text-primary" />
-            <p className="mt-xs text-metadata text-on-surface-variant">세부일정</p>
-            <p className="text-section-title text-on-surface">{scheduleCount}개</p>
-          </Card>
-          <Card>
-            <UploadCloud className="h-5 w-5 text-primary" />
-            <p className="mt-xs text-metadata text-on-surface-variant">내 업로드</p>
-            <p className="text-section-title text-on-surface">{serializedUploads.length}개</p>
-          </Card>
-          <Card>
-            <ImagePlus className="h-5 w-5 text-primary" />
-            <p className="mt-xs text-metadata text-on-surface-variant">사진 묶음</p>
-            <p className="text-section-title text-on-surface">{photoUploadCount}개</p>
-          </Card>
-          <Card>
-            <Lock className="h-5 w-5 text-primary" />
-            <p className="mt-xs text-metadata text-on-surface-variant">스토리북 상태</p>
-            <p className="text-section-title text-on-surface">
-              {isLocked ? "승인 완료" : "업로드 가능"}
-            </p>
-          </Card>
-        </section>
+          <section className="grid gap-sm sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
+              <CalendarDays className="h-5 w-5 text-primary" />
+              <p className="mt-xs text-metadata text-on-surface-variant">세부일정</p>
+              <p className="text-section-title text-on-surface">{scheduleCount}개</p>
+            </div>
+            <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
+              <UploadCloud className="h-5 w-5 text-primary" />
+              <p className="mt-xs text-metadata text-on-surface-variant">내 업로드</p>
+              <p className="text-section-title text-on-surface">{serializedUploads.length}개</p>
+            </div>
+            <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
+              <ImagePlus className="h-5 w-5 text-primary" />
+              <p className="mt-xs text-metadata text-on-surface-variant">사진 묶음</p>
+              <p className="text-section-title text-on-surface">{photoUploadCount}개</p>
+            </div>
+            <div className="rounded border border-outline-variant bg-surface-container-lowest p-sm">
+              <Lock className="h-5 w-5 text-primary" />
+              <p className="mt-xs text-metadata text-on-surface-variant">스토리북 상태</p>
+              <p className="text-section-title text-on-surface">
+                {isLocked ? "승인 완료" : "업로드 가능"}
+              </p>
+            </div>
+          </section>
+        </Card>
 
         {project && canUpload ? (
           <UploadManager days={serializedDays} isLocked={Boolean(isLocked)} />
