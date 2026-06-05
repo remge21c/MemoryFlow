@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { NavLink, Outlet, useParams } from 'react-router-dom';
+import { NavLink, Outlet, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { ProjectDTO, ScheduleDTO, StorybookDTO } from '@memoryflow/shared';
 import { apiGet } from '../../lib/api';
@@ -35,6 +35,11 @@ export default function ProjectLayout() {
   const { pid } = useParams();
   const { data, isLoading } = useProjectDetail(pid);
   const setActive = useActiveProject((s) => s.setActive);
+  const loc = useLocation();
+  const navigate = useNavigate();
+
+  // 현재 활성 서브경로 판별 (예: "", "schedules", "storybook" 등)
+  const currentSubPath = loc.pathname.split(`/admin/projects/${pid}`)[1]?.replace(/^\//, '') || '';
 
   useEffect(() => {
     if (data) setActive({ id: data.project.id, name: data.project.name, org_name: data.project.org_name ?? undefined });
@@ -48,8 +53,29 @@ export default function ProjectLayout() {
         <>
           <TopBar title={data.project.name} subtitle={data.project.org_name ?? ''} />
 
-          {/* 수평 스크롤 탭 네비게이션 */}
-          <nav aria-label="프로젝트 섹션" className="flex overflow-x-auto no-scrollbar border-b border-outline/15 -mx-5 px-5 mb-6">
+          {/* 모바일: 드롭다운 네비게이션 (제안 1) */}
+          <div className="md:hidden block mb-6 relative">
+            <select
+              value={currentSubPath}
+              onChange={(e) => navigate(`/admin/projects/${pid}/${e.target.value}`)}
+              className="w-full h-12 pl-10 pr-10 text-body-md font-medium text-on-surface bg-surface-container border border-outline/20 rounded-xl appearance-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            >
+              {TABS.map((t) => (
+                <option key={t.to} value={t.to}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+            <div className="absolute left-3 top-3.5 pointer-events-none">
+              <Icon name={TABS.find((t) => t.to === currentSubPath)?.icon || 'dashboard'} className="text-[20px] text-primary" />
+            </div>
+            <div className="absolute right-3 top-3.5 pointer-events-none">
+              <Icon name="keyboard_arrow_down" className="text-[20px] text-on-surface-variant" />
+            </div>
+          </div>
+
+          {/* 데스크톱: 수평 스크롤 탭 네비게이션 */}
+          <nav aria-label="프로젝트 섹션" className="md:flex hidden overflow-x-auto no-scrollbar border-b border-outline/15 -mx-5 px-5 mb-6">
             {TABS.map((t) => (
               <NavLink
                 key={t.to}
