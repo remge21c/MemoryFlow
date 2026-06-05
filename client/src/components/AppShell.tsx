@@ -31,17 +31,8 @@ export function AppShell({ children, max = 'max-w-2xl' }: { children: ReactNode;
             <span className="text-title-sm font-bold text-on-surface">MemoryFlow</span>
           </Link>
 
-          {/* 활성 프로젝트 이름 + 소속 */}
-          {active ? (
-            <div className="flex-1 min-w-0 border-l border-outline/20 pl-3">
-              <p className="text-body-md font-semibold text-on-surface truncate leading-tight">{active.name}</p>
-              {active.org_name ? (
-                <p className="text-label-sm text-outline truncate leading-tight">{active.org_name}</p>
-              ) : null}
-            </div>
-          ) : (
-            <div className="flex-1" />
-          )}
+          {/* 활성 프로젝트 이름 + 소속 표시 안 함 */}
+          <div className="flex-1" />
 
           {/* 햄버거 메뉴 */}
           {user ? (
