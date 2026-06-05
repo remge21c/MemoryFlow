@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @font-face {
+            font-family: 'beVietnamPro';
+            src: url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+        }
+        body {
+            font-family: 'beVietnamPro', sans-serif;
+            background-color: #f9f9f7;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .project-card-shadow {
+            shadow: 0 4px 8px rgba(31, 29, 27, 0.04);
+        }
+        /* Custom scrollbar suppression */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e2e3e1",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#00666e",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#e7e2da",
+                        "on-tertiary-fixed": "#002022",
+                        "surface-container": "#eeeeec",
+                        "tertiary-fixed-dim": "#6dd6e0",
+                        "on-surface-variant": "#55433b",
+                        "primary-fixed": "#ffdbcd",
+                        "primary-container": "#b35d33",
+                        "on-primary-fixed-variant": "#793108",
+                        "on-secondary-container": "#67645e",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#615e58",
+                        "inverse-surface": "#2f3130",
+                        "surface-container-high": "#e8e8e6",
+                        "on-tertiary-fixed-variant": "#004f55",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-container": "#f5feff",
+                        "secondary-fixed-dim": "#cbc6bf",
+                        "tertiary-fixed": "#8bf2fd",
+                        "on-surface": "#1a1c1b",
+                        "background": "#f9f9f7",
+                        "surface": "#f9f9f7",
+                        "on-background": "#1a1c1b",
+                        "on-secondary-fixed-variant": "#494641",
+                        "surface-dim": "#dadad8",
+                        "surface-bright": "#f9f9f7",
+                        "outline-variant": "#dbc1b7",
+                        "outline": "#88736a",
+                        "surface-container-low": "#f4f4f2",
+                        "primary": "#94451d",
+                        "on-primary-fixed": "#360f00",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#ffb595",
+                        "surface-container-highest": "#e2e3e1",
+                        "on-secondary-fixed": "#1d1b17",
+                        "inverse-primary": "#ffb595",
+                        "tertiary-container": "#00818a",
+                        "secondary-fixed": "#e7e2da",
+                        "surface-tint": "#97471f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-mobile": "20px",
+                        "stack-lg": "32px",
+                        "stack-md": "16px",
+                        "gutter-mobile": "16px",
+                        "touch-target-min": "44px",
+                        "stack-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["beVietnamPro"],
+                        "display-lg": ["beVietnamPro"],
+                        "headline-md": ["beVietnamPro"],
+                        "title-sm": ["beVietnamPro"],
+                        "body-lg": ["beVietnamPro"],
+                        "body-md": ["beVietnamPro"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "display-lg": ["30px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["22px", {"lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "title-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "22px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 bg-surface flex justify-between items-center w-full px-margin-mobile h-[64px]">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary hover:bg-surface-variant transition-colors duration-200 p-2 rounded-full">menu</button>
+<h1 class="font-display-lg text-display-lg font-bold text-primary">MemoryFlow</h1>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-secondary-container overflow-hidden flex items-center justify-center border border-outline-variant/30">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional studio headshot of a friendly user for an administrative interface. The lighting is soft and warm, reflecting a minimalist aesthetic with neutral background tones. The overall mood is approachable, organized, and polished, fitting a high-end digital photo album service." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFrUdT_wmdoIqu3wC_qDWdUrXm9Yb4Dq9E27CHzR8JiNpv7dB9mMPtCgd4PpcwWgczW0IPGtoMBXVgxXAtVzVNyr_zUSLSvMK0n4XATFGkI1SQXgikvtnALncQNCVAPJ5hImPpAMos8kBthRliFV-UcJpAgrf_mjj37Yx-NMbpNMK8lkfBWZhRf-b9l8CNYtryULnqPVwLtGvVSjPd1RJkX7haKpOVWITvHPd4JUzQg-JR64j8QTtjNpFEjiuRTUs2SF2ghRps50Lw"/>
+</div>
+</div>
+</header>
+<main class="px-margin-mobile pt-stack-md">
+<!-- Dashboard Header -->
+<div class="mb-stack-lg">
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Administrator Dashboard</p>
+<h2 class="font-headline-md text-headline-md text-on-surface">프로젝트 관리</h2>
+</div>
+<!-- Filter Tabs -->
+<nav class="flex gap-2 overflow-x-auto no-scrollbar pb-stack-md mb-stack-md">
+<button class="px-5 py-2 rounded-full font-label-sm text-label-sm whitespace-nowrap transition-all duration-200 bg-primary-container text-on-primary-container font-bold" onclick="setActiveFilter(this)">전체</button>
+<button class="px-5 py-2 rounded-full font-label-sm text-label-sm whitespace-nowrap transition-all duration-200 bg-secondary-container/50 text-on-secondary-container hover:bg-secondary-container" onclick="setActiveFilter(this)">진행 중</button>
+<button class="px-5 py-2 rounded-full font-label-sm text-label-sm whitespace-nowrap transition-all duration-200 bg-secondary-container/50 text-on-secondary-container hover:bg-secondary-container" onclick="setActiveFilter(this)">완료</button>
+<button class="px-5 py-2 rounded-full font-label-sm text-label-sm whitespace-nowrap transition-all duration-200 bg-secondary-container/50 text-on-secondary-container hover:bg-secondary-container" onclick="setActiveFilter(this)">보관</button>
+</nav>
+<!-- Project List -->
+<div class="flex flex-col gap-stack-md">
+<!-- Project Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_8px_rgba(31,29,27,0.04)] border border-outline-variant/10 transition-transform active:scale-[0.98] cursor-pointer">
+<div class="flex h-32">
+<div class="w-1/3 h-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A breathtaking landscape of an Italian coastal village during the golden hour. The warm sunlight casts a soft glow over terracotta roofs and turquoise waters. The photograph has a nostalgic, linen-like texture, evoking the feeling of a physical travel album preserved with care and warmth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVNaTMTzPAwqZZa_PY7gmkMIkCYl7u4NFTxrK1o1daFIPJ8-crBSfFnp3aOzMLk5XRZlRF9BnJmAZepLmuU8nhHL268ygmqa8UW__PWaocrlnFMjZrUT0re-63LMdGkWH_UNcuWJrxL1MGSSvOFrIFXKQNR4jOgoj_E0F1lpYH7DD5ceIyqh7cp0NQEjpGY3m-UdLMFWkACoBgEw-65WWfngDVJ_bUksQRtlek0DV0N_cdECkoIQes54Qzcd4NpfwzvMNJoNmfPbVu"/>
+</div>
+<div class="w-2/3 p-4 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-1">
+<span class="bg-primary-container/10 text-primary px-2 py-0.5 rounded-full font-label-sm text-[10px] font-bold uppercase">진행 중</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">more_horiz</span>
+</div>
+<h3 class="font-title-sm text-title-sm text-on-surface truncate">여름 유럽 배낭여행 2024</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">디자인 팀 • 2024.06.01 - 2024.08.31</p>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-outline">photo_library</span>
+<span class="font-label-sm text-label-sm text-outline">128 photos</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Project Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_8px_rgba(31,29,27,0.04)] border border-outline-variant/10 transition-transform active:scale-[0.98] cursor-pointer">
+<div class="flex h-32">
+<div class="w-1/3 h-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A candid, warm-toned photograph of a group of friends sharing a meal at an outdoor wooden table. Dappled sunlight filters through overhead trees, creating a serene and communal atmosphere. The image is styled like an analog film shot with soft grain and rich, organic colors, reflecting a shared digital scrapbooking experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgYy97vfdiZdd2lRSC4u4n2HITkGHyo67IJbLF59f3upvx1MwadrChY-QgxUMqDyZRaRl3N4zx5PCBJWwGK_0PucyTr7Kym9WsTt4uDPOTxpOLvrhyLWgV-FOWOkrk-RGJKYtvTbGQG9xbnrrVt5Yh4GnXAeo1e3MOpRU1R2WIzFLflH-TawNTepVrscbUj6T-DPipZcKUYFF1K42HLCB8zonJBlnxtTJWupGt2qIkIBbScHdbU-QQ6A9NolzvIpT9flWsj5PTkZBU"/>
+</div>
+<div class="w-2/3 p-4 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-1">
+<span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full font-label-sm text-[10px] font-bold uppercase">완료</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">more_horiz</span>
+</div>
+<h3 class="font-title-sm text-title-sm text-on-surface truncate">워크샵: 제주도 워케이션</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">마케팅 본부 • 2024.03.15 - 2024.03.20</p>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-outline">photo_library</span>
+<span class="font-label-sm text-label-sm text-outline">342 photos</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Project Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_8px_rgba(31,29,27,0.04)] border border-outline-variant/10 transition-transform active:scale-[0.98] cursor-pointer">
+<div class="flex h-32">
+<div class="w-1/3 h-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="An elegant wedding reception scene featuring soft floral arrangements and glowing candlelight on white linen tablecloths. The lighting is ethereal and romantic, emphasizing a quiet, minimalist beauty. The visual style is organic and sophisticated, designed to evoke deep emotional resonance and nostalgia for a life-defining celebration." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCc8P8D9p7v-Bdl3kDSYMKtXOwhG7EO5WZtFBcFM6D7k2YjRNePuE-uTwPyxNbUeQiCGjNtN8Ebc2-eWn7hWvFvN55Mp6XV0425jS93yN8EljJ9iQ9es_RZHA7KwYkHILJbzsl5sPgbUjm_CLcHg-8d6eD3GG54qnBWRu2DM6ATjzx2eEGePOfR1NU2Sfu6hBDy6A1fs6Q_HneCXXxrpE6huRsePuxcXrbmn2QQ7akvtBVD5iNEq4o60xBX9SsliQCrgWeJRRxykSp3"/>
+</div>
+<div class="w-2/3 p-4 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-1">
+<span class="bg-primary-container/10 text-primary px-2 py-0.5 rounded-full font-label-sm text-[10px] font-bold uppercase">진행 중</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">more_horiz</span>
+</div>
+<h3 class="font-title-sm text-title-sm text-on-surface truncate">민수 &amp; 지혜 결혼식 기록</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">가족 그룹 • 2024.05.20 - 2024.12.31</p>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-outline">photo_library</span>
+<span class="font-label-sm text-label-sm text-outline">56 photos</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Project Card 4 -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_8px_rgba(31,29,27,0.04)] border border-outline-variant/10 transition-transform active:scale-[0.98] cursor-pointer">
+<div class="flex h-32">
+<div class="w-1/3 h-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A peaceful mountain landscape with a crystalline lake reflecting the snowy peaks under a clear blue sky. The composition is clean and minimalist, using a natural color palette of whites, blues, and earthy tones. The photograph represents a tranquil memory captured during a winter retreat, embodying the warm minimalism of the brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC400uck75-obtFYMeRnyaFX0hl8WHxzzMrzNGq_TbMVaDKwn_uv94M2AAtXltZcGqjrOB-N65vBJK078paAORJCVxRfx4MPmBwrGDTc5Pt7bZtf3SkjbW9KeO6b01PKc41kyfon_l1J29RvqA8zFYsybXOR8Df1Eq-nq_hWn1AFFgw6nqpyqvmpk5WNev8VWViPAZ7wjY3qEPl7X4C2F_K24A1njWDSNN5eUbZYw0BU-e3hrOWvdy222cqZ-xxgkVGO5q1P_h5uAbb"/>
+</div>
+<div class="w-2/3 p-4 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-1">
+<span class="bg-surface-dim text-on-surface-variant px-2 py-0.5 rounded-full font-label-sm text-[10px] font-bold uppercase">보관</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">more_horiz</span>
+</div>
+<h3 class="font-title-sm text-title-sm text-on-surface truncate">2023 동계 산악 등반</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">산악회 • 2023.12.01 - 2023.12.15</p>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-outline">photo_library</span>
+<span class="font-label-sm text-label-sm text-outline">89 photos</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Create Project FAB -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-[#C2683D] text-white rounded-full flex items-center justify-center shadow-lg hover:brightness-110 active:scale-95 transition-all z-40">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0, 'wght' 600;">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface border-t border-outline-variant/20 shadow-sm">
+<a class="flex flex-col items-center justify-center text-on-secondary-container dark:text-on-secondary-fixed-variant group transition-transform duration-150 scale-95" href="#">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-label-sm text-label-sm">추억</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold group transition-transform duration-150 scale-95" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-sm text-label-sm">대시보드</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-container dark:text-on-secondary-fixed-variant group transition-transform duration-150 scale-95" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">프로필</span>
+</a>
+</nav>
+<script>
+        function setActiveFilter(element) {
+            // Remove active classes from all siblings
+            const buttons = element.parentElement.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-primary-container', 'text-on-primary-container', 'font-bold');
+                btn.classList.add('bg-secondary-container/50', 'text-on-secondary-container');
+            });
+            
+            // Add active classes to selected
+            element.classList.remove('bg-secondary-container/50', 'text-on-secondary-container');
+            element.classList.add('bg-primary-container', 'text-on-primary-container', 'font-bold');
+        }
+
+        // Add subtle interaction effect to cards
+        document.querySelectorAll('.bg-surface-container-lowest').forEach(card => {
+            card.addEventListener('touchstart', () => {
+                card.style.backgroundColor = '#f1f1ef';
+            });
+            card.addEventListener('touchend', () => {
+                card.style.backgroundColor = '#ffffff';
+            });
+        });
+    </script>
+</body></html>

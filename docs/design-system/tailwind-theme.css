@@ -1,0 +1,120 @@
+/* MemoryFlow — Tailwind v4 theme (DESIGN.md 토큰 변환본)
+ *
+ * 출처: docs/design-system/DESIGN.md (Stitch 생성 토큰)
+ * 사용: 부트스트랩 시 client/src/styles/theme.css 로 복사 → main CSS에서 import
+ *       @import "tailwindcss";  @import "./styles/theme.css";
+ *
+ * 강조색은 렌더된 목업과 일치하도록 #94451d 로 통일.
+ *   밝은 테라코타로 바꾸려면 --color-primary 한 줄만 #c2683d 로 교체.
+ *
+ * (Tailwind v3 사용 시: 아래 값을 tailwind.config.js theme.extend 로 옮기면 동일)
+ */
+
+@theme {
+  /* ── 폰트 ─────────────────────────────────────────────
+     Be Vietnam Pro = 라틴, Pretendard = 한글 가독성 보강 */
+  --font-sans: "Be Vietnam Pro", "Pretendard", system-ui, sans-serif;
+
+  /* ── 컬러: Surface ─────────────────────────────────── */
+  --color-surface: #f9f9f7;
+  --color-surface-dim: #dadad8;
+  --color-surface-bright: #f9f9f7;
+  --color-surface-lowest: #ffffff;   /* 카드 배경(린넨 위에서 살짝 뜸) */
+  --color-surface-low: #f4f4f2;
+  --color-surface-container: #eeeeec;
+  --color-surface-high: #e8e8e6;
+  --color-surface-highest: #e2e3e1;
+  --color-surface-variant: #e2e3e1;
+  --color-background: #f9f9f7;
+
+  /* 텍스트/윤곽 */
+  --color-on-surface: #1a1c1b;        /* 본문 먹색 */
+  --color-on-surface-variant: #55433b;/* 보조 텍스트(웜 그레이) */
+  --color-on-background: #1a1c1b;
+  --color-outline: #88736a;
+  --color-outline-variant: #dbc1b7;
+  --color-inverse-surface: #2f3130;
+  --color-inverse-on-surface: #f1f1ef;
+
+  /* ── 컬러: Primary (테라코타) ─────────────────────── */
+  --color-primary: #94451d;           /* ★ 강조색 (버튼·링크·CTA) */
+  --color-on-primary: #ffffff;
+  --color-primary-container: #b35d33;
+  --color-on-primary-container: #fffbff;
+  --color-inverse-primary: #ffb595;
+  --color-surface-tint: #97471f;
+
+  /* ── 컬러: Secondary (뮤트 그레이) ────────────────── */
+  --color-secondary: #615e58;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e7e2da;
+  --color-on-secondary-container: #67645e;
+
+  /* ── 컬러: Tertiary (청록 포인트) ─────────────────── */
+  --color-tertiary: #00666e;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #00818a;
+  --color-on-tertiary-container: #f5feff;
+
+  /* ── 컬러: 상태 ───────────────────────────────────── */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* ── 모서리 반경 ──────────────────────────────────── */
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;     /* 카드/이미지 12px 계열 */
+  --radius-xl: 1.5rem;   /* 버튼 pill */
+  --radius-full: 9999px;
+
+  /* ── 간격 (4px 그리드 + 의미 토큰) ────────────────── */
+  --spacing-stack-sm: 8px;
+  --spacing-stack-md: 16px;     /* 컴포넌트 기본 간격 */
+  --spacing-stack-lg: 32px;
+  --spacing-gutter: 16px;       /* 모바일 거터 */
+  --spacing-margin: 20px;       /* 모바일 좌우 마진 */
+  --spacing-touch: 44px;        /* 최소 터치 타깃 */
+
+  /* ── 타이포 스케일 (text-<name> 유틸 생성) ────────── */
+  --text-display-lg: 30px;
+  --text-display-lg--line-height: 40px;
+  --text-display-lg--font-weight: 700;
+  --text-display-lg--letter-spacing: -0.02em;
+
+  --text-headline-md: 22px;
+  --text-headline-md--line-height: 30px;
+  --text-headline-md--font-weight: 600;
+  --text-headline-md--letter-spacing: -0.01em;
+
+  --text-title-sm: 18px;
+  --text-title-sm--line-height: 26px;
+  --text-title-sm--font-weight: 600;
+
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+
+  --text-body-md: 14px;
+  --text-body-md--line-height: 22px;
+
+  --text-label-sm: 12px;
+  --text-label-sm--line-height: 16px;
+  --text-label-sm--font-weight: 500;
+  --text-label-sm--letter-spacing: 0.02em;
+}
+
+/* ── 권장 베이스 + 그림자 유틸 (DESIGN.md 기준) ────────
+   Level 1 카드 그림자: ink 4% / 8px blur / 4px Y */
+@layer base {
+  body {
+    background: var(--color-background);
+    color: var(--color-on-surface);
+    font-family: var(--font-sans);
+  }
+}
+
+@utility shadow-card {
+  box-shadow: 0 4px 8px 0 rgb(31 29 27 / 0.04);
+}

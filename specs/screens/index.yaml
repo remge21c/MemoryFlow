@@ -1,0 +1,30 @@
+# MemoryFlow 화면 목록
+# 근거: docs/planning/06-screens.md / 모바일 우선
+version: "2.0"
+
+global:
+  mobile_first: true
+  auth: session-cookie       # 전화번호+비밀번호 (02-trd.md)
+  stack: { frontend: React+Vite+Tailwind, backend: Fastify }
+
+screens:
+  # 공통
+  - { id: S-01, file: login.yaml,            name: 로그인,             role: public }
+  - { id: S-02, file: join.yaml,             name: 초대 진입·가입,     role: public }
+  # 업로더
+  - { id: S-10, file: uploader-projects.yaml, name: 내 프로젝트 목록,   role: uploader }
+  - { id: S-11, file: schedule-list.yaml,    name: 프로젝트 일정 목록, role: uploader }
+  - { id: S-12, file: contribution-edit.yaml, name: 기여 업로드·수정,  role: uploader }
+  # 관리자
+  - { id: S-20, file: admin-projects.yaml,   name: 프로젝트 목록(대시보드), role: admin }
+  - { id: S-21, file: project-create.yaml,   name: 프로젝트 생성,      role: admin }
+  - { id: S-22, file: project-detail.yaml,   name: 프로젝트 상세(허브), role: admin }
+  - { id: S-23, file: schedule-design.yaml,  name: 세부일정(장면) 설계, role: admin }
+  - { id: S-24, file: invite-manage.yaml,    name: 초대 링크 관리,     role: admin }
+  - { id: S-25, file: member-manage.yaml,    name: 멤버 관리,          role: admin }
+  - { id: S-26, file: storybook-edit.yaml,   name: 스토리북 편집(★심장), role: admin }
+  - { id: S-27, file: storybook-approve.yaml, name: 승인·편집 잠금,    role: admin }
+  - { id: S-28, file: share-manage.yaml,     name: 공유 링크 관리,     role: admin }
+  - { id: S-29, file: export-video.yaml,     name: 내보내기·최종영상,  role: admin }
+  # 공유(비로그인)
+  - { id: S-30, file: share-view.yaml,       name: 공유 스토리북 열람, role: public }

@@ -1,0 +1,36 @@
+# S-10 내 프로젝트 목록 (업로더)
+version: "2.0"
+screen:
+  name: 내 프로젝트 목록
+  route: /projects
+  role: uploader
+  layout: list             # 모바일 우선 카드 리스트
+
+data_requirements:
+  - resource: project_members
+    needs: [project_id, status]
+    filters: { user_id: "@me", status: active }
+  - resource: projects
+    needs: [id, name, org_name, start_date, end_date, status, cover_image_path]
+
+components:
+  - id: project_cards
+    type: list
+    position: main
+    function: 합류한 프로젝트 카드 목록
+    item: [cover_image, name, org_name, date_range, status_badge]
+    data_source: { resource: projects }
+  - id: empty
+    type: empty_state
+    position: main
+    visible_when: 합류 프로젝트 없음
+    message: 받은 초대 링크로 프로젝트에 합류해 주세요
+
+events:
+  - on: card_click
+    do: /projects/:id/schedules 로 이동 (S-11)
+
+tests:
+  - { name: 목록 표시, when: 진입, then: [active 멤버십 프로젝트만 표시] }
+  - { name: 없음, when: 합류 0건, then: [empty 안내] }
+  - { name: 제거된 멤버, when: status=removed, then: [해당 프로젝트 미표시] }

@@ -1,0 +1,46 @@
+# S-28 공유 링크 관리 (관리자)
+version: "2.0"
+screen:
+  name: 공유 링크 관리
+  route: /admin/projects/:id/share
+  role: admin
+  layout: list
+
+data_requirements:
+  - resource: share_links
+    needs: [id, is_active, expires_at, created_at]
+    filters: { project_id: ":id" }
+  - resource: storybooks
+    needs: [status]              # 승인돼야 공유 가능
+    filters: { project_id: ":id" }
+
+components:
+  - id: gate_notice
+    type: banner
+    position: top
+    visible_when: storybook.status != approved
+    message: 스토리북을 먼저 승인해야 공유 링크를 만들 수 있습니다
+  - id: create_share
+    type: action_panel
+    position: top
+    inputs: [expires_days]       # 30/60/120/180/360, 기본 30
+    action: share.create
+  - id: active_link
+    type: copy_field
+    position: top
+    function: /share/:token 복사(원본 토큰 1회 노출, 서버는 token_hash만)
+  - id: share_list
+    type: list
+    position: main
+    item: [생성일, 만료일, 상태, 무효화]
+
+events:
+  - on: create
+    do: share_link 생성(승인된 경우만)
+  - on: revoke
+    do: is_active=false
+
+tests:
+  - { name: 승인 게이트, when: 미승인 상태, then: [생성 비활성+안내] }
+  - { name: 발급, when: 만료 30일 생성, then: [링크 생성, 토큰 1회 표시] }
+  - { name: 무효화, when: revoke, then: [/share 접근 차단] }

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #f9f9f7;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-shadow {
+            shadow: 0 4px 8px -2px rgba(31, 29, 27, 0.04);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#e2e3e1",
+                      "on-primary": "#ffffff",
+                      "tertiary": "#00666e",
+                      "on-error": "#ffffff",
+                      "secondary-container": "#e7e2da",
+                      "on-tertiary-fixed": "#002022",
+                      "surface-container": "#eeeeec",
+                      "tertiary-fixed-dim": "#6dd6e0",
+                      "on-surface-variant": "#55433b",
+                      "primary-fixed": "#ffdbcd",
+                      "primary-container": "#b35d33",
+                      "on-primary-fixed-variant": "#793108",
+                      "on-secondary-container": "#67645e",
+                      "on-error-container": "#93000a",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-on-surface": "#f1f1ef",
+                      "on-secondary": "#ffffff",
+                      "secondary": "#615e58",
+                      "inverse-surface": "#2f3130",
+                      "surface-container-high": "#e8e8e6",
+                      "on-tertiary-fixed-variant": "#004f55",
+                      "error-container": "#ffdad6",
+                      "error": "#ba1a1a",
+                      "on-primary-container": "#fffbff",
+                      "on-tertiary-container": "#f5feff",
+                      "secondary-fixed-dim": "#cbc6bf",
+                      "tertiary-fixed": "#8bf2fd",
+                      "on-surface": "#1a1c1b",
+                      "background": "#f9f9f7",
+                      "surface": "#f9f9f7",
+                      "on-background": "#1a1c1b",
+                      "on-secondary-fixed-variant": "#494641",
+                      "surface-dim": "#dadad8",
+                      "surface-bright": "#f9f9f7",
+                      "outline-variant": "#dbc1b7",
+                      "outline": "#88736a",
+                      "surface-container-low": "#f4f4f2",
+                      "primary": "#94451d",
+                      "on-primary-fixed": "#360f00",
+                      "on-tertiary": "#ffffff",
+                      "primary-fixed-dim": "#ffb595",
+                      "surface-container-highest": "#e2e3e1",
+                      "on-secondary-fixed": "#1d1b17",
+                      "inverse-primary": "#ffb595",
+                      "tertiary-container": "#00818a",
+                      "secondary-fixed": "#e7e2da",
+                      "surface-tint": "#97471f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "margin-mobile": "20px",
+                      "stack-lg": "32px",
+                      "stack-md": "16px",
+                      "gutter-mobile": "16px",
+                      "touch-target-min": "44px",
+                      "stack-sm": "8px"
+              },
+              "fontFamily": {
+                      "label-sm": ["beVietnamPro"],
+                      "display-lg": ["beVietnamPro"],
+                      "headline-md": ["beVietnamPro"],
+                      "title-sm": ["beVietnamPro"],
+                      "body-lg": ["beVietnamPro"],
+                      "body-md": ["beVietnamPro"]
+              },
+              "fontSize": {
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "display-lg": ["30px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["22px", {"lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "title-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-md": ["14px", {"lineHeight": "22px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- Top App Bar -->
+<header class="flex justify-between items-center w-full px-margin-mobile h-touch-target-min bg-surface fixed top-0 z-50">
+<button class="w-touch-target-min h-touch-target-min flex items-center justify-center transition-colors duration-200 active:opacity-80">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-display-lg text-headline-md font-bold text-primary">MemoryFlow</h1>
+<div class="w-touch-target-min h-touch-target-min flex items-center justify-center">
+<img alt="User" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcttZ0px-JePYHVK20cpp-M6cCBfYVuyd0g5RuCyFnjafiv0GNVMMdoEUm2FfhTkKWjgjUlpEDx6spMJoqu32cxbNl16j2LDMD-xzqL9J0kSjSOit2NNH4rSThLt0qp4ueCUtmwg0NyrRZifdVRsqobqrgwvhha5tBCYHQps-pg9naDPXL3qd2asJAk9uSvbhYqdDnS_IavwUjw1BlzJb2_Zj36sk5GVUAGFoxnVHTLsZmuekLrBk4AqeKWAwZHbuZ4PoS6OaUwvV6"/>
+</div>
+</header>
+<main class="mt-16 px-margin-mobile flex flex-col gap-stack-lg">
+<!-- Scene Header -->
+<section class="pt-4">
+<div class="flex flex-col gap-unit">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Current Activity</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Day 1 / 10:00 · 오리엔테이션</h2>
+</div>
+</section>
+<!-- Already Uploaded Preview Strip -->
+<section class="flex flex-col gap-stack-sm">
+<div class="flex justify-between items-end">
+<h3 class="font-title-sm text-title-sm text-on-surface">이미 올라온 사진</h3>
+<span class="font-label-sm text-label-sm text-outline">12명의 추억</span>
+</div>
+<div class="flex gap-3 overflow-x-auto hide-scrollbar py-2 -mx-2 px-2">
+<div class="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-surface-container shadow-sm border border-outline-variant/10">
+<img class="w-full h-full object-cover" data-alt="A warm group of colleagues sitting in a bright, modern office space with large windows. The lighting is soft and natural, emphasizing a professional yet cozy atmosphere. The composition focuses on communal laughter and genuine interaction, captured in high-fidelity with a minimalist color palette including hints of wood and white linen." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtCkdiIxfh0ulrFqZsOf2SrlFQ_bhyv5OOw82RNz1q5Z5AKVnaTP7ehf-UlpzElHvG9gSBy8l3zPepPGgMS2eQWeq4HDfrKf-RkDWguN2x2H8sFrPhYFFdPQ51nWaZ9heOSHxROqi0o8oZI_WTAQvO0n5nrekXDUozBnS97gQtErjlDskVsnID6Yk-9P6gdFffY2YhYEXnpE1tBx5Y7VOvlvo2nQF0IOhbHylX4zf408dUwY0zzQ-tso1BctAjuoEA65Y5xEJJ0V-e"/>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-surface-container shadow-sm border border-outline-variant/10">
+<img class="w-full h-full object-cover" data-alt="Close-up of friends hands stacked together over a light oak table during a workshop. The scene is bathed in golden hour sunlight, creating a nostalgic and warm aesthetic. The overall style is clean and minimalist, reflecting a shared moment of collaboration and togetherness in a premium, welcoming environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiw2xUcy1nFs5rA5B22pCbEVxYaJxuXv3gSzFkzdmubT3AOI_lubywurqi6FY0zoJxQx5-axCXbM43LPWiRvpqy3V72LHXRnnuhGbpHs_QN2bJr2x7hg7mXy7ZOj1OZLccdmpOiKCgMDQg4jRSxzn63ymq7-N6zcfJbvMlBfuAtMNCRmTA2rDrEslQu_i27EEU4WW6F5GAEj7EuTb7bObkcrLqxIEI5HCAJH0iKwgPUafWivVWywXG0drMyxYC6RmcKhcEzvScCInD"/>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-surface-container shadow-sm border border-outline-variant/10">
+<img class="w-full h-full object-cover" data-alt="A brightly lit, airy meeting room with people engaged in a creative brainstorming session. Soft shadows fall across minimalist furniture, evoking a sense of calm and focus. The palette is dominated by neutral linen tones and warm wood, emphasizing a high-quality, professional yet approachable communal vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCm1NCTBcdhxs34-UbOXOfe-aFMU3gJrvbYrKDJTVI6RvXNEUrwRTFBUNcMrMzZfHILNM9gfGeBgxNBEDerJPloOohvFer7gxVaqwGKElXMsEfD-Tr_yoRMmNC9eIORYQF21ajii4DeWCBWasdrkYCHXJQQIj8mUmUAOSPqKVMFGiAIEdpL4mbtbteicSFnmYoWQKTjnB3iRa5vM7jYuRL14ivUmRjF07c-Hqhhu-w602R_7ZFb0bdy2L7DB0sMe75aftODhHFpA979"/>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-surface-container shadow-sm border border-outline-variant/10">
+<img class="w-full h-full object-cover" data-alt="A group portrait of happy people in a minimalist outdoor setting, with soft, diffused daylight highlighting their expressions. The scene is composed with generous whitespace and a clean aesthetic, using a warm color story that feels like a cherished physical photo album from a professional studio." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnD6gMJaa4OIoWIoCRgwONcgbXV0baXauCdm8s-LXG1n06DCBjLjrOkpS65TiuEmgv6yLtlizy_4d1mUoQQ-Pya8Nmn-oIH-CNp7HVZ2OzYw46q2wn-IuhV36HliheMAbmPfS_XqhG3pw6krKljYzGGNcW0sZxdNzWdJOS-fTTwSSH2l3ERY28pX8oLhdz1_qa_nt1hfMELg1Tvjj8WWbXc4EapqMOYW_CZY_ei7rSW4_o8eIXS-sZfMp-uBrepqoW4Rsly7qRif0n"/>
+</div>
+</div>
+</section>
+<!-- Contribution Form -->
+<section class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_8px_-2px_rgba(31,29,27,0.04)] border border-outline-variant/20 flex flex-col gap-stack-md">
+<!-- Upload Area -->
+<div class="w-full">
+<label class="block font-label-sm text-label-sm text-outline mb-2">새로운 기록</label>
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center gap-3 bg-surface transition-all duration-300 hover:bg-secondary-container/10 active:scale-[0.98]" id="dropzone">
+<span class="material-symbols-outlined text-4xl text-primary/60">add_photo_alternate</span>
+<p class="font-body-md text-body-md text-on-surface-variant text-center px-4">사진이나 영상을 드래그하거나 선택하세요</p>
+<input class="hidden" id="fileInput" type="file"/>
+</div>
+</div>
+<!-- Story Textarea -->
+<div class="w-full">
+<label class="block font-label-sm text-label-sm text-outline mb-2" for="story">이 순간의 스토리</label>
+<textarea class="w-full h-32 rounded-lg border-outline-variant/40 bg-surface focus:border-primary focus:ring-1 focus:ring-primary text-body-md font-body-md p-3 resize-none transition-colors" id="story" placeholder="함께 나눈 이야기를 기록해보세요..."></textarea>
+</div>
+<!-- Submit Button -->
+<button class="w-full h-touch-target-min bg-primary text-on-primary rounded-full font-title-sm text-body-lg flex items-center justify-center transition-transform duration-150 active:scale-95 shadow-lg shadow-primary/20">
+                올리기
+            </button>
+</section>
+<!-- My Uploads Section -->
+<section class="flex flex-col gap-stack-sm pb-10">
+<h3 class="font-title-sm text-title-sm text-on-surface">내가 올린 것</h3>
+<div class="grid grid-cols-2 gap-3">
+<!-- My Photo 1 -->
+<div class="relative group aspect-square rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
+<img class="w-full h-full object-cover" data-alt="A close-up shot of a steaming cup of coffee next to a notebook on a clean, minimalist wooden desk. The lighting is bright and airy, with soft shadows creating a peaceful morning mood. The color palette is composed of natural browns, off-whites, and soft grays, following a warm minimalism design philosophy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmk9lOCxzY8xOBY0geUdw86itC0cRUQVtLAy8LVHxWzGqzH6RXukMoew581ggkulRUJ5mILdv7hszoxhkiJQvpVOKOkUlmvj1ivLlO5ujaRSGZEO6c-RRw5evFiHo1c9jKgN6iAViaWSBva1jTjdwqN2_NeDBkwOFF9dmQlllUaBvHL8G4lyupJox_5paV6i4UKekQwex3n_zOu9yYEUlCAm19BpFl1HG2sLlaQdlKHFZn3F15h_49IZmkif0R7HWFaf9sCtCxgiLt"/>
+<button class="absolute top-2 right-2 w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white active:bg-error transition-colors">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+<!-- My Photo 2 -->
+<div class="relative group aspect-square rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
+<img class="w-full h-full object-cover" data-alt="A minimalist presentation scene where a person is pointing at a clean digital screen. The background is a soft, textured linen wall, and the lighting is diffused to eliminate harsh highlights. The atmosphere is professional and modern, focusing on clarity and the warm terracotta accents of the brand's visual identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsDSeNqKv7NgdP_jB9vUweCCy8fYha1yxbVeTeNx3w-VJt7qAxsGI4K0LvChRg8znI2AsaQSns9Oh33lu0JwitAd5hUyN3V-Boee_mlKvgOzLTnU8HaaV2flReXQwQjoOAlpbveIUzQec9edlR4JPx3Mmy_tobtJZEL9sd-ifB1aZrzjPXq49ISjQusE3IT6DwhbVKAJ8AvXoPN1gcUbrrr8EK6UPQLUzt8pvoyTLwTbztvsuXkzGhkGlBS9Aw-h5v7sNgLlgCgCBG"/>
+<button class="absolute top-2 right-2 w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white active:bg-error transition-colors">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface border-t border-outline-variant/20 shadow-sm rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-secondary-container transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+<span class="font-label-sm text-label-sm">추억</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-bold transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-sm text-label-sm">대시보드</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-container transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">프로필</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for the upload area
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('bg-primary-fixed', 'border-primary');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('bg-primary-fixed', 'border-primary');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('bg-primary-fixed', 'border-primary');
+            alert('사진이 선택되었습니다. (데모)');
+        });
+
+        // Simple button click effect
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('touchstart', function() {
+                this.classList.add('brightness-90');
+            });
+            btn.addEventListener('touchend', function() {
+                this.classList.remove('brightness-90');
+            });
+        });
+    </script>
+</body></html>

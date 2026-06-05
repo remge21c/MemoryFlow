@@ -1,0 +1,45 @@
+# S-23 세부일정(장면) 설계 (관리자)
+version: "2.0"
+screen:
+  name: 세부일정(장면) 설계
+  route: /admin/projects/:id/schedules
+  role: admin
+  layout: day-grouped-editable
+
+data_requirements:
+  - resource: schedules
+    needs: [id, day_index, time, title, place, category, sort_order, photo_seconds]
+    filters: { project_id: ":id" }
+    order: [day_index, sort_order]
+  - resource: projects
+    needs: [day_count, default_photo_seconds]
+    filters: { id: ":id" }
+
+components:
+  - id: day_sections
+    type: grouped_editable_list
+    position: main
+    group_by: day_index
+    function: Day별 장면 CRUD + 드래그 정렬
+    item_fields: [time, title, place, category, photo_seconds]
+  - id: add_schedule
+    type: inline_add
+    position: main
+    function: 선택 Day에 장면 추가
+  - id: scene_hint
+    type: hint
+    position: top
+    message: 세부일정 = 영상 대본의 한 장면. 잘 설계할수록 좋습니다 (PRD 5장)
+
+events:
+  - on: save_item
+    do: schedule 생성/수정 (photo_seconds 비우면 프로젝트 기본값 사용)
+  - on: drag_reorder
+    do: sort_order 갱신
+  - on: delete_item
+    do: 장면 삭제(연결된 기여 있으면 경고)
+
+tests:
+  - { name: 장면 추가, when: Day2에 장면 입력, then: [schedule 생성, day_index=2] }
+  - { name: 정렬, when: 드래그 이동, then: [sort_order 갱신] }
+  - { name: 노출시간 덮어쓰기, when: photo_seconds=5 입력, then: [장면별 값 저장] }

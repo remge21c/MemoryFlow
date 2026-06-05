@@ -1,0 +1,48 @@
+# S-29 내보내기 · 최종 영상 (관리자)
+version: "2.0"
+screen:
+  name: 내보내기·최종영상
+  route: /admin/projects/:id/video
+  role: admin
+  layout: two-section
+
+data_requirements:
+  - resource: storybooks
+    needs: [status]
+    filters: { project_id: ":id" }
+  - resource: project_videos
+    needs: [id, file_path, status, created_at]
+    filters: { project_id: ":id" }
+
+components:
+  - id: export_section
+    type: action_panel
+    position: main
+    function: 승인된 스토리북 → 영상 제작용 패키지 내보내기(PRD 11장)
+    produces: outputs/(project.json + scene-timeline.json + 미디어 묶음 + 커버)
+    action: export.buildPackage
+    gate: storybook.status == approved
+  - id: upload_section
+    type: upload_panel
+    position: main
+    function: 외부 제작 완성 MP4 업로드
+    inputs: [mp4_file]
+    action: video.upload
+  - id: video_list
+    type: list
+    position: main
+    item: [파일명, 상태(uploaded/published/hidden), 재생, 공개/숨김 토글, 삭제]
+
+events:
+  - on: build_package
+    do: outputs 패키지 생성 → 다운로드 제공
+  - on: upload_mp4
+    do: final-videos 저장, project_videos 행 생성(status=uploaded)
+  - on: publish_toggle
+    do: status published/hidden 전환(공유 열람 노출 제어)
+
+tests:
+  - { name: 내보내기 게이트, when: 미승인, then: [내보내기 비활성] }
+  - { name: 패키지 생성, when: export, then: [scene-timeline.json 생성(8장 모델과 1:1)] }
+  - { name: MP4 업로드, when: 업로드, then: [final-videos 저장, 상태=uploaded] }
+  - { name: 공개 전환, when: publish, then: [공유 열람에 영상 노출] }

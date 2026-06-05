@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @font-face {
+            font-family: 'beVietnamPro';
+            src: url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+        }
+        body {
+            font-family: 'beVietnamPro', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #f9f9f7;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Soft Shadow from Style Guidance */
+        .linen-card-shadow {
+            shadow-color: #1F1D1B;
+            box-shadow: 0px 4px 8px rgba(31, 29, 27, 0.04);
+        }
+        /* Custom date picker appearance reset */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.4);
+            opacity: 0.5;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e2e3e1",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#00666e",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#e7e2da",
+                        "on-tertiary-fixed": "#002022",
+                        "surface-container": "#eeeeec",
+                        "tertiary-fixed-dim": "#6dd6e0",
+                        "on-surface-variant": "#55433b",
+                        "primary-fixed": "#ffdbcd",
+                        "primary-container": "#b35d33",
+                        "on-primary-fixed-variant": "#793108",
+                        "on-secondary-container": "#67645e",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#615e58",
+                        "inverse-surface": "#2f3130",
+                        "surface-container-high": "#e8e8e6",
+                        "on-tertiary-fixed-variant": "#004f55",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-container": "#f5feff",
+                        "secondary-fixed-dim": "#cbc6bf",
+                        "tertiary-fixed": "#8bf2fd",
+                        "on-surface": "#1a1c1b",
+                        "background": "#f9f9f7",
+                        "surface": "#f9f9f7",
+                        "on-background": "#1a1c1b",
+                        "on-secondary-fixed-variant": "#494641",
+                        "surface-dim": "#dadad8",
+                        "surface-bright": "#f9f9f7",
+                        "outline-variant": "#dbc1b7",
+                        "outline": "#88736a",
+                        "surface-container-low": "#f4f4f2",
+                        "primary": "#94451d",
+                        "on-primary-fixed": "#360f00",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#ffb595",
+                        "surface-container-highest": "#e2e3e1",
+                        "on-secondary-fixed": "#1d1b17",
+                        "inverse-primary": "#ffb595",
+                        "tertiary-container": "#00818a",
+                        "secondary-fixed": "#e7e2da",
+                        "surface-tint": "#97471f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-mobile": "20px",
+                        "stack-lg": "32px",
+                        "stack-md": "16px",
+                        "gutter-mobile": "16px",
+                        "touch-target-min": "44px",
+                        "stack-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["beVietnamPro"],
+                        "display-lg": ["beVietnamPro"],
+                        "headline-md": ["beVietnamPro"],
+                        "title-sm": ["beVietnamPro"],
+                        "body-lg": ["beVietnamPro"],
+                        "body-md": ["beVietnamPro"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "display-lg": ["30px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["22px", {"lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "title-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "22px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<nav class="sticky top-0 z-50 flex justify-between items-center w-full px-margin-mobile h-touch-target-min bg-surface transition-colors duration-200">
+<div class="flex items-center gap-4">
+<button class="p-2 -ml-2 rounded-full hover:bg-surface-variant/20 transition-colors">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-primary">새 프로젝트 만들기</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional and warm close-up portrait of a user with a soft smile, set against a blurred indoor background with warm natural lighting. The visual style is clean and high-end, matching the warm minimalism of a digital scrapbook app, emphasizing approachable and human-centric design with soft shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrNTpz4w1ijDt9fjv8O-bIS-UAN8wjDL_t_6eBVKi74WMs_36uG07aF5m4SabkVO3TwQYK-BbrR5ne7dAFFDZeGPrDt3o6KdcykKfPTEUT0zs_8RBCead5OY2GbfhjeIbRHw3bQzDc4MMMbR_ChzkQV87U8CXkKPcTd2eC6GuVSRpnek7hcTqQJQnTda2V8B4UcaN60gPck5xTNPwRmuXImBUUdJw42mDimi3FtHoKeT5KsH_769hdQZFPvPtnerCqb7j2IwQC7wDL"/>
+</div>
+</nav>
+<main class="px-margin-mobile mt-stack-md flex flex-col gap-stack-md max-w-lg mx-auto">
+<!-- Form Section -->
+<section class="flex flex-col gap-stack-md">
+<!-- Project Name -->
+<div class="flex flex-col gap-unit">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="project_name">프로젝트명</label>
+<input class="w-full h-[56px] px-4 rounded-xl border border-outline-variant/20 bg-white focus:border-primary focus:ring-0 transition-colors text-body-lg placeholder:text-on-surface-variant/40" id="project_name" placeholder="추억의 이름을 입력하세요" type="text"/>
+</div>
+<!-- Organization -->
+<div class="flex flex-col gap-unit">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="org_name">소속/단체명</label>
+<input class="w-full h-[56px] px-4 rounded-xl border border-outline-variant/20 bg-white focus:border-primary focus:ring-0 transition-colors text-body-lg placeholder:text-on-surface-variant/40" id="org_name" placeholder="가족, 친구, 혹은 동아리명" type="text"/>
+</div>
+<!-- Description -->
+<div class="flex flex-col gap-unit">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="description">설명</label>
+<textarea class="w-full p-4 rounded-xl border border-outline-variant/20 bg-white focus:border-primary focus:ring-0 transition-colors text-body-lg placeholder:text-on-surface-variant/40 resize-none" id="description" placeholder="이 프로젝트는 어떤 추억을 담고 있나요?" rows="3"></textarea>
+</div>
+<!-- Main Image Upload -->
+<div class="flex flex-col gap-unit">
+<label class="font-label-sm text-label-sm text-on-surface-variant">대표 이미지 업로드</label>
+<div class="relative w-full aspect-video rounded-xl border-2 border-dashed border-outline-variant/30 bg-white flex flex-col items-center justify-center gap-2 overflow-hidden linen-card-shadow group active:bg-on-surface-variant/5 transition-all">
+<!-- Default State Placeholder -->
+<div class="flex flex-col items-center justify-center text-on-surface-variant/60" id="image_placeholder">
+<span class="material-symbols-outlined text-[32px] mb-1">add_photo_alternate</span>
+<p class="font-body-md text-body-md">사진 추가하기</p>
+</div>
+<!-- Hidden Input -->
+<input accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" id="image_upload" type="file"/>
+</div>
+</div>
+<!-- Dates -->
+<div class="flex flex-col gap-stack-sm">
+<div class="flex gap-stack-sm">
+<div class="flex-1 flex flex-col gap-unit">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="start_date">시작일</label>
+<div class="relative">
+<input class="w-full h-[56px] px-4 rounded-xl border border-outline-variant/20 bg-white focus:border-primary focus:ring-0 transition-colors text-body-md" id="start_date" type="date"/>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-unit">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="end_date">종료일</label>
+<div class="relative">
+<input class="w-full h-[56px] px-4 rounded-xl border border-outline-variant/20 bg-white focus:border-primary focus:ring-0 transition-colors text-body-md" id="end_date" type="date"/>
+</div>
+</div>
+</div>
+<p class="text-on-secondary-container font-label-sm text-label-sm flex items-center gap-1 px-1">
+<span class="material-symbols-outlined text-[16px]">info</span>
+                    기간을 정하면 Day가 자동 생성됩니다
+                </p>
+</div>
+<!-- Exposure Time -->
+<div class="flex flex-col gap-unit">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="exposure_time">기본 사진 노출시간(초)</label>
+<div class="relative flex items-center">
+<input class="w-full h-[56px] px-4 pr-12 rounded-xl border border-outline-variant/20 bg-white focus:border-primary focus:ring-0 transition-colors text-body-lg" id="exposure_time" max="10" min="1" type="number" value="3"/>
+<span class="absolute right-4 text-on-surface-variant/60 font-body-md text-body-md">초</span>
+</div>
+</div>
+<!-- Primary Action -->
+<div class="mt-4">
+<button class="w-full h-[56px] bg-[#C2683D] text-white font-bold rounded-full linen-card-shadow active:scale-95 transition-transform flex items-center justify-center gap-2">
+<span>만들기</span>
+<span class="material-symbols-outlined">auto_awesome</span>
+</button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<div class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface border-t border-outline-variant/20 shadow-sm">
+<a class="flex flex-col items-center justify-center text-on-secondary-container hover:bg-secondary-container/50 transition-colors p-2 rounded-xl" href="#">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-label-sm text-label-sm mt-1">추억</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-bold p-2 rounded-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-sm text-label-sm mt-1">대시보드</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-container hover:bg-secondary-container/50 transition-colors p-2 rounded-xl" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-1">프로필</span>
+</a>
+</div>
+<script>
+        // Micro-interaction for image upload preview
+        const uploadInput = document.getElementById('image_upload');
+        const placeholder = document.getElementById('image_placeholder');
+        const uploadContainer = placeholder.parentElement;
+
+        uploadInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    // Update visual state
+                    placeholder.style.display = 'none';
+                    uploadContainer.style.backgroundImage = `url(${event.target.result})`;
+                    uploadContainer.style.backgroundSize = 'cover';
+                    uploadContainer.style.backgroundPosition = 'center';
+                    uploadContainer.style.borderStyle = 'solid';
+                    uploadContainer.style.borderColor = '#C2683D';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Simple touch interaction for the button
+        const mainBtn = document.querySelector('button.bg-[#C2683D]');
+        mainBtn.addEventListener('click', () => {
+            mainBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                생성 중...
+            `;
+            setTimeout(() => {
+                mainBtn.innerHTML = `<span>만들기 완료</span><span class="material-symbols-outlined">check_circle</span>`;
+                mainBtn.classList.remove('bg-[#C2683D]');
+                mainBtn.classList.add('bg-tertiary');
+            }, 1500);
+        });
+    </script>
+</body></html>

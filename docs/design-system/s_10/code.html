@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#e2e3e1",
+                      "on-primary": "#ffffff",
+                      "tertiary": "#00666e",
+                      "on-error": "#ffffff",
+                      "secondary-container": "#e7e2da",
+                      "on-tertiary-fixed": "#002022",
+                      "surface-container": "#eeeeec",
+                      "tertiary-fixed-dim": "#6dd6e0",
+                      "on-surface-variant": "#55433b",
+                      "primary-fixed": "#ffdbcd",
+                      "primary-container": "#b35d33",
+                      "on-primary-fixed-variant": "#793108",
+                      "on-secondary-container": "#67645e",
+                      "on-error-container": "#93000a",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-on-surface": "#f1f1ef",
+                      "on-secondary": "#ffffff",
+                      "secondary": "#615e58",
+                      "inverse-surface": "#2f3130",
+                      "surface-container-high": "#e8e8e6",
+                      "on-tertiary-fixed-variant": "#004f55",
+                      "error-container": "#ffdad6",
+                      "error": "#ba1a1a",
+                      "on-primary-container": "#fffbff",
+                      "on-tertiary-container": "#f5feff",
+                      "secondary-fixed-dim": "#cbc6bf",
+                      "tertiary-fixed": "#8bf2fd",
+                      "on-surface": "#1a1c1b",
+                      "background": "#f9f9f7",
+                      "surface": "#f9f9f7",
+                      "on-background": "#1a1c1b",
+                      "on-secondary-fixed-variant": "#494641",
+                      "surface-dim": "#dadad8",
+                      "surface-bright": "#f9f9f7",
+                      "outline-variant": "#dbc1b7",
+                      "outline": "#88736a",
+                      "surface-container-low": "#f4f4f2",
+                      "primary": "#94451d",
+                      "on-primary-fixed": "#360f00",
+                      "on-tertiary": "#ffffff",
+                      "primary-fixed-dim": "#ffb595",
+                      "surface-container-highest": "#e2e3e1",
+                      "on-secondary-fixed": "#1d1b17",
+                      "inverse-primary": "#ffb595",
+                      "tertiary-container": "#00818a",
+                      "secondary-fixed": "#e7e2da",
+                      "surface-tint": "#97471f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "margin-mobile": "20px",
+                      "stack-lg": "32px",
+                      "stack-md": "16px",
+                      "gutter-mobile": "16px",
+                      "touch-target-min": "44px",
+                      "stack-sm": "8px"
+              },
+              "fontFamily": {
+                      "label-sm": ["beVietnamPro"],
+                      "display-lg": ["beVietnamPro"],
+                      "headline-md": ["beVietnamPro"],
+                      "title-sm": ["beVietnamPro"],
+                      "body-lg": ["beVietnamPro"],
+                      "body-md": ["beVietnamPro"]
+              },
+              "fontSize": {
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "display-lg": ["30px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["22px", {"lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "title-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-md": ["14px", {"lineHeight": "22px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #f9f9f7; /* Linen surface */
+            color: #1a1c1b;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 8px -2px rgba(31, 29, 27, 0.04);
+        }
+
+        .active-nav-indicator {
+            position: relative;
+        }
+        .active-nav-indicator::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            width: 4px;
+            height: 4px;
+            background-color: #94451d;
+            border-radius: 50%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-32">
+<!-- Top AppBar (Shared Component) -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface flex justify-between items-center px-margin-mobile h-touch-target-min transition-colors duration-200">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">menu</span>
+<h1 class="font-display-lg text-display-lg font-bold text-primary">MemoryFlow</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="User" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvb7FWqhavyP-3EO-_ImRXhw4NTrHXma-CU8tB56oJCwQnqa3MByr1a0OurpOcB65tbYtaIKqXkAsTe4VFeuF6TY7FnK2MfHfouw9Ko-uF8DJIveysbAIlElssKm-4k2xuTti4ybLc-xvIQGYLl3uUKtJXfECu7IWF-g6PLAbsdNIIsx4KB2wRr8luJZGnx8MYDnzdDRXCy1bHnYltkTPA8dlV0ZKoCLjhnmks2LG20c8VGiHuUZ09LOIt9d_vBo-mF3F2JF5yXkqf"/>
+</div>
+</header>
+<!-- Main Content -->
+<main class="mt-20 px-margin-mobile">
+<!-- Header Section -->
+<section class="mb-stack-lg">
+<h2 class="font-headline-md text-headline-md text-on-surface">내 프로젝트</h2>
+<p class="font-body-md text-body-md text-on-secondary-fixed-variant mt-1">소중한 추억의 흐름을 관리하세요.</p>
+</section>
+<!-- Project Flow List -->
+<div class="space-y-stack-lg">
+<!-- Card 1 -->
+<article class="bg-surface-container-lowest rounded-xl card-shadow overflow-hidden transition-transform active:scale-[0.98] cursor-pointer" onclick="window.location.href='#'">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover" data-alt="A cinematic outdoor shot of a lush green mountain campsite during a vibrant summer sunset. The lighting is warm and golden, casting long shadows over colorful tents and a group of friends gathered in the distance. The overall aesthetic is nostalgic and communal, with a soft linen texture effect and organic terracotta tones reflecting a warm minimalism." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvX6etYVCmApQItCwZwXcvl6VCH9-xL9QallF0it3O0KBOOAPnKrex-MlxJ9_jmy2RSpwqDi_EUPczKky6Z_LAVBNU-51DoGfL4F8YTgBKUmNSUAx68ZMsJr5MdlZqSXdT3TLrWiZJoNiNcUr667NUWDdd8XUgNHqUB-Uaqv8vyxdSlFqEMJ0GcAW4oLGb6hEZa5Kw5mpLWElfK4ag_PHRG9_P8XV26krY284AWLUOMWkPgHDQdt67pTtvfCKwcOYpBSDV8kmJPjBZ"/>
+<div class="absolute top-4 right-4 bg-primary text-on-primary px-3 py-1 rounded-full font-label-sm text-label-sm shadow-sm">
+                        진행 중
+                    </div>
+</div>
+<div class="p-stack-md">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-title-sm text-title-sm text-on-surface">2026 하계 엠티</h3>
+<p class="font-body-md text-body-md text-on-secondary-fixed-variant">동아리 연합</p>
+</div>
+</div>
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-label-sm text-label-sm">2026.07.15 – 07.17</span>
+</div>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="bg-surface-container-lowest rounded-xl card-shadow overflow-hidden transition-transform active:scale-[0.98] cursor-pointer" onclick="window.location.href='#'">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover opacity-80 grayscale-[20%]" data-alt="An intimate interior scene of a collaborative workshop in a modern, sun-drenched studio. The space features white walls, wooden textures, and minimalist furniture. Soft natural light streams through large windows, creating a peaceful and creative atmosphere. The palette is dominated by neutral linen tones and deep ink accents, embodying a warm and organized digital scrapbooking vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHSdlKgQaqRNuants72UXwsJTm63g4tQ0vA_5niPjr3TU47zczY3u29G_A7VTmh180LuQoVDQsCYg3-DnmWTb8ZJGTBRmyt7n6LwLcVAfjpb6oXwxdr_jkzooEvjBPCvbuR0Rx726JL1wz3hD75u6h2CrsydOtzSxKETizNKzur9Cm5n7WNGvjFYs27bWySP4WOVIZuV65JVl8uBE4Pu06FYXyroaC-mrqq5cYVQ78JtFkhS6b8NB-fA78Ch2z7cwXQUrHpvoTFxq9"/>
+<div class="absolute top-4 right-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-sm text-label-sm">
+                        종료됨
+                    </div>
+</div>
+<div class="p-stack-md">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-title-sm text-title-sm text-on-surface">디자인 컨퍼런스 2025</h3>
+<p class="font-body-md text-body-md text-on-secondary-fixed-variant">디자인 팀</p>
+</div>
+</div>
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-label-sm text-label-sm">2025.11.02 – 11.04</span>
+</div>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="bg-surface-container-lowest rounded-xl card-shadow overflow-hidden transition-transform active:scale-[0.98] cursor-pointer" onclick="window.location.href='#'">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover" data-alt="A cozy evening gathering around a small campfire by a lake. The sky is a deep indigo with hints of stars beginning to appear. The fire provides a warm, flickering terracotta glow that illuminates the faces of a small family. The mood is serene and sentimental, captured with a high-quality, tactile aesthetic reminiscent of a physical photo album." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbGau9jj4Wk7WTf3bmqUx0g_zjyZwBtoLgX05ZtLjqNYXoFBxkNGVE5PCDiu70GH_a2gJgDCFqNdWZi7vRYF2vK7-KM1oAzKP14VLzojmf2EE0eOya3RjokvcDuIq-pbW5MmehBzA7MemVqWiZnguvvqw0EsYIG-Ho-iF-IgbPXRZ01vsnrbn8Z48V_CO278TIUY2q_AOq9aUu8Th9hSl4gKFBi9aGQ_54Uphz3TSTMfvcBt7cboVJrV-f-BxHMFgePQMNr1SD0n9a"/>
+<div class="absolute top-4 right-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-sm text-label-sm">
+                        종료됨
+                    </div>
+</div>
+<div class="p-stack-md">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-title-sm text-title-sm text-on-surface">제주 가족 여행</h3>
+<p class="font-body-md text-body-md text-on-secondary-fixed-variant">가족</p>
+</div>
+</div>
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-label-sm text-label-sm">2025.08.20 – 08.25</span>
+</div>
+</div>
+</article>
+</div>
+</main>
+<!-- FAB: Add Project (Contextual) -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center transition-transform active:scale-90 hover:bg-primary-container z-40">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+<!-- Bottom Navigation Bar (Shared Component) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface border-t border-outline-variant/20 shadow-sm rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-on-secondary-container transition-transform duration-150 active:scale-95">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-label-sm text-label-sm">추억</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary font-bold transition-transform duration-150 active:scale-95 active-nav-indicator">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-sm text-label-sm">대시보드</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-secondary-container transition-transform duration-150 active:scale-95">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">프로필</span>
+</button>
+</nav>
+<script>
+        // Micro-interaction for cards
+        document.querySelectorAll('article').forEach(card => {
+            card.addEventListener('mousedown', () => {
+                card.style.backgroundColor = '#f4f4f2'; // Subtle darkening on tap
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.backgroundColor = '#ffffff';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.backgroundColor = '#ffffff';
+            });
+        });
+
+        // Atmospheric fade-in on load
+        window.addEventListener('DOMContentLoaded', () => {
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                document.body.style.transition = 'opacity 0.6s ease-out';
+                document.body.style.opacity = '1';
+            }, 50);
+        });
+    </script>
+</body></html>

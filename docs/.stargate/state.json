@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "started_at": "2026-06-03T09:00:00Z",
+  "updated_at": "2026-06-03T15:00:00Z",
+  "idea_prompt": "MemoryFlow — 여러 사람이 일정 단위로 사진/스토리를 모아 영상 대본 스토리북을 만드는 웹앱",
+  "planning_line": "doubt",
+  "current_phase": "done",
+  "completed_phases": ["0", "1", "2", "3", "3.5", "4", "5", "6"],
+  "artifacts": {
+    "planning_docs": "docs/planning/",
+    "prd": "docs/memoryflow-prd.md",
+    "screen_spec": "specs/screens/",
+    "domain": "specs/domain/resources.yaml",
+    "design_system": "docs/design-system/",
+    "tasks": null,
+    "build_mode": "direct-implementation",
+    "app_root": "./ (client/ server/ shared/)",
+    "report": "docs/stargate-report.md"
+  },
+  "notes": "전체 파이프라인 완료. 풀스택 MVP 구현 + 종단 검증(인증/RBAC/업로드+sharp/ffmpeg/AI스텁/내레이션/승인/공유/스트리밍/내보내기) 통과. 빌드 중 수정: (1) 빈 본문 JSON 파서, (2) dev/prod 세션쿠키 secure, (3) sharp 파생 전 thumbnails 디렉터리 보장, (4) AI 스텁 길이0 가드. 시드: 관리자 01000000000/admin123, 업로더 01011111111/pass123."
+}

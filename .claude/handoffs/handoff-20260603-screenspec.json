@@ -1,0 +1,67 @@
+{
+  "completed_skill": "screen-spec",
+  "next_skill": "tasks-generator",
+  "created_at": "2026-06-03",
+  "project": "MemoryFlow",
+  "summary_for_next_session": "여러 사람이 일정(장면) 단위로 사진·영상·스토리를 모아, AI가 여러 관점을 한 내레이션으로 합쳐 짧은 스토리 영상의 대본(스토리북)을 만드는 모바일 우선 웹앱. 기획 가정은 /doubt로 검증 완료, 스택·DB·화면 명세·디자인 토큰까지 확정됨. 다음은 명세를 개발 태스크로 분해.",
+  "context_summary": {
+    "indubitable_core": "함께한 경험을 여러 사람의 기억을 모아 하나의 이야기로 남기고 싶다",
+    "validated_assumptions": {
+      "A1_uploaders_write_text": "해소 — 업로더는 지정된 책임자, 글 작성은 의무",
+      "A1_per_scene_count": "해소 — 장면당 2~3명, 다관점 실재",
+      "A2_merge_value": "해소 — AI 통합 초안 → 관리자 최종 검증(PRD 9장)",
+      "A4_output": "해소 — 웹 스토리북 + 영상 제작용 back data 내보내기(PRD 11장)"
+    },
+    "tech_stack": {
+      "language": "TypeScript 전영역",
+      "frontend": "React + Vite + TailwindCSS + TanStack Query + Zustand + Zod",
+      "backend": "Node + Fastify + Drizzle ORM + better-sqlite3 + 세션쿠키 인증",
+      "db": "SQLite (WAL, foreign_keys ON)",
+      "media": "Sharp(썸네일) + fluent-ffmpeg(영상 프레임/길이)",
+      "architecture": "client/ (SPA) + server/ (API) 분리"
+    },
+    "deployment": {
+      "local_first": "Docker. 서버 현재 다운으로 로컬 우선",
+      "storage_root_env": "STORAGE_ROOT 환경변수. 로컬 ./storage → 서버 D:\\storage",
+      "db_path": "로컬 ./data/db/memoryflow.sqlite → 서버 D:\\projects\\memoryflow.sqlite",
+      "drive_layout": "D:\\storage(393GB 파일) / D:\\projects(326GB 앱+DB) / D:\\backup(196GB)",
+      "rules": ["storage 직접 웹 노출 금지 — /api/media 권한검증 후 스트리밍", "폴더는 projectId로(프로젝트명 금지)", "백업이 같은 디스크라 디스크 고장엔 취약(Phase2 외부백업)"]
+    },
+    "screens": "16개 (S-01~S-30). 공통2/업로더3/관리자10/공유1. 심장=S-26 스토리북 편집",
+    "design": "Stitch 완료. DESIGN.md 토큰 + tailwind-theme.css(변환본). 강조색 #94451d 통일. 목업 14/16(S-24·S-25 누락). Warm Minimalism, 모바일 우선",
+    "key_decisions": [
+      "모바일 우선 전역",
+      "S-26 장면 단위 편집 + 이전/다음",
+      "S-12 사진+영상+글 한 폼 동시",
+      "S-11 Day별 리스트",
+      "S-22 탭(모바일)",
+      "로그인 식별자=전화번호(UNIQUE)",
+      "AI 동기호출 30초 타임아웃+재시도, 실패해도 손편집 가능",
+      "길이 가이드는 제안(강제 아님)",
+      "편집 잠금(승인 전 업로더 입력 차단)",
+      "스토리북=프로젝트당 1개"
+    ]
+  },
+  "output_files": [
+    "docs/memoryflow-prd.md",
+    "docs/planning/02-trd.md",
+    "docs/planning/04-database.md",
+    "docs/planning/06-screens.md",
+    "docs/planning/11-validation-plan.md",
+    "docs/planning/deployment-notes.md",
+    "specs/domain/resources.yaml",
+    "specs/screens/index.yaml",
+    "specs/screens/*.yaml (16)",
+    "specs/shared/components.yaml",
+    "specs/shared/types.yaml",
+    "docs/design-system/DESIGN.md",
+    "docs/design-system/tailwind-theme.css",
+    "docs/design-system/stitch-prompts.md",
+    "docs/design-system/s_*/screen.png + code.html (14 화면)"
+  ],
+  "open_items": [
+    "S-24 초대관리 · S-25 멤버관리 디자인 목업 미생성(토큰으로 구현 가능)",
+    "Node LTS/패키지매니저(pnpm 권장) 부트스트랩 시 고정",
+    "AI 백엔드 구체(모델·엔드포인트) 미확정 → services/ai 어댑터 뒤로 추상화"
+  ]
+}

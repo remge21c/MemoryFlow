@@ -1,0 +1,35 @@
+# S-20 프로젝트 목록 (관리자 대시보드)
+version: "2.0"
+screen:
+  name: 프로젝트 목록(대시보드)
+  route: /admin
+  role: admin
+  layout: list
+
+data_requirements:
+  - resource: projects
+    needs: [id, name, org_name, start_date, end_date, status, cover_image_path]
+    filters: { status: "?status" }   # active|completed|archived 필터
+
+components:
+  - id: status_filter
+    type: tabs
+    position: top
+    options: [전체, active, completed, archived]
+  - id: project_cards
+    type: list
+    position: main
+    item: [cover_image, name, org_name, date_range, status_badge]
+    data_source: { resource: projects }
+  - id: create_button
+    type: fab           # 모바일 우선: 플로팅 생성 버튼
+    position: bottom
+    action: navigate(/admin/projects/new)
+
+events:
+  - on: card_click
+    do: /admin/projects/:id 이동 (S-22)
+
+tests:
+  - { name: 목록·필터, when: 상태 탭 선택, then: [해당 상태 프로젝트만] }
+  - { name: 생성 진입, when: FAB 클릭, then: [S-21 이동] }

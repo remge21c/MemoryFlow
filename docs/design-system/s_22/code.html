@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Be+Vietnam+Pro', sans-serif;
+            background-color: #FAFAF8; /* Linen Surface as per Style Guidance */
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .linen-shadow {
+            box-shadow: 0 4px 8px rgba(31, 29, 27, 0.04);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e2e3e1",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#00666e",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#e7e2da",
+                        "on-tertiary-fixed": "#002022",
+                        "surface-container": "#eeeeec",
+                        "tertiary-fixed-dim": "#6dd6e0",
+                        "on-surface-variant": "#55433b",
+                        "primary-fixed": "#ffdbcd",
+                        "primary-container": "#b35d33",
+                        "on-primary-fixed-variant": "#793108",
+                        "on-secondary-container": "#67645e",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#615e58",
+                        "inverse-surface": "#2f3130",
+                        "surface-container-high": "#e8e8e6",
+                        "on-tertiary-fixed-variant": "#004f55",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-container": "#f5feff",
+                        "secondary-fixed-dim": "#cbc6bf",
+                        "tertiary-fixed": "#8bf2fd",
+                        "on-surface": "#1a1c1b",
+                        "background": "#f9f9f7",
+                        "surface": "#f9f9f7",
+                        "on-background": "#1a1c1b",
+                        "on-secondary-fixed-variant": "#494641",
+                        "surface-dim": "#dadad8",
+                        "surface-bright": "#f9f9f7",
+                        "outline-variant": "#dbc1b7",
+                        "outline": "#88736a",
+                        "surface-container-low": "#f4f4f2",
+                        "primary": "#94451d",
+                        "on-primary-fixed": "#360f00",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#ffb595",
+                        "surface-container-highest": "#e2e3e1",
+                        "on-secondary-fixed": "#1d1b17",
+                        "inverse-primary": "#ffb595",
+                        "tertiary-container": "#00818a",
+                        "secondary-fixed": "#e7e2da",
+                        "surface-tint": "#97471f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-mobile": "20px",
+                        "stack-lg": "32px",
+                        "stack-md": "16px",
+                        "gutter-mobile": "16px",
+                        "touch-target-min": "44px",
+                        "stack-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["beVietnamPro"],
+                        "display-lg": ["beVietnamPro"],
+                        "headline-md": ["beVietnamPro"],
+                        "title-sm": ["beVietnamPro"],
+                        "body-lg": ["beVietnamPro"],
+                        "body-md": ["beVietnamPro"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "display-lg": ["30px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["22px", {"lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "title-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "22px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen">
+<!-- Top AppBar (Admin Project Header) -->
+<header class="sticky top-0 z-40 bg-surface/90 backdrop-blur-md px-margin-mobile pt-4 pb-2">
+<div class="flex justify-between items-center mb-2">
+<button class="w-touch-target-min h-touch-target-min flex items-center justify-start text-on-surface-variant transition-colors duration-200 active:opacity-80">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex-grow text-center">
+<h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">2026 하계 엠티</h1>
+</div>
+<button class="w-touch-target-min h-touch-target-min flex items-center justify-end text-on-surface-variant transition-colors duration-200 active:opacity-80">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="flex items-center justify-center gap-2 mb-4">
+<span class="font-body-md text-body-md text-on-surface-variant">2026.07.15-07.17</span>
+<div class="px-3 py-1 bg-primary text-on-primary rounded-full font-label-sm text-[10px] uppercase tracking-wider">편집 중</div>
+</div>
+<!-- Horizontal Scrollable Tab Bar -->
+<nav class="flex overflow-x-auto hide-scrollbar -mx-margin-mobile px-margin-mobile border-b border-outline-variant/10">
+<div class="flex gap-stack-lg min-w-max pb-2">
+<button class="relative font-label-sm text-label-sm px-1 py-2 text-primary font-bold">
+                    일정
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full"></span>
+</button>
+<button class="font-label-sm text-label-sm px-1 py-2 text-on-surface-variant transition-colors hover:text-primary">초대</button>
+<button class="font-label-sm text-label-sm px-1 py-2 text-on-surface-variant transition-colors hover:text-primary">멤버</button>
+<button class="font-label-sm text-label-sm px-1 py-2 text-on-surface-variant transition-colors hover:text-primary">편집</button>
+<button class="font-label-sm text-label-sm px-1 py-2 text-on-surface-variant transition-colors hover:text-primary">공유</button>
+<button class="font-label-sm text-label-sm px-1 py-2 text-on-surface-variant transition-colors hover:text-primary">영상</button>
+</div>
+</nav>
+</header>
+<main class="px-margin-mobile pt-stack-md pb-32">
+<!-- Day Selector (Flow/Asymmetric Pattern) -->
+<div class="flex items-end justify-between mb-stack-md">
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase">Day 1 Overview</span>
+<h2 class="font-display-lg text-display-lg text-on-surface">출발과 설렘</h2>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-sm">calendar_month</span>
+</button>
+</div>
+</div>
+<!-- Schedule Flow -->
+<div class="space-y-stack-md">
+<!-- Schedule Card 1 -->
+<div class="bg-surface-container-lowest linen-shadow rounded-xl p-4 flex gap-4 transition-transform active:scale-[0.98]">
+<div class="flex flex-col items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant">09:00</span>
+<div class="w-px flex-grow bg-outline-variant/30 my-2"></div>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-title-sm text-title-sm text-on-surface">서울역 집결</h3>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded font-label-sm text-[10px]">이동</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-3">3층 대합실 시계탑 앞 15명 전원 집결 및 인원 파악</p>
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]">map</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">서울역 1호선</span>
+</div>
+</div>
+</div>
+<!-- Image Interstitial (High-end UI Pattern) -->
+<div class="relative w-full aspect-[16/10] rounded-xl overflow-hidden linen-shadow group">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A warm and nostalgic photograph of a high-speed train waiting at a bright, sun-drenched platform. The lighting is soft and airy, capturing a modern yet emotional feeling of a summer journey beginning. The scene is dominated by soft whites and natural textures, with a minimalist terracotta accent echoing the brand's primary color. The mood is hopeful and filled with communal anticipation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrBoeYpdP9IXfP2bLNMaYuwWqvECaOhE60-LRAVmGEiX0eaCXSkvcX6XhygLQlDefwTg2kvbuT8KUy7m-4_Al92yxbHifE4Fj7wi2h_u4xT2_FtEKWvCX1FrK4mqtMExY0QYTds2yHjNPcMUCd9JGRzAG2QpUQQfWuPVRcReqyiL4GMFSb8891JVE90cqfA8IwpJHiKzBUof3OURPa4U-8mOcUSBrbKuVEqs0qBFvJXhPMPQR8io_pt1sKFFUHOQ_xhKrGsn5R3zCP"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-4 left-4 right-4 text-white">
+<span class="font-label-sm text-label-sm opacity-80">Location Highlight</span>
+<p class="font-title-sm text-title-sm">출발 전 단체사진 스팟</p>
+</div>
+</div>
+<!-- Schedule Card 2 -->
+<div class="bg-surface-container-lowest linen-shadow rounded-xl p-4 flex gap-4 transition-transform active:scale-[0.98]">
+<div class="flex flex-col items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant">12:30</span>
+<div class="w-px flex-grow bg-outline-variant/30 my-2"></div>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-title-sm text-title-sm text-on-surface">도착 및 점심 식사</h3>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded font-label-sm text-[10px]">식사</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-3">강릉 장칼국수 전문점 (예약 완료)</p>
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full border-2 border-surface bg-surface-variant overflow-hidden">
+<img data-alt="Close up profile headshot of a friendly young man with a warm smile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCY6GM97scng0kvQTahYNi9uqtK1i1VExb6DUDRVCjwsln0JhcfctHWigAq7xttCNvcw_ER8YrSlsGokYfcoqMX6YxxXZRh9mG-oDP2nGMbbl70skMtKFDMdgOHNs5lj4zr0h9ni0A61G7DhkhK5dspKEe6UuN2qfaW1EO1m3hBQ7IIlPJD-KGoivArKmXcsDtxg4pd3aAVL1qrQrjNrumyltlsNAFuJnARD-MvcQUUW00seLKlpJuyBy0PlwbC6yD-qUXICL8HwkQy"/>
+</div>
+<div class="w-7 h-7 rounded-full border-2 border-surface bg-surface-variant overflow-hidden">
+<img data-alt="Close up profile headshot of a professional young woman with a kind expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1SZ3rFfBvdlP3mWNiPkjLatKLv8F3WCDc9-zzMdikD7VWnsuzpXSxIc45Fp_IfGwJlnfh-Q1XFnYga37Xc5oETVG35ZE-hVyBWWxre2zoWNv4D0nDf5h0KoF9rebXzubDee_lIIVPxsYv82jTxx8xyKXkoP1RLcCm2X1kttZma5gcl4YcvpXzBhq5spXEweXTeocbdVKmArw_cvLv-sR8v2g_DP6NETKjm-oI-ipPVevRLLFh0g-HxrN9ZRj1b-vQTK11ASE9HPni"/>
+</div>
+<div class="w-7 h-7 rounded-full border-2 border-surface bg-primary text-on-primary flex items-center justify-center font-label-sm text-[10px]">
+                            +13
+                        </div>
+</div>
+</div>
+</div>
+<!-- Schedule Card 3 (Actionable Item) -->
+<div class="bg-surface-container-lowest linen-shadow rounded-xl p-4 border border-primary/20">
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<span class="font-label-sm text-label-sm text-primary font-bold">15:00</span>
+<div class="w-px flex-grow bg-primary/30 my-2"></div>
+</div>
+<div class="flex-grow">
+<h3 class="font-title-sm text-title-sm text-on-surface">숙소 체크인 &amp; 휴식</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">강릉 스테이 오브제 (오션뷰)</p>
+<button class="mt-4 w-full py-2 bg-primary/10 text-primary font-label-sm text-label-sm rounded-lg flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+                            지도 보기
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Schedule Add) -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center transition-transform active:scale-90 z-50">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+<!-- Bottom Navigation Bar (As defined in Shared Components JSON) -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface dark:bg-surface border-t border-outline-variant/20 shadow-sm rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-on-secondary-container dark:text-on-secondary-fixed-variant transition-transform duration-150 scale-95 hover:bg-secondary-container/50">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+<span class="font-label-sm text-label-sm">추억</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold transition-transform duration-150 scale-95 hover:bg-secondary-container/50">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-sm text-label-sm">대시보드</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-secondary-container dark:text-on-secondary-fixed-variant transition-transform duration-150 scale-95 hover:bg-secondary-container/50">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">프로필</span>
+</button>
+</footer>
+<script>
+        // Micro-interaction for tab switching
+        document.querySelectorAll('nav button').forEach(button => {
+            button.addEventListener('click', function() {
+                // This is a visual demo only
+                document.querySelectorAll('nav button').forEach(btn => {
+                    btn.classList.remove('text-primary', 'font-bold');
+                    btn.classList.add('text-on-surface-variant');
+                    const indicator = btn.querySelector('span.absolute');
+                    if(indicator) indicator.remove();
+                });
+                this.classList.add('text-primary', 'font-bold');
+                this.classList.remove('text-on-surface-variant');
+                this.innerHTML += '<span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full"></span>';
+            });
+        });
+
+        // Interaction for schedule cards
+        document.querySelectorAll('.bg-surface-container-lowest').forEach(card => {
+            card.addEventListener('mousedown', () => card.style.backgroundColor = '#f1f1ef');
+            card.addEventListener('mouseup', () => card.style.backgroundColor = '#ffffff');
+            card.addEventListener('mouseleave', () => card.style.backgroundColor = '#ffffff');
+        });
+    </script>
+</body></html>

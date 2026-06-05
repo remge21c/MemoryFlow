@@ -1,0 +1,39 @@
+# S-24 초대 링크 관리 (관리자)
+version: "2.0"
+screen:
+  name: 초대 링크 관리
+  route: /admin/projects/:id/invites
+  role: admin
+  layout: list
+
+data_requirements:
+  - resource: invites
+    needs: [id, token_hash, is_active, expires_at, created_at]
+    filters: { project_id: ":id" }
+
+components:
+  - id: create_invite
+    type: action_panel
+    position: top
+    function: 초대 링크 발급(만료시간 선택)
+    inputs: [expires_in]
+  - id: active_link
+    type: copy_field
+    position: top
+    function: 발급된 /join/:token 링크 복사(단톡방/문자 공유)
+    note: 원본 토큰은 발급 직후 1회만 노출(서버는 token_hash만 저장)
+  - id: invite_list
+    type: list
+    position: main
+    item: [생성일, 만료일, 상태(active/만료), 무효화 버튼]
+
+events:
+  - on: create
+    do: invite 생성, 원본 토큰 1회 표시
+  - on: revoke
+    do: is_active=false (즉시 무효)
+
+tests:
+  - { name: 발급, when: 만료 선택 후 생성, then: [링크 생성, 토큰 1회 표시] }
+  - { name: 무효화, when: revoke, then: [is_active=false, 해당 링크 가입 차단] }
+  - { name: 만료 표시, when: expires_at 경과, then: [상태=만료] }

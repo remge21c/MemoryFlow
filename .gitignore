@@ -1,0 +1,20 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# local data / files (TRD 2장: gitignore)
+storage/
+data/
+backup/
+
+# env
+.env
+.env.local
+
+# logs
+*.log
+npm-debug.log*
+
+# os
+.DS_Store
+Thumbs.db

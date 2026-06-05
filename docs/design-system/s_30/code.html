@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MemoryFlow - 2026 하계 엠티</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --linen-bg: #f9f9f7;
+        }
+
+        body {
+            background-color: var(--linen-bg);
+            color: #1a1c1b;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.7) 100%);
+        }
+
+        .story-shadow {
+            box-shadow: 0 4px 8px rgba(31, 29, 27, 0.04);
+        }
+
+        .video-overlay:hover .play-button {
+            transform: scale(1.1);
+        }
+        
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .fade-in-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e2e3e1",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#00666e",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#e7e2da",
+                        "on-tertiary-fixed": "#002022",
+                        "surface-container": "#eeeeec",
+                        "tertiary-fixed-dim": "#6dd6e0",
+                        "on-surface-variant": "#55433b",
+                        "primary-fixed": "#ffdbcd",
+                        "primary-container": "#b35d33",
+                        "on-primary-fixed-variant": "#793108",
+                        "on-secondary-container": "#67645e",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#615e58",
+                        "inverse-surface": "#2f3130",
+                        "surface-container-high": "#e8e8e6",
+                        "on-tertiary-fixed-variant": "#004f55",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-container": "#f5feff",
+                        "secondary-fixed-dim": "#cbc6bf",
+                        "tertiary-fixed": "#8bf2fd",
+                        "on-surface": "#1a1c1b",
+                        "background": "#f9f9f7",
+                        "surface": "#f9f9f7",
+                        "on-background": "#1a1c1b",
+                        "on-secondary-fixed-variant": "#494641",
+                        "surface-dim": "#dadad8",
+                        "surface-bright": "#f9f9f7",
+                        "outline-variant": "#dbc1b7",
+                        "outline": "#88736a",
+                        "surface-container-low": "#f4f4f2",
+                        "primary": "#94451d",
+                        "on-primary-fixed": "#360f00",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#ffb595",
+                        "surface-container-highest": "#e2e3e1",
+                        "on-secondary-fixed": "#1d1b17",
+                        "inverse-primary": "#ffb595",
+                        "tertiary-container": "#00818a",
+                        "secondary-fixed": "#e7e2da",
+                        "surface-tint": "#97471f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-mobile": "20px",
+                        "stack-lg": "32px",
+                        "stack-md": "16px",
+                        "gutter-mobile": "16px",
+                        "touch-target-min": "44px",
+                        "stack-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["beVietnamPro"],
+                        "display-lg": ["beVietnamPro"],
+                        "headline-md": ["beVietnamPro"],
+                        "title-sm": ["beVietnamPro"],
+                        "body-lg": ["beVietnamPro"],
+                        "body-md": ["beVietnamPro"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "display-lg": ["30px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["22px", {"lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "title-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "22px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body-md text-on-surface">
+<!-- Top Navigation Placeholder (Minimalist for Public View) -->
+<header class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-margin-mobile h-touch-target-min transition-all duration-300" id="main-header">
+<div class="flex items-center gap-2">
+<span class="font-display-lg text-display-lg font-bold text-white drop-shadow-md" id="logo-text">MemoryFlow</span>
+</div>
+<div class="flex items-center gap-stack-sm">
+<button class="w-touch-target-min h-touch-target-min flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md text-white">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="w-full">
+<!-- Top Hero Section -->
+<section class="relative h-[751px] w-full overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="A wide cinematic shot of a group of joyful college students laughing together in a sun-drenched coastal clearing during late afternoon. The lighting is warm and golden, casting long shadows across the natural landscape. The overall mood is nostalgic and celebratory, capturing a peak moment of a summer membership training trip. The color palette emphasizes warm terracotta, soft creams, and vibrant natural greens." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHFTOZPtsF7W9-o-frZczvg4zQdiTqxWyKVuUSsRpL49csVyDpM0qnic9lXiihx33BgLSSreapSKkfhxxF01pDKpfm1UBwoHhwcKb4kYbbZEgt6iAOFc7f4a2gEuyzp0dKdqZfAEsFKw8-iuicKIYA5d549jw6HkmxteziIfRA4Zh-mjjFdpZcoFpRZIDTkCAAUw3FImjECk8wGf8U1Hc4mqG0sZtmmmkCC8o6_ArzpJSfo9U9EnhRqgRIh3U335-O3kJBJEy3qVJI"/>
+<div class="hero-gradient absolute inset-0 flex flex-col justify-end p-margin-mobile pb-16">
+<div class="max-w-2xl mx-auto w-full">
+<span class="font-label-sm text-label-sm text-white/80 uppercase tracking-widest mb-2 block">동아리 연합</span>
+<h1 class="font-display-lg text-[48px] leading-tight text-white mb-4">2026 하계 엠티</h1>
+<p class="font-body-lg text-body-lg text-white/90 max-w-lg">우리들의 뜨거웠던 여름, 푸른 바다와 웃음소리가 가득했던 2박 3일의 기록.</p>
+</div>
+</div>
+</section>
+<!-- Final Video Section (Inline Player) -->
+<section class="max-w-3xl mx-auto px-margin-mobile -mt-12 relative z-10">
+<div class="aspect-video w-full rounded-xl overflow-hidden story-shadow bg-black group relative cursor-pointer">
+<img class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" data-alt="A cinematic thumbnail for a summer memory video showing silhouettes of friends sitting around a campfire on a beach at dusk. The sky is a deep twilight blue with a hint of warm orange on the horizon. The composition is centered and balanced, evoking a sense of calm and togetherness. The visual style is clean and high-end, fitting a warm minimalist design aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAahKxAwJ0zQ16natMAoSej6eE89385Kch6COO4hhlaP4NmPxANKjMvexdA0PXzAUHLKjIHSBml4UAI5pI8f0XC5wwQFwjS4pOfprilxVoGbK9ZkdbbCPqdbhGTDPa_SCMkVz5bCcJnwo5-qgyRL056ykP_kUSneQPuUdPrUZUucz6OZuCP-u6WCeKQpLdZ0LDtC5Cu6c81woDOnzP1ACZPjSClkbaU0ISUAK0c-fdPTCsJfAYL8Vvb2rQ-qIKnc0i0rxba1f9yX9l-"/>
+<div class="absolute inset-0 flex items-center justify-center video-overlay">
+<div class="play-button w-16 h-16 bg-white/90 rounded-full flex items-center justify-center transition-transform duration-300 shadow-xl">
+<span class="material-symbols-outlined text-primary text-[32px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<div class="absolute bottom-4 left-4 right-4 flex justify-between items-center">
+<span class="bg-black/40 backdrop-blur-md text-white text-label-sm px-3 py-1 rounded-full">하이라이트 필름 • 03:42</span>
+</div>
+</div>
+</section>
+<!-- Story Flow Container -->
+<div class="max-w-3xl mx-auto px-margin-mobile mt-stack-lg space-y-24 pb-32">
+<!-- Day 1 -->
+<section class="fade-in-section">
+<div class="flex items-center gap-4 mb-stack-md">
+<h2 class="font-headline-md text-headline-md text-primary">Day 1: 설렘의 시작</h2>
+<div class="h-[1px] flex-grow bg-outline-variant/30"></div>
+</div>
+<div class="space-y-stack-md">
+<!-- Scene 1: Large Photo -->
+<div class="rounded-xl overflow-hidden story-shadow">
+<img class="w-full h-auto" data-alt="A candid photo of college students packing a large passenger van, surrounded by luggage and snacks. The morning light is crisp and bright, conveying the excitement of a trip about to begin. The scene is full of energy and anticipation. The color palette is dominated by neutral tones with pops of primary colors from the travel bags, set against a clean urban backdrop." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbDeexoVeA4XE7-vkX-vxkN2uw60FgMdZRySc0836du8cM-3XZogA04PAcfm-TrXEQI4kR6l61itWVKhlDiderB8Gxrozpf8lSMnXvVRP9iPhJpOrz0pNUXzz3IQEeJcV9Nhf_uAhBWw7yt9opEL2IsGPSaLS5ydx08YQgBlzaKgtJ6iB3kiRMLqSEoHa0KlKTHMUj9In7ziH5nCrowi0VJg4i6AfOovCIkp4XgMT8rIrtRL133jSv5yjxxWojx1SGhI_9VYPX4Nxf"/>
+</div>
+<!-- Narration Text -->
+<div class="py-stack-sm">
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                            오전 9시, 학교 정문 앞에 모인 우리들의 얼굴에는 설렘이 가득했습니다. 무거운 짐을 차에 싣고, 서로의 안부를 묻는 시끌벅적한 분위기 속에서 2026년 하계 엠티의 막이 올랐습니다. 출발하는 버스 안에서 부른 노래와 웃음소리는 이미 여행의 절반을 채운 듯했습니다.
+                        </p>
+</div>
+<!-- Scene 2: Gallery -->
+<div class="grid grid-cols-2 gap-4">
+<div class="rounded-xl overflow-hidden story-shadow h-64">
+<img class="w-full h-full object-cover" data-alt="A close-up shot of hands reaching for various street foods at a rest stop. The lighting is natural and midday bright. The focus is on the textures of the food and the casual interaction between people. The overall feel is warm and communal, capturing the small but essential moments of a road trip. The aesthetic remains minimalist and organic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNZmMAlotoOMMeydKATFsalQMj8m2I4xeO8S34R15gsJz4ipJcS8o7MlAiCI-VM-7ekhwmNRuzTd38zYIfrtDBZHWwNhUbdgvgCL7aLQDnbko0CpqlbizzLvzx763B_eg4yWOgBgVzzl_8tAcwKzRr7noM7WU8uPL8PbtkVQLk5fEJRy1eeT0KIMBoPvnzqs5KMZqRvdEtsfv8zz5H011Iy5p6fRbEiolWP22Qyv712Uhz8M1RBXFjI0w-Kyl6BQdamjm18NoE1P9s"/>
+</div>
+<div class="rounded-xl overflow-hidden story-shadow h-64">
+<img class="w-full h-full object-cover" data-alt="A wide shot of a pristine white sand beach meeting clear turquoise water. The horizon is sharp and clear under a cloudless sky. The vastness of the sea evokes a sense of freedom and relaxation. The lighting is high-key and summery, perfectly matching the warm minimalist aesthetic of the travel story. High quality photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKOzNfrniAicaVFGF0DDznuyYf_mwRW6fHPFc6vipnuRuS5_BlG0Mx9WOEsBn6S4xg08rtKA3LFVZ9ya_9swr_ql_LYqdoILERBhw7IyLLm2AkwoH_63dJ1GLdzVdSGg8ONi1HOGRnR2ZTLXmjTt_yzG9hAl7rxSOt6eWdzaG-zD3DQhxu4creUCO5CvVqcn4tA1YVx5jOuXqhVZpM7Uu1V1_Xlx3knfJPT8azVvoL6s8yFhQHRO8nIcdHrGHVCELygnXT2lwB7f2-"/>
+</div>
+</div>
+<div class="py-stack-sm">
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                            고속도로를 달려 도착한 강릉의 바다는 눈이 시리도록 푸르렀습니다. 모래사장에 발을 내딛는 순간 느껴진 뜨거운 열기와 짭조름한 바닷바람은 우리가 정말 여행을 왔음을 실감하게 해주었습니다.
+                        </p>
+</div>
+</div>
+</section>
+<!-- Day 2 -->
+<section class="fade-in-section">
+<div class="flex items-center gap-4 mb-stack-md">
+<h2 class="font-headline-md text-headline-md text-primary">Day 2: 파도와 함께</h2>
+<div class="h-[1px] flex-grow bg-outline-variant/30"></div>
+</div>
+<div class="space-y-stack-md">
+<div class="rounded-xl overflow-hidden story-shadow">
+<img class="w-full h-auto" data-alt="An action shot of students playing beach volleyball, with sand flying and faces frozen in laughter. The bright sun creates high contrast and vibrant colors. The background shows the sparkling ocean and other beachgoers. The image captures the dynamic energy of youth and physical activity in a beautiful natural setting, using a warm and nostalgic filter." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5B07FAtho8zeetvdths_Zclz7IB3tqIi5jxUzjpM2k8YW3orgReQiiqyr7mjdFQbJBAJ0j0jifO4HA-1prMsWMPpckw4JgVXcJIJmH_9qM2hk8M0gBhHjw1ssLVucLrQIriag-YgOdF4e09IsDCKVDq-z835O9ZQMDNfJv-txiBLM3cmPmAMrI-W5xko6YNXU8-Z7XyX2z02A3oX-GpRW0uGbWDugc_-ADU5X_qIW3X8YOfuKxb-iUnD0Tqtn1l74APZmR3EdO6Cz"/>
+</div>
+<div class="py-stack-sm">
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                            둘째 날은 온전히 바다와 함께했습니다. 팀을 나누어 진행한 비치발리볼은 승패를 떠나 서로를 응원하며 하나가 되는 시간이었습니다. 물놀이 후에 먹은 수박은 그 어느 때보다 달콤했고, 파도 소리를 배경 삼아 나누었던 사소한 대화들은 우리 사이를 더욱 가깝게 만들어 주었습니다.
+                        </p>
+</div>
+<div class="bg-white rounded-xl p-8 story-shadow border border-outline-variant/10 italic text-center">
+<span class="material-symbols-outlined text-primary-container block mb-4 text-[32px]">format_quote</span>
+<p class="font-title-sm text-title-sm text-on-surface leading-relaxed">
+                            "여름의 끝자락에서 만난 우리들의 웃음소리가<br/>영원히 이 바다에 머물러 있을 것만 같아요."
+                        </p>
+<span class="text-label-sm mt-4 block text-outline uppercase tracking-wider">— 현장 방명록 중에서</span>
+</div>
+<div class="rounded-xl overflow-hidden story-shadow mt-stack-md">
+<img class="w-full h-auto" data-alt="A warm and cozy evening scene of a group sitting around a large outdoor dinner table laden with grilled meat and fresh vegetables. String lights hang overhead, casting a soft ambient glow. The background is a dark garden, creating an intimate and private atmosphere. The visual style is focused on the warmth of the community and the pleasure of a shared meal. Organic color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6_jGwWsDF_Cx17uZBgVmLdQqORhQJPktNypGN8_h8dM6jt4etTiGbMrJTLrT1tbHaYLGflDbchnABMmS4RDPM7f2Okg4gAw5IZbDfWQV6y2I1HJoL56bF-L6qhUHSHGHdMIlEBykH60SBRfqYpJsgdQhDuel9M9O6ztJmegd_2K8kiN6X5MfJGmAWtHTN9T05kU02gMvyViyHjk8OoQDNDXzaDsGmlDdNxB-ofqLDviJWZmaPnqoluGlWZGv_if-1aOUjaCkM_jwR"/>
+</div>
+<div class="py-stack-sm">
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                            해가 지고 시작된 바비큐 파티는 엠티의 하이라이트였습니다. 고기를 구우며 피어오르는 연기 속에서 우리는 진솔한 이야기를 나누었습니다. 평소에는 하지 못했던 고민들, 미래에 대한 다짐들... 밤이 깊어갈수록 우리의 우정은 더욱 단단해졌습니다.
+                        </p>
+</div>
+</div>
+</section>
+<!-- Conclusion/Footer -->
+<footer class="text-center pt-16 border-t border-outline-variant/20">
+<div class="inline-block px-6 py-2 bg-secondary-container rounded-full mb-8">
+<span class="text-label-sm text-on-secondary-container font-bold">THE END OF STORY</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-4">함께해서 행복했던 2026 여름</h3>
+<p class="text-on-surface-variant max-w-sm mx-auto mb-12">
+                    이 기록은 24명의 동아리 회원들이 공유한 사진과 마음으로 만들어졌습니다.
+                </p>
+<div class="flex justify-center gap-4">
+<button class="px-8 h-12 bg-primary text-white font-bold rounded-full transition-transform active:scale-95 story-shadow">
+                        나도 스토리 만들기
+                    </button>
+</div>
+<div class="mt-20 opacity-40">
+<span class="font-display-lg text-display-lg font-bold text-primary">MemoryFlow</span>
+<p class="text-[10px] uppercase tracking-widest mt-2">© 2026 MemoryFlow. Purely for sentimental value.</p>
+</div>
+</footer>
+</div>
+</main>
+<!-- Simple Scroll Progress Bar -->
+<div class="fixed top-0 left-0 h-1 bg-primary z-[60] transition-all duration-100" id="progress-bar" style="width: 0%;"></div>
+<script>
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Header and Progress Bar logic
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('main-header');
+            const logoText = document.getElementById('logo-text');
+            const progressBar = document.getElementById('progress-bar');
+            
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            
+            progressBar.style.width = scrolled + "%";
+
+            if (window.scrollY > 100) {
+                header.classList.add('bg-white/80', 'backdrop-blur-lg', 'shadow-sm');
+                header.classList.remove('px-margin-mobile');
+                header.classList.add('px-6');
+                logoText.classList.remove('text-white');
+                logoText.classList.add('text-primary');
+            } else {
+                header.classList.remove('bg-white/80', 'backdrop-blur-lg', 'shadow-sm');
+                header.classList.add('px-margin-mobile');
+                header.classList.remove('px-6');
+                logoText.classList.add('text-white');
+                logoText.classList.remove('text-primary');
+            }
+        });
+    </script>
+</body></html>

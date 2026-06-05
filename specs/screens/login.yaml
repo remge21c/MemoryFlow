@@ -1,0 +1,37 @@
+# S-01 로그인
+version: "2.0"
+screen:
+  name: 로그인
+  route: /login
+  role: public
+  layout: centered-form    # 모바일 우선 단일 컬럼
+
+data_requirements:
+  - resource: users
+    action: authenticate
+    inputs: [phone, password]
+
+components:
+  - id: login_form
+    type: form
+    position: main
+    function: 전화번호+비밀번호 입력 후 로그인
+    fields:
+      - { name: phone, type: tel, required: true, label: 전화번호 }
+      - { name: password, type: password, required: true, label: 비밀번호 }
+    submit: { label: 로그인, action: auth.login }
+  - id: error_banner
+    type: alert
+    position: main
+    visible_when: 인증 실패
+
+events:
+  - on: submit_success
+    do: 역할 분기 → admin이면 /admin, 아니면 /projects 로 이동
+  - on: submit_fail
+    do: error_banner 표시("전화번호 또는 비밀번호가 올바르지 않습니다")
+
+tests:
+  - { name: 정상 로그인, when: 유효 자격 제출, then: [세션 쿠키 발급, 역할별 홈 이동] }
+  - { name: 실패, when: 틀린 비밀번호, then: [에러 표시, 세션 없음] }
+  - { name: 비활성 계정, when: status=inactive 로그인, then: [차단 안내] }

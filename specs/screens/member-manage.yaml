@@ -1,0 +1,40 @@
+# S-25 멤버 관리 (관리자)
+version: "2.0"
+screen:
+  name: 멤버 관리
+  route: /admin/projects/:id/members
+  role: admin
+  layout: list
+
+data_requirements:
+  - resource: project_members
+    needs: [id, user_id, role, status, joined_at]
+    filters: { project_id: ":id" }
+  - resource: users
+    needs: [id, name, phone, status]   # 표시용
+
+components:
+  - id: member_list
+    type: list
+    position: main
+    item: [name, phone(마스킹), joined_at, status]
+    actions: [내보내기, 임시 비밀번호 설정]
+  - id: empty
+    type: empty_state
+    visible_when: 멤버 0명
+    message: 초대 링크로 합류한 멤버가 여기에 표시됩니다
+
+events:
+  - on: remove_member
+    do: project_members.status=removed (해당 프로젝트 접근 차단)
+  - on: set_temp_password
+    do: users.password_hash 갱신(관리자 임시 비밀번호, PRD 4장)
+
+rules:
+  - 멤버 자동 표시(합류 시), 사후 내보내기 가능
+  - 임시 비밀번호 외 이메일 재설정은 Phase 2
+
+tests:
+  - { name: 자동 표시, when: 업로더 합류, then: [멤버 목록에 즉시 등장] }
+  - { name: 내보내기, when: remove, then: [status=removed, 업로드 차단] }
+  - { name: 임시 비번, when: 설정, then: [해당 계정 새 비번으로 로그인 가능] }

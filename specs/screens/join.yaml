@@ -1,0 +1,52 @@
+# S-02 초대 진입 · 가입
+version: "2.0"
+screen:
+  name: 초대 진입·가입
+  route: /join/:token
+  role: public
+  layout: centered-form
+
+data_requirements:
+  - resource: invites
+    action: validate_token
+    by: token (해시 비교)
+    returns: [project_name, valid, expired]
+  - resource: users
+    action: signup_or_join
+    inputs: [name, phone, password]
+
+components:
+  - id: invite_summary
+    type: card
+    position: main
+    function: 어느 프로젝트 초대인지 표시
+    data_source: { resource: invites, needs: [project_name] }
+  - id: signup_form
+    type: form
+    position: main
+    visible_when: 토큰 유효 AND 미로그인
+    fields:
+      - { name: name, type: text, required: true, label: 이름 }
+      - { name: phone, type: tel, required: true, label: 전화번호 }
+      - { name: password, type: password, required: true, label: 비밀번호 }
+    submit: { label: 합류하기, action: auth.signupAndJoin }
+  - id: existing_login_hint
+    type: link
+    position: main
+    function: 이미 계정 있으면 로그인 후 자동 합류
+  - id: invalid_state
+    type: empty_state
+    position: main
+    visible_when: 토큰 만료/무효
+    message: 만료되었거나 사용할 수 없는 초대 링크입니다
+
+events:
+  - on: signup_success
+    do: 세션 발급 + 해당 프로젝트 업로더 합류 → /projects 이동
+  - on: phone_duplicate
+    do: 안내("이미 가입된 번호입니다. 로그인 후 자동 합류됩니다")
+
+tests:
+  - { name: 신규 가입·합류, when: 유효 토큰+신규 번호 제출, then: [계정 생성, project_members 합류, 홈 이동] }
+  - { name: 기존 계정 합류, when: 기존 번호로 로그인, then: [중복 가입 없이 합류] }
+  - { name: 만료 토큰, when: expired 토큰 접근, then: [가입폼 숨김, 만료 안내] }

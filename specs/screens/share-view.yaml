@@ -1,0 +1,44 @@
+# S-30 공유 스토리북 열람 (비로그인)
+version: "2.0"
+screen:
+  name: 공유 스토리북 열람
+  route: /share/:token
+  role: public
+  layout: story-reader        # 모바일 우선 세로 스크롤 리더
+
+data_requirements:
+  - resource: share_storybook   # 가상 리소스(승인된 공개 데이터만)
+    needs: [project, scenes, narration, media, published_videos]
+    by: token (해시 검증 → is_active → expires_at)
+
+components:
+  - id: invalid_state
+    type: empty_state
+    position: main
+    visible_when: 토큰 무효/만료/비활성
+    message: 사용할 수 없는 공유 링크입니다
+  - id: project_cover
+    type: hero
+    position: top
+    function: 프로젝트명·단체·대표 이미지
+  - id: scene_flow
+    type: story_scroll
+    position: main
+    function: Day → 장면 → 사진/영상 흐름 + 합쳐진 내레이션 (included 미디어만)
+    data_source: { resource: share_storybook }
+  - id: final_video
+    type: video_player
+    position: main
+    visible_when: published 영상 존재
+    function: 완성 영상 인라인 재생(HTTP Range)
+
+rules:
+  - 승인된 스토리북 + published 영상만 노출
+  - 허용 안 함: 로그인·업로드·댓글·편집·비공개 조회 (PRD 3장)
+  - 미디어는 /api/media 가 공유 토큰 권한 확인 후 스트리밍(직접 노출 금지)
+
+tests:
+  - { name: 열람, when: 유효 토큰, then: [승인 스토리북 표시, included 미디어만] }
+  - { name: 영상 재생, when: published 영상, then: [Range 인라인 재생] }
+  - { name: 만료, when: expires_at 경과, then: [무효 안내] }
+  - { name: 비공개 차단, when: draft/미승인 프로젝트, then: [데이터 미반환] }

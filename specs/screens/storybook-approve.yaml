@@ -1,0 +1,55 @@
+# S-27 승인 · 편집 잠금 (관리자)
+version: "2.0"
+screen:
+  name: 승인·편집 잠금
+  route: /admin/projects/:id/storybook/approve
+  role: admin
+  layout: summary-action
+
+data_requirements:
+  - resource: storybooks
+    needs: [status, is_edit_locked]
+    filters: { project_id: ":id" }
+  - resource: storybook_scene
+    needs: [schedule, scene_seconds, narration]   # 전체 미리보기/검토
+    filters: { project_id: ":id" }
+
+components:
+  - id: storybook_preview
+    type: scene_summary_list
+    position: main
+    function: 전체 장면 요약(길이·내레이션 유무) 검토
+  - id: total_length
+    type: stat
+    position: top
+    function: 전체 영상 예상 길이(모든 장면 합)
+  - id: edit_lock_toggle
+    type: switch
+    position: main
+    label: 편집 잠금(승인 전 업로더 입력 차단)
+    action: storybook.setEditLock
+  - id: approve_button
+    type: primary_action
+    position: bottom
+    label: 스토리북 승인
+    confirm: 승인하면 모든 기여가 잠깁니다. 계속할까요?
+    action: storybook.approve
+  - id: unlock_button
+    type: secondary_action
+    position: bottom
+    visible_when: status=approved
+    label: 승인 잠금 해제
+    action: storybook.unlock
+
+events:
+  - on: set_edit_lock
+    do: is_edit_locked 토글 → 업로더 쓰기 차단(관리자는 편집 가능)
+  - on: approve
+    do: status=approved, 전체 기여 잠금, approved_at/by 기록
+  - on: unlock
+    do: status=draft 복귀(관리자만)
+
+tests:
+  - { name: 편집 잠금, when: 토글 ON, then: [업로더 업로드 차단, 관리자 편집 유지] }
+  - { name: 승인, when: 승인, then: [status=approved, 모든 기여 read-only] }
+  - { name: 잠금 해제, when: 관리자 unlock, then: [status=draft, 재편집 가능] }

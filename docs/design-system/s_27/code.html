@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MemoryFlow - 스토리북 승인</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Be+Vietnam+Pro', sans-serif;
+            background-color: #f9f9f7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .card-shadow {
+            shadow-color: rgba(31, 29, 27, 0.04);
+            box-shadow: 0 4px 8px rgba(31, 29, 27, 0.04);
+        }
+
+        .switch-checkbox:checked + .switch-label {
+            background-color: #C2683D;
+        }
+        
+        .switch-checkbox:checked + .switch-label .switch-dot {
+            transform: translateX(20px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#e2e3e1",
+                      "on-primary": "#ffffff",
+                      "tertiary": "#00666e",
+                      "on-error": "#ffffff",
+                      "secondary-container": "#e7e2da",
+                      "on-tertiary-fixed": "#002022",
+                      "surface-container": "#eeeeec",
+                      "tertiary-fixed-dim": "#6dd6e0",
+                      "on-surface-variant": "#55433b",
+                      "primary-fixed": "#ffdbcd",
+                      "primary-container": "#b35d33",
+                      "on-primary-fixed-variant": "#793108",
+                      "on-secondary-container": "#67645e",
+                      "on-error-container": "#93000a",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-on-surface": "#f1f1ef",
+                      "on-secondary": "#ffffff",
+                      "secondary": "#615e58",
+                      "inverse-surface": "#2f3130",
+                      "surface-container-high": "#e8e8e6",
+                      "on-tertiary-fixed-variant": "#004f55",
+                      "error-container": "#ffdad6",
+                      "error": "#ba1a1a",
+                      "on-primary-container": "#fffbff",
+                      "on-tertiary-container": "#f5feff",
+                      "secondary-fixed-dim": "#cbc6bf",
+                      "tertiary-fixed": "#8bf2fd",
+                      "on-surface": "#1a1c1b",
+                      "background": "#f9f9f7",
+                      "surface": "#f9f9f7",
+                      "on-background": "#1a1c1b",
+                      "on-secondary-fixed-variant": "#494641",
+                      "surface-dim": "#dadad8",
+                      "surface-bright": "#f9f9f7",
+                      "outline-variant": "#dbc1b7",
+                      "outline": "#88736a",
+                      "surface-container-low": "#f4f4f2",
+                      "primary": "#94451d",
+                      "on-primary-fixed": "#360f00",
+                      "on-tertiary": "#ffffff",
+                      "primary-fixed-dim": "#ffb595",
+                      "surface-container-highest": "#e2e3e1",
+                      "on-secondary-fixed": "#1d1b17",
+                      "inverse-primary": "#ffb595",
+                      "tertiary-container": "#00818a",
+                      "secondary-fixed": "#e7e2da",
+                      "surface-tint": "#97471f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "margin-mobile": "20px",
+                      "stack-lg": "32px",
+                      "stack-md": "16px",
+                      "gutter-mobile": "16px",
+                      "touch-target-min": "44px",
+                      "stack-sm": "8px"
+              },
+              "fontFamily": {
+                      "label-sm": ["beVietnamPro"],
+                      "display-lg": ["beVietnamPro"],
+                      "headline-md": ["beVietnamPro"],
+                      "title-sm": ["beVietnamPro"],
+                      "body-lg": ["beVietnamPro"],
+                      "body-md": ["beVietnamPro"]
+              },
+              "fontSize": {
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "display-lg": ["30px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["22px", {"lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "title-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-md": ["14px", {"lineHeight": "22px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top AppBar (JSON Component Implementation) -->
+<header class="sticky top-0 z-50 bg-surface flex justify-between items-center w-full px-margin-mobile h-[64px]">
+<div class="flex items-center gap-4">
+<button class="w-touch-target-min h-touch-target-min flex items-center justify-center hover:bg-surface-variant rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="font-display-lg text-display-lg font-bold text-primary tracking-tight">MemoryFlow</h1>
+</div>
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full bg-secondary-container overflow-hidden border-2 border-primary-container/20">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="A professional and friendly user profile portrait of a middle-aged creative director. He has a warm smile and is set against a clean, minimalist off-white studio background. The lighting is soft and even, highlighting the natural textures of the skin and clothing, following a high-end minimalist editorial photography style with a warm, nostalgic color grade." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtPtAuoHTSvKgyrDNbgtHgoibG196ZtEJYUw4RUiEVS2jeqHx7-wLcyy2Np0kigusOW0KosyVPG4-DZ-GCRFeB-S0_a_xzpWsJu5bvzYcHjUhr_krxjundnQTzjFlr1UWWFIfuRl24a9Q4xnaNLOIY7NRz9ZqJid09O7cJyMz_KXq3cUdQxXLk-CctDGV6hVJNGAgpIgZKX0yRrHD6KszEZOMo3uK43t1p6wLMXd6BaTWsXeGX_In4dIJdIt69oPLcKDXbQcy82GUu"/>
+</div>
+</div>
+</header>
+<main class="max-w-screen-md mx-auto px-margin-mobile pt-stack-md pb-32">
+<!-- Top Statistics Card -->
+<section class="mb-stack-lg">
+<div class="bg-white p-6 rounded-xl card-shadow border border-outline-variant/10">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">video_library</span>
+<h2 class="font-title-sm text-title-sm text-on-surface">최종 요약</h2>
+</div>
+<p class="font-headline-md text-headline-md text-primary-container">전체 영상 예상 길이: 약 2분 40초</p>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container font-label-sm text-label-sm rounded-full">장면 12개</span>
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container font-label-sm text-label-sm rounded-full">내레이션 8개</span>
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container font-label-sm text-label-sm rounded-full">BGM: Nostalgic Linen</span>
+</div>
+</div>
+</section>
+<!-- Lock Control Section -->
+<section class="mb-stack-lg flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-on-surface">편집 잠금</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">업로더의 추가 기여 및 수정 차단</span>
+</div>
+<div class="relative inline-block w-12 h-6 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="switch-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-outline-variant transition-transform duration-200" id="toggle" name="toggle" type="checkbox"/>
+<label class="switch-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-pointer transition-colors duration-200" for="toggle"></label>
+</div>
+</section>
+<!-- Scene Summary List -->
+<section class="mb-stack-lg">
+<h3 class="font-title-sm text-title-sm text-on-surface mb-stack-md px-1">스토리북 구성 (12)</h3>
+<div class="space-y-4">
+<!-- Scene Item 1 -->
+<div class="flex items-center p-4 bg-white rounded-xl card-shadow group transition-all hover:bg-surface-container-lowest">
+<div class="w-16 h-16 rounded-lg bg-surface-container overflow-hidden shrink-0">
+<img alt="Scene 1" class="w-full h-full object-cover" data-alt="A vintage-style close-up photograph of a small group of friends laughing together at a sun-drenched outdoor cafe in Paris. The lighting is warm and golden, reminiscent of late afternoon sun, with a slight film grain texture. The composition is intimate and nostalgic, capturing a candid moment of joy within a warm minimalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7-_lD8ixr7Q956QJeDGdHEP6rAyyeqTCmChoz-_AO3ed3GSwj6XekZw13H0sr217m9k_mFY9hA5UMpKIx6KV-wEaEZKl8z-snuv_7pMqWr1kEMuDs4u-0S_Ue8KmCYceCLC71kSm_yzBjF3zZ6YKrXXvDqa-WM9Ih5c5rgF7O66bwT9xtulJcth765VtbXqMYUMnBz9UpCw9BvoLAUiyF9v3Tczqanpmr7B-OSTpTFNDjnBJNOyLqpfFP9AC4xMmk3cn3ql4Hg-PT"/>
+</div>
+<div class="ml-4 flex-grow">
+<p class="font-body-lg text-body-lg text-on-surface font-semibold">오프닝: 우리의 첫 시작</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">8초</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<div class="flex items-center text-tertiary">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">mic</span>
+<span class="font-label-sm text-label-sm ml-0.5">내레이션 포함</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant">chevron_right</span>
+</div>
+<!-- Scene Item 2 -->
+<div class="flex items-center p-4 bg-white rounded-xl card-shadow group transition-all hover:bg-surface-container-lowest">
+<div class="w-16 h-16 rounded-lg bg-surface-container overflow-hidden shrink-0">
+<img alt="Scene 2" class="w-full h-full object-cover" data-alt="A breathtaking wide landscape of the Amalfi Coast at sunrise. The soft pastel colors of the coastal buildings are illuminated by the gentle morning light, with the calm blue Mediterranean Sea in the foreground. The image has a clean, airy, and premium feel with subtle contrast and natural tones, embodying a sense of serene memory." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiId6874Vak8DoUtH7uG4np4N96w5kfmzm6NixJUKs29N9-TkCtCZMzX31JJQmiYkAGvhRb6G2Uq0JA9n0nwElQRbM5quccctES8qv67170cMeRUCVxp0naQTELDeKFQ4QEa-P33DvVyuswa3YOT4NB3YznepGoKotl-QT0yIjatKes8aMdFgruuuOYCtSVzVzqJL7jT4Xdm9YD6MWpthUte-Rx5GHXpnsyTySmC2xD90WGexB9HqS2OlcFiMWNXWqQm-pFkPULXdo"/>
+</div>
+<div class="ml-4 flex-grow">
+<p class="font-body-lg text-body-lg text-on-surface font-semibold">아말피의 아침</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">3초</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">배경음악만</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant">chevron_right</span>
+</div>
+<!-- Scene Item 3 -->
+<div class="flex items-center p-4 bg-white rounded-xl card-shadow group transition-all hover:bg-surface-container-lowest">
+<div class="w-16 h-16 rounded-lg bg-surface-container overflow-hidden shrink-0">
+<img alt="Scene 3" class="w-full h-full object-cover" data-alt="A minimalist overhead shot of a rustic wooden table with shared appetizers and glasses of wine. The lighting is soft and moody, focusing on the textures of the food and the warm wood grain. The scene evokes a feeling of communal sharing and quiet celebration, presented in an elegant and organized digital scrapbooking style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPmBRhVPryfjemyOAMN8rKlo6djkDsJNwc6XYRIJWzhnZvpmaZwbV0DHVeCqv2bqpSwwmeDF8Dqc3Iq9t26fLlxOJ8HeW7bRjY9FI7Kv14jzwY4OabXB0kQJV4nQ8CDri5s9rhfyKJKimqZz9bTx0g99YM4WiFS0nwNY6xNw-VIopqYZ26wAQKMG4y4zaxEYRRWxjLfR_XeMO53HPepM5QGTifk5ZDj4K4fy-jsWg-NTYxlLxomkdipBnhuQZD7O8vxWzQCAVJfcdr"/>
+</div>
+<div class="ml-4 flex-grow">
+<p class="font-body-lg text-body-lg text-on-surface font-semibold">다 같이 나누는 저녁</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">8초</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<div class="flex items-center text-tertiary">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">mic</span>
+<span class="font-label-sm text-label-sm ml-0.5">내레이션 포함</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant">chevron_right</span>
+</div>
+<!-- Scene Item 4 (Shorter) -->
+<div class="flex items-center p-4 bg-white rounded-xl card-shadow group transition-all hover:bg-surface-container-lowest">
+<div class="w-16 h-16 rounded-lg bg-surface-container overflow-hidden shrink-0 bg-primary/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary/40 text-[32px]">more_horiz</span>
+</div>
+<div class="ml-4 flex-grow">
+<p class="font-body-lg text-body-lg text-on-surface font-semibold">외 9개의 장면들...</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">총 재생 시간 2분 21초 추가됨</p>
+</div>
+<button class="text-primary font-label-sm font-bold px-3 py-1 hover:bg-primary/5 rounded-full transition-colors">전체보기</button>
+</div>
+</div>
+</section>
+<!-- Final Decision Section -->
+<section class="mt-stack-lg pt-stack-lg border-t border-outline-variant/20 flex flex-col items-center text-center">
+<button class="w-full h-[48px] bg-[#C2683D] text-white font-body-lg font-bold rounded-full shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">lock</span>
+                스토리북 승인
+            </button>
+<div class="mt-4 flex items-center justify-center gap-1.5 text-on-surface-variant/60">
+<span class="material-symbols-outlined text-[16px]">info</span>
+<p class="font-label-sm text-label-sm">승인하면 모든 기여가 잠깁니다</p>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation (JSON Component Implementation) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface border-t border-outline-variant/20 shadow-sm md:hidden">
+<a class="flex flex-col items-center justify-center text-on-secondary-container hover:bg-secondary-container/50 p-2 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-label-sm text-label-sm">추억</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-bold hover:bg-secondary-container/50 p-2 rounded-xl transition-all scale-95" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-sm text-label-sm">대시보드</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-container hover:bg-secondary-container/50 p-2 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">프로필</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for toggle switch
+        const toggle = document.getElementById('toggle');
+        toggle.addEventListener('change', function() {
+            console.log('Editing Lock Status:', this.checked ? 'ON' : 'OFF');
+        });
+
+        // Simple haptic feedback simulation on button click
+        const approveBtn = document.querySelector('button.bg-\\[\\#C2683D\\]');
+        approveBtn.addEventListener('click', () => {
+            approveBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> 승인 중...';
+            setTimeout(() => {
+                approveBtn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> 승인 완료';
+                approveBtn.classList.replace('bg-[#C2683D]', 'bg-tertiary');
+            }, 1200);
+        });
+    </script>
+</body></html>

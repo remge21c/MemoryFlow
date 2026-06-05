@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #f9f9f7;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .linen-shadow {
+            shadow-color: #1F1D1B;
+            box-shadow: 0 4px 8px -2px rgba(31, 29, 27, 0.04);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e7e2da;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e2e3e1",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#00666e",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#e7e2da",
+                        "on-tertiary-fixed": "#002022",
+                        "surface-container": "#eeeeec",
+                        "tertiary-fixed-dim": "#6dd6e0",
+                        "on-surface-variant": "#55433b",
+                        "primary-fixed": "#ffdbcd",
+                        "primary-container": "#b35d33",
+                        "on-primary-fixed-variant": "#793108",
+                        "on-secondary-container": "#67645e",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#615e58",
+                        "inverse-surface": "#2f3130",
+                        "surface-container-high": "#e8e8e6",
+                        "on-tertiary-fixed-variant": "#004f55",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-container": "#f5feff",
+                        "secondary-fixed-dim": "#cbc6bf",
+                        "tertiary-fixed": "#8bf2fd",
+                        "on-surface": "#1a1c1b",
+                        "background": "#f9f9f7",
+                        "surface": "#f9f9f7",
+                        "on-background": "#1a1c1b",
+                        "on-secondary-fixed-variant": "#494641",
+                        "surface-dim": "#dadad8",
+                        "surface-bright": "#f9f9f7",
+                        "outline-variant": "#dbc1b7",
+                        "outline": "#88736a",
+                        "surface-container-low": "#f4f4f2",
+                        "primary": "#94451d",
+                        "on-primary-fixed": "#360f00",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#ffb595",
+                        "surface-container-highest": "#e2e3e1",
+                        "on-secondary-fixed": "#1d1b17",
+                        "inverse-primary": "#ffb595",
+                        "tertiary-container": "#00818a",
+                        "secondary-fixed": "#e7e2da",
+                        "surface-tint": "#97471f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-mobile": "20px",
+                        "stack-lg": "32px",
+                        "stack-md": "16px",
+                        "gutter-mobile": "16px",
+                        "touch-target-min": "44px",
+                        "stack-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["beVietnamPro"],
+                        "display-lg": ["beVietnamPro"],
+                        "headline-md": ["beVietnamPro"],
+                        "title-sm": ["beVietnamPro"],
+                        "body-lg": ["beVietnamPro"],
+                        "body-md": ["beVietnamPro"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "display-lg": ["30px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["22px", {"lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "title-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "22px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen pb-24">
+<!-- Top AppBar -->
+<header class="sticky top-0 z-50 bg-surface flex justify-between items-center w-full px-margin-mobile h-touch-target-min">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary cursor-pointer">menu</span>
+<h1 class="font-display-lg text-display-lg font-bold text-primary">MemoryFlow</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-secondary-container">
+<img alt="User" data-alt="A professional studio portrait of a friendly young adult with a warm smile, set against a soft, cream-colored linen background. The lighting is ethereal and diffuse, emphasizing a clean and minimalist aesthetic that aligns with a premium digital scrapbooking service. The person wears neutral-toned clothing, reflecting a sophisticated yet approachable personality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBGQuQnsFZPlvMrqeXZIq4jyMIHmSxlunXkd_cn-AVdokjj9LxdSJ_v-J8XTfWgCjPJlG9WD_7voKM4CVkMx7rx4AXC-BE3JootV_ysLasVLXqxQK6DAi1QDifGtRVMPAverZ0v7wdq1x5Br9kkcvReCeLi74CfMJknhmUb1L8LGa6jtkRgaxGvtx8qoQ0Az5cNP6nGPtkpMWytRjDpWo2Sx-Kzw_Qx1MNQS_QVRsLWPdlEjxXLMswkXdgclA672reGwBxGbiy0l5B"/>
+</div>
+</header>
+<main class="px-margin-mobile pt-stack-md flex flex-col gap-stack-lg">
+<!-- Status Banner: Not Approved Yet -->
+<section class="bg-primary-fixed/20 p-4 rounded-xl flex items-center gap-3 animate-pulse">
+<span class="material-symbols-outlined text-primary">info</span>
+<p class="font-title-sm text-title-sm text-primary">스토리북을 먼저 승인하세요</p>
+</section>
+<!-- Page Title & Description -->
+<section>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-1">공유 링크 관리</h2>
+<p class="font-body-md text-body-md text-secondary">가족이나 친구들과 공유할 수 있는 링크를 생성하고 관리하세요.</p>
+</section>
+<!-- Link Creation Panel -->
+<section class="bg-white p-5 rounded-xl border border-outline-variant/20 linen-shadow">
+<h3 class="font-title-sm text-title-sm text-on-surface mb-stack-md flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">add_link</span>
+                새 링크 만들기
+            </h3>
+<div class="space-y-stack-md">
+<div class="flex flex-col gap-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant">유효 기간 설정</label>
+<select class="w-full h-12 px-4 rounded-lg border border-outline-variant/30 bg-surface-container-lowest font-body-md text-on-surface focus:border-primary focus:ring-0 appearance-none">
+<option value="30">30일 동안 유효</option>
+<option value="60">60일 동안 유효</option>
+<option value="120">120일 동안 유효</option>
+<option value="180">180일 동안 유효</option>
+<option value="360">360일 동안 유효</option>
+</select>
+</div>
+<button class="w-full h-12 bg-primary text-on-primary font-title-sm rounded-full transition-all active:scale-95 flex items-center justify-center gap-2">
+                    공유 링크 만들기
+                </button>
+</div>
+</section>
+<!-- Link Result (Mock generated state) -->
+<section class="bg-secondary-container/30 p-5 rounded-xl border border-dashed border-primary/30">
+<label class="font-label-sm text-label-sm text-on-surface-variant block mb-2">생성된 공유 링크</label>
+<div class="flex items-center gap-2">
+<div class="flex-1 h-12 flex items-center px-4 bg-white border border-outline-variant/20 rounded-lg overflow-hidden">
+<span class="font-body-md text-on-surface truncate">/share/memoryflow-2026-mt</span>
+</div>
+<button class="h-12 px-6 bg-secondary text-white font-title-sm rounded-lg transition-colors hover:bg-secondary/90" onclick="this.innerHTML='완료'; setTimeout(()=&gt;this.innerHTML='복사', 2000)">
+                    복사
+                </button>
+</div>
+</section>
+<!-- Existing Links List -->
+<section>
+<h3 class="font-title-sm text-title-sm text-on-surface mb-stack-md px-1">기존 링크 내역</h3>
+<div class="flex flex-col gap-stack-sm">
+<!-- Link Item 1 -->
+<div class="bg-white p-4 rounded-xl border border-outline-variant/10 linen-shadow flex justify-between items-center">
+<div class="flex flex-col">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-title-sm text-title-sm text-on-surface">/share/jeju-trip-2024</span>
+<span class="px-2 py-0.5 bg-tertiary/10 text-tertiary text-[10px] font-bold rounded-full">활성</span>
+</div>
+<div class="flex flex-col text-[12px] text-secondary">
+<span>생성일: 2024.01.15</span>
+<span>만료일: 2024.07.15</span>
+</div>
+</div>
+<button class="text-error font-title-sm border border-error/20 px-3 py-2 rounded-lg hover:bg-error/5 transition-colors">
+                        무효화
+                    </button>
+</div>
+<!-- Link Item 2 -->
+<div class="bg-white p-4 rounded-xl border border-outline-variant/10 linen-shadow flex justify-between items-center opacity-80">
+<div class="flex flex-col">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-title-sm text-title-sm text-on-surface">/share/family-dinner</span>
+<span class="px-2 py-0.5 bg-outline-variant/20 text-on-surface-variant text-[10px] font-bold rounded-full">만료</span>
+</div>
+<div class="flex flex-col text-[12px] text-secondary">
+<span>생성일: 2023.12.01</span>
+<span>만료일: 2023.12.31</span>
+</div>
+</div>
+<button class="text-secondary/40 font-title-sm border border-outline-variant/20 px-3 py-2 rounded-lg cursor-not-allowed" disabled="">
+                        무효화
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface shadow-sm rounded-t-xl border-t border-outline-variant/20">
+<a class="flex flex-col items-center justify-center text-on-secondary-container font-label-sm scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1">list_alt</span>
+<span class="text-label-sm">추억</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-container font-label-sm scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1">dashboard</span>
+<span class="text-label-sm">대시보드</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-bold font-label-sm scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="text-label-sm">프로필</span>
+</a>
+</nav>
+<script>
+        // Simple micro-interactions
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', function() {
+                this.classList.add('opacity-80');
+            });
+            button.addEventListener('mouseup', function() {
+                this.classList.remove('opacity-80');
+            });
+        });
+    </script>
+</body></html>

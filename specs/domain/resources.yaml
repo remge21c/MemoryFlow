@@ -1,0 +1,64 @@
+# MemoryFlow 도메인 리소스
+# 근거: docs/planning/04-database.md (SQLite 스키마)
+# 화면은 여기의 resource/fields를 needs로 참조한다(느슨한 결합).
+version: "2.0"
+
+resources:
+  users:
+    fields: [id, name, phone, is_admin, status, created_at]
+    notes: phone=로그인 식별자(UNIQUE). name=표시용(중복 허용)
+
+  projects:
+    fields: [id, name, org_name, description, cover_image_path,
+             start_date, end_date, status, default_photo_seconds, created_by, created_at]
+    computed: [day_count]   # start~end_date에서 파생
+    status_enum: [active, completed, archived]
+
+  project_members:
+    fields: [id, project_id, user_id, role, status, joined_at]
+    role_enum: [uploader]   # admin은 users.is_admin로 처리
+    status_enum: [active, removed]
+
+  schedules:               # 세부일정 = 장면(scene)
+    fields: [id, project_id, day_index, time, title, place, category,
+             sort_order, photo_seconds]
+    notes: photo_seconds nullable → null이면 projects.default_photo_seconds
+
+  contributions:           # 업로더별 기여 묶음
+    fields: [id, project_id, schedule_id, uploader_id, story_text,
+             sort_order, created_at, updated_at]
+    notes: 소유자=uploader_id. 본인만 수정/삭제(미잠금 시)
+
+  media:                   # 기여에 속한 사진/영상
+    fields: [id, contribution_id, type, file_path, file_hash,
+             duration_seconds, included, sort_order, thumb_path, preview_path]
+    type_enum: [photo, video]
+    notes: file_path=STORAGE_ROOT 상대경로. included=스토리북 선별 토글
+
+  storybooks:              # 프로젝트당 1개
+    fields: [id, project_id, status, is_edit_locked, approved_at, approved_by, created_at]
+    status_enum: [draft, approved]
+
+  scene_narrations:        # 장면별 합쳐진 내레이션
+    fields: [id, storybook_id, schedule_id, narration_text, updated_at]
+    computed: [scene_seconds, target_chars]  # 길이 모델(PRD 8장)
+
+  invites:                 # 프로젝트별 초대 링크
+    fields: [id, project_id, token_hash, is_active, expires_at, created_by, created_at]
+
+  share_links:             # 외부 공유 링크
+    fields: [id, project_id, token_hash, is_active, expires_at, created_at]
+    expires_options_days: [30, 60, 120, 180, 360]   # 기본 30
+
+  project_videos:          # 외부 제작 완성 MP4
+    fields: [id, project_id, file_path, status, created_at]
+    status_enum: [uploaded, published, hidden]
+
+# 가상 리소스(읽기 전용 집계) — 화면 편의용
+views:
+  storybook_scene:         # 편집/열람 화면이 보는 장면 단위 집계
+    composes: [schedules, contributions, media, scene_narrations]
+    fields: [schedule, contributions[uploader,name,story_text,media[]],
+             narration, scene_seconds, target_chars]
+  share_storybook:         # 공유 열람 전용(승인된 공개 데이터만)
+    composes: [projects, schedules, media(included), scene_narrations, project_videos(published)]

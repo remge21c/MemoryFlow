@@ -1,0 +1,33 @@
+# 공통 컴포넌트 (여러 화면 재사용)
+version: "2.0"
+
+components:
+  - id: app_shell
+    type: layout
+    function: 모바일 우선 셸(상단 헤더 + 콘텐츠). 역할별 네비
+  - id: media_thumb
+    type: thumbnail
+    function: media.thumb_path 표시, 영상은 재생 배지. /api/media 경유
+  - id: status_badge
+    type: badge
+    function: 프로젝트/스토리북 상태 표시(편집중·승인됨 등). 내부상태 직접노출 X
+  - id: copy_field
+    type: copy_input
+    function: 토큰 링크 1회 노출 + 복사(/join, /share)
+  - id: ai_action_button
+    type: async_button
+    states: [idle, loading(≤30s), error+retry]
+    function: AI 동기 호출 버튼 공통(대본초안/요약). 결과는 적용 전 초안
+  - id: scene_length_calc
+    type: indicator
+    function: 장면 길이 = Σ(included photo×sec)+Σ(video duration). 클라/서버 공용 규칙
+  - id: empty_state
+    type: empty
+    function: 빈 목록/무효 토큰 안내
+  - id: lock_banner
+    type: banner
+    function: 승인/편집잠금 시 읽기 전용 안내
+
+conventions:
+  media_access: 모든 미디어는 /api/media/:id (세션/공유토큰 검증 후 스트리밍, 직접 노출 금지)
+  mobile_first: 단일 컬럼 기준 설계, 데스크톱은 확장

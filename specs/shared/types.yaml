@@ -1,0 +1,28 @@
+# 공통 타입 (client/server 공유 — shared/ zod 스키마로 구현)
+version: "2.0"
+
+enums:
+  UserStatus: [active, inactive]
+  MemberStatus: [active, removed]
+  ProjectStatus: [active, completed, archived]
+  StorybookStatus: [draft, approved]
+  MediaType: [photo, video]
+  VideoStatus: [uploaded, published, hidden]
+
+types:
+  SceneLength:
+    scene_seconds: number        # 계산값(저장 안 함)
+    target_chars: number         # scene_seconds 기반 적정 글자수(제안값)
+  Session:
+    user_id: number
+    is_admin: boolean
+  TokenValidation:
+    valid: boolean
+    expired: boolean
+    project_name: string
+
+rules:
+  phone_unique: 로그인 식별자, 가입 시 중복 차단
+  ownership: contributions/media 수정·삭제는 uploader_id == session.user_id AND 미잠금
+  lock: storybook.status=approved OR is_edit_locked → 업로더 쓰기 차단
+  share_visibility: 승인 스토리북 + published 영상만 공개

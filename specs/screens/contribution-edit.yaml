@@ -1,0 +1,57 @@
+# S-12 기여 업로드 · 수정 (업로더)
+version: "2.0"
+screen:
+  name: 기여 업로드·수정
+  route: /projects/:id/schedules/:sid/contribute
+  role: uploader
+  layout: single-form        # [확정 T-4] 사진+영상+글 한 폼 동시
+
+data_requirements:
+  - resource: schedules
+    needs: [id, title, day_index, time, place]
+    filters: { id: ":sid" }
+  - resource: contributions
+    needs: [id, story_text, uploader_id]
+    filters: { schedule_id: ":sid", uploader_id: "@me" }   # 내 기여(수정용)
+  - resource: media
+    needs: [id, type, thumb_path, included]
+    filters: { schedule_id: ":sid" }   # 같은 장면 전체(타인 것도 미리보기)
+
+components:
+  - id: scene_header
+    type: header
+    position: top
+    function: 어느 장면인지 표시 (Day/시간/제목)
+  - id: existing_media_preview
+    type: gallery
+    position: main
+    function: 같은 장면에 이미 올라온 사진/영상 미리보기(중복 안내, 차단 안 함)
+    note: 업로더 구분 없이 흐름만 보여줌 (PRD 6장)
+  - id: contribution_form
+    type: form
+    position: main
+    fields:
+      - { name: media, type: file_multi, accept: [image, video], label: 사진·영상 }
+      - { name: story_text, type: textarea, label: 이 순간의 스토리 }
+    submit: { label: 올리기, action: contribution.upsert }
+  - id: my_media_manage
+    type: editable_gallery
+    position: main
+    visible_when: 내 기여 존재
+    function: 내가 올린 미디어 삭제/정렬 (본인 소유만)
+
+events:
+  - on: submit
+    do: [STORAGE_ROOT 저장, media 행 생성, Sharp/ffmpeg 파생 생성(비동기 OK)]
+  - on: locked
+    do: 폼 비활성 + 읽기 전용 안내
+
+rules:
+  - 본인(uploader_id=@me) 기여만 수정/삭제
+  - storybook approved/edit_locked 면 쓰기 차단
+
+tests:
+  - { name: 신규 기여, when: 사진+글 제출, then: [contribution 생성, media 저장, 썸네일 파생] }
+  - { name: 중복 안내, when: 같은 장면 진입, then: [기존 미디어 미리보기 표시, 업로드 차단 안 함] }
+  - { name: 소유 가드, when: 타인 미디어 삭제 시도, then: [거부] }
+  - { name: 잠금, when: 승인 후 진입, then: [읽기 전용] }

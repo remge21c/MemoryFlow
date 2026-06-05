@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+        @font-face {
+            font-family: 'beVietnamPro';
+            src: url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+        }
+        body {
+            font-family: 'beVietnamPro', sans-serif;
+            background-color: #FAFAF8; /* Brand Background */
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .linen-shadow {
+            box-shadow: 0 4px 8px -2px rgba(31, 29, 27, 0.04);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #C2683D;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e2e3e1",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#00666e",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#e7e2da",
+                        "on-tertiary-fixed": "#002022",
+                        "surface-container": "#eeeeec",
+                        "tertiary-fixed-dim": "#6dd6e0",
+                        "on-surface-variant": "#55433b",
+                        "primary-fixed": "#ffdbcd",
+                        "primary-container": "#b35d33",
+                        "on-primary-fixed-variant": "#793108",
+                        "on-secondary-container": "#67645e",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#615e58",
+                        "inverse-surface": "#2f3130",
+                        "surface-container-high": "#e8e8e6",
+                        "on-tertiary-fixed-variant": "#004f55",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-container": "#f5feff",
+                        "secondary-fixed-dim": "#cbc6bf",
+                        "tertiary-fixed": "#8bf2fd",
+                        "on-surface": "#1a1c1b",
+                        "background": "#f9f9f7",
+                        "surface": "#f9f9f7",
+                        "on-background": "#1a1c1b",
+                        "on-secondary-fixed-variant": "#494641",
+                        "surface-dim": "#dadad8",
+                        "surface-bright": "#f9f9f7",
+                        "outline-variant": "#dbc1b7",
+                        "outline": "#88736a",
+                        "surface-container-low": "#f4f4f2",
+                        "primary": "#94451d",
+                        "on-primary-fixed": "#360f00",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#ffb595",
+                        "surface-container-highest": "#e2e3e1",
+                        "on-secondary-fixed": "#1d1b17",
+                        "inverse-primary": "#ffb595",
+                        "tertiary-container": "#00818a",
+                        "secondary-fixed": "#e7e2da",
+                        "surface-tint": "#97471f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-mobile": "20px",
+                        "stack-lg": "32px",
+                        "stack-md": "16px",
+                        "gutter-mobile": "16px",
+                        "touch-target-min": "44px",
+                        "stack-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["beVietnamPro"],
+                        "display-lg": ["beVietnamPro"],
+                        "headline-md": ["beVietnamPro"],
+                        "title-sm": ["beVietnamPro"],
+                        "body-lg": ["beVietnamPro"],
+                        "body-md": ["beVietnamPro"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "display-lg": ["30px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["22px", {"lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "title-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "22px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-50 bg-surface flex justify-between items-center w-full px-margin-mobile h-touch-target-min transition-colors duration-200">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary cursor-pointer">menu</span>
+<h1 class="font-display-lg text-display-lg font-bold text-primary">MemoryFlow</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container">
+<img alt="User Profile" data-alt="A clean, professional headshot of a person with a warm and friendly expression. The lighting is soft and natural, against a minimalist, light gray studio background. The style is modern and high-key, perfectly aligning with the warm minimalism of the app's brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx2dy0YHi8RPYRsQjGKAmB1tNyZOH_3v2vOLde0R_nSj8K8L_R8QiMLHSHmub3o7nHBcWIgNKou9zawWE6R54Mvpi--zsA0uc_FXhQxADVyXWzgnNRGrz5DByh5SiPNWJXBuyqGlnNkjmN5l90D117deMfG4gMsG1HnRV8BbXDMjRWV-Lg4WANMfYfFCBAEtirsAllMbDraivGRghowjpVbvUxIKxZqwjh7nX0f4ffDn_8M8zCeciSX-OO9FKkxmXG7jdryRF8rUAP"/>
+</div>
+</header>
+<main class="max-w-2xl mx-auto px-margin-mobile py-stack-md">
+<!-- 1) Scene Pager Header -->
+<section class="flex justify-between items-center mb-stack-md border-b border-outline-variant/20 pb-4">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-primary transition-colors">
+<span class="material-symbols-outlined align-middle">chevron_left</span>
+</button>
+<span class="font-title-sm text-title-sm">Day 2 · 저녁 집회</span>
+<button class="hover:text-primary transition-colors">
+<span class="material-symbols-outlined align-middle">chevron_right</span>
+</button>
+</div>
+<div class="text-on-secondary-fixed-variant font-label-sm text-label-sm bg-secondary-container px-3 py-1 rounded-full">
+                예상 길이: 23초
+            </div>
+</section>
+<!-- 2) Media Grid -->
+<section class="mb-stack-lg">
+<div class="grid grid-cols-3 gap-2 mb-stack-sm">
+<!-- Media Item 1 -->
+<div class="relative aspect-square rounded-lg overflow-hidden linen-shadow group">
+<img class="w-full h-full object-cover" data-alt="A cinematic close-up of a live concert microphone in a dimly lit, warm environment. Golden stage lights create a soft bokeh effect in the background, suggesting an emotional and spiritual gathering. The colors are rich with deep ambers and soft shadows, maintaining a warm, nostalgic feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3NN39ys7tyfq-Cg4tbkl4tQB4zY6nIFsJKYybFnys2uvyZi_jW_2hGKTh82aVPXF0arRQtVw_pP0b0CXMrzBuIsJ-K1l3rda6GyGtcyCz9cLlVS58bzM3V6043CIxdX1B3kiRxNiCtyHnutiQRTD-IGV4fm_NHlY_3bot35jcqAKKcp8gpWybWRSkBrkOMW9nbkA_7SOyJUPVR63EOQ8uE0qUHISmhBkB2B4IumN9-Y6gSBjYqzBccPLBpDWorarzYYGw_XutG3H7"/>
+<div class="absolute top-1 left-1 bg-primary text-white rounded-sm">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_box</span>
+</div>
+</div>
+<!-- Media Item 2 (Video) -->
+<div class="relative aspect-square rounded-lg overflow-hidden linen-shadow group">
+<img class="w-full h-full object-cover" data-alt="A vibrant shot of stage lighting hitting a crowd of people in a concert or church setting. Silhouettes of hands are raised in the air, creating a sense of community and shared experience. The lighting is dominated by warm orange and terracotta hues, evoke a feeling of nostalgia and emotional depth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCy1VewbWD2m5pUYanh5erFRCH9ddzW8ZyZV3cUOdxyAqwNz0coqCLLqttP7357oF8y99fhST3zktjU0ftkB74v2D2jmxBYeXOyvTU4i9J_x6Dl8N-zjPlW9dk55SrMlpInnm-3Vr2q3GvyDB3ie1NBVSUnLGBcFfxDrG0SBRldolFnPq9uPYHfTFZsLbqwB5JBcfKnzjeFuMc7DmvLLB3x5hDTxN6JvoTaiXscxn-5AbTS0OXuVpm83UOR6a2OS2fCaBaIXIy_qzAW"/>
+<div class="absolute top-1 left-1 bg-primary text-white rounded-sm">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_box</span>
+</div>
+<div class="absolute bottom-1 right-1 bg-black/50 text-white font-label-sm text-[10px] px-1 rounded">
+                        🎬 8초
+                    </div>
+</div>
+<!-- Media Item 3 -->
+<div class="relative aspect-square rounded-lg overflow-hidden linen-shadow">
+<img class="w-full h-full object-cover" data-alt="Soft, atmospheric photography of a guitarist on stage during a low-key performance. The focus is on the hands on the fretboard, with warm light flooding the scene from the side. The image has a subtle grainy texture, resembling a physical linen photo album and adding a tactile, nostalgic quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAo7WXTPUF-vstHxGsI4JGbmWSMK8duCCewoivQhGknvLUWgMAjAcEo6C4E7R9Q4SWbXrX2mYXhuxyheIzahdMy5kZadSBJUWnMk2DAagI1WvYBRU5zZEvdr816SQQF9gzLdqEEwzzRRhgRQjaGkyVCwkS4lNPBkqHqvlD908LXVHA0JWVpdaykWcIpCqL88zYSJQUU0OHpV-w4uZh7aXK0YKAJMD0vM_3h575EZBd3n8XBQ-I2hohYzzgoeYp44FQ0coEMotGHsOr0"/>
+<div class="absolute top-1 left-1 bg-primary text-white rounded-sm">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_box</span>
+</div>
+</div>
+<!-- Media Item 4 (Dimmed/Excluded) -->
+<div class="relative aspect-square rounded-lg overflow-hidden opacity-40">
+<img class="w-full h-full object-cover" data-alt="An abstract shot of blurred lights at night, creating a dreamlike and hazy atmosphere. The color palette consists of muted greys and soft glows, providing a quiet, contemplative mood. The composition is minimal and artistic, focusing on the sentiment rather than the detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnF-Ywh62fbBYYmNFxVpj1ZGV2qjO2aPHxaGLZ1eCLkKEiy4f-5SSRqJnCrONoDhWJZGtyFHPF_axqV3dVXmUvQ047zyVYLURrk3x1hw0caWCnz2KuRpZy4FbKQx6GmKFYm1EBLaNZ73bgdQaz6mUfJGYlW-1qXVedOpgxhPuLAmtXgGABeeLZKnL--wLgZieEOweMz5gXHK56oQSdbTWl2-Xh-sdvXP5bRFNYm24Md8WYSHm_9u1OGXGjJep5gKArbo3O4EbIFpIw"/>
+<div class="absolute top-1 left-1 bg-outline-variant text-white rounded-sm">
+<span class="material-symbols-outlined text-[16px]">check_box_outline_blank</span>
+</div>
+</div>
+<!-- Media Item 5 -->
+<div class="relative aspect-square rounded-lg overflow-hidden linen-shadow">
+<img class="w-full h-full object-cover" data-alt="A focused image of a soundboard in a professional audio setup, with glowing faders and knobs. The scene is illuminated by soft, warm ambient light, suggesting the preparation behind a musical event. The aesthetic is clean and organized, aligning with the brand's 'quiet curator' personality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAaUVqVc2JZX0RRGI9qh7eRSRyFpD3sF8996NiC6lmIHOQtegStUASKONYZ64KQbh3CDUdj6bpY6xpjV6zZZXqwo1Adje-1U6XvqnpiWNMHrqH1_xxVOHwBFVx-T2YmAoscPJjBwtzWUX-YRmcER9s0gY7ExPOPr4cXeQAb0yYtbKJX7FTtFoECeP5Tl44BfDAD0uyaYRRVuVpzIwIZCq649phbGbTMuPH23jG6iniAgTsfrVeAAQ1n90gYCoC-2zKWkLmcAOKS-e2"/>
+<div class="absolute top-1 left-1 bg-primary text-white rounded-sm">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_box</span>
+</div>
+</div>
+<!-- Media Item 6 -->
+<div class="relative aspect-square rounded-lg overflow-hidden linen-shadow">
+<img class="w-full h-full object-cover" data-alt="A wide perspective of a hall filled with people, viewed from the back. Warm overhead lighting creates an inviting and communal atmosphere. The color palette is organic and limited, using shades of beige, cream, and terracotta to emphasize the human connection in the space." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6Oi550wSCDgRUTJ9IAn9Ua1bQ76exsZxyBZ-y3RdK-h3N7TWXLNObew6YL8Qpd_Ocxb7-5A8OFKdwzn0h6LjMbSoQhzV8-CuO9bFZTV0lc7Jw5xuewnjh568hBGTincblqjGn5Vpivf7-U2mERi3g9W3Nqk__sjF5xa-55qLvRfpJK7fKyyLVrAMZTVdpLc_-lxpbWmYdxmYY-DBqUbaRxzTgzkvlKwazzyMtL0vNUx6q0kJdI9RaYoT7CZiE9G849ky3jSlGKPJX"/>
+<div class="absolute top-1 left-1 bg-primary text-white rounded-sm">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_box</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-end gap-2 text-on-surface-variant">
+<span class="font-label-sm text-label-sm">사진 노출:</span>
+<div class="flex items-center border border-outline/20 rounded px-2 py-1 bg-white">
+<span class="font-label-sm text-label-sm">3초</span>
+<span class="material-symbols-outlined text-[14px] ml-1">expand_more</span>
+</div>
+</div>
+</section>
+<!-- 3) Perspectives List -->
+<section class="mb-stack-lg">
+<h3 class="font-title-sm text-title-sm mb-stack-sm text-on-surface">기록된 생각들</h3>
+<div class="space-y-3">
+<div class="flex gap-4 p-4 bg-white rounded-xl border border-outline/10 linen-shadow">
+<span class="font-bold text-primary shrink-0">[A]</span>
+<p class="text-body-md text-on-surface-variant font-body-md">은혜로운 찬양 시간이었다. 모두가 한마음으로 노래하는 순간이 너무 감동적이었음.</p>
+</div>
+<div class="flex gap-4 p-4 bg-white rounded-xl border border-outline/10 linen-shadow">
+<span class="font-bold text-primary shrink-0">[B]</span>
+<p class="text-body-md text-on-surface-variant font-body-md">무대 조명이 너무 예뻤어요. 사진으로 다 담기지 않는 그 오묘한 색감들이 기억에 남네요.</p>
+</div>
+<div class="flex gap-4 p-4 bg-white rounded-xl border border-outline/10 linen-shadow opacity-60">
+<span class="font-bold text-secondary shrink-0">[C]</span>
+<p class="text-body-md text-on-surface-variant font-body-md italic">작성된 내용이 없습니다. 사진을 보며 영감을 얻어보세요.</p>
+</div>
+</div>
+</section>
+<!-- 4) Draft Button -->
+<div class="flex justify-center mb-stack-lg">
+<button class="bg-[#C2683D] text-white px-8 h-12 rounded-full font-bold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md">
+<span class="material-symbols-outlined">auto_awesome</span>
+                대본 초안 생성
+            </button>
+</div>
+<!-- 5) Narration Editor -->
+<section class="mb-stack-sm">
+<div class="flex justify-between items-end mb-2">
+<label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">나레이션</label>
+<span class="text-primary font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+                    편집 중
+                </span>
+</div>
+<div class="bg-white rounded-xl border border-outline/20 p-4 linen-shadow">
+<textarea class="w-full h-40 font-body-lg text-body-lg text-on-surface leading-relaxed resize-none border-none p-0 focus:ring-0" placeholder="나레이션을 입력하세요...">우리는 뜨거운 찬양과 함께 두 번째 밤을 맞이했습니다. 모두가 한마음으로 노래하는 순간, 무대의 오묘한 조명 아래서 우리만의 특별한 기억이 쌓여갔습니다. 그 순간의 공기는 따뜻했고, 우리 가슴속에는 잊지 못할 평안함이 자리 잡았습니다.</textarea>
+</div>
+</section>
+<!-- 6) Helper Text -->
+<div class="mb-stack-lg">
+<p class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">info</span>
+                23초 분량 ≈ 약 120자 (현재 <span class="font-bold">145자</span> — <span class="text-error font-bold">조금 길어요</span>)
+            </p>
+</div>
+<!-- 7) Summarize Button -->
+<div class="flex justify-center">
+<button class="bg-[#C2683D] text-white px-8 h-12 rounded-full font-bold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md">
+<span class="material-symbols-outlined">shutter_speed</span>
+                길이에 맞게 요약
+            </button>
+</div>
+</main>
+<!-- Bottom Nav Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface border-t border-outline-variant/20 shadow-sm rounded-t-xl">
+<div class="flex flex-col items-center justify-center text-primary font-bold transition-transform duration-150 scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">list_alt</span>
+<span class="font-label-sm text-label-sm">추억</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-secondary-container hover:bg-secondary-container/50 p-2 rounded-lg transition-all">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-sm text-label-sm">대시보드</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-secondary-container hover:bg-secondary-container/50 p-2 rounded-lg transition-all">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">프로필</span>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,39 @@
+# S-21 프로젝트 생성 (관리자)
+version: "2.0"
+screen:
+  name: 프로젝트 생성
+  route: /admin/projects/new
+  role: admin
+  layout: single-form
+
+data_requirements:
+  - resource: projects
+    action: create
+    inputs: [name, org_name, description, cover_image, start_date, end_date, default_photo_seconds]
+
+components:
+  - id: project_form
+    type: form
+    position: main
+    fields:
+      - { name: name, type: text, required: true, label: 프로젝트명 }
+      - { name: org_name, type: text, label: 소속/단체명 }
+      - { name: description, type: textarea, label: 설명 }
+      - { name: cover_image, type: file_single, accept: image, label: 대표 이미지 }
+      - { name: start_date, type: date, required: true, label: 시작일 }
+      - { name: end_date, type: date, required: true, label: 종료일 }
+      - { name: default_photo_seconds, type: number, default: 3, label: 기본 사진 노출(초) }
+    submit: { label: 만들기, action: project.create }
+
+rules:
+  - end_date >= start_date
+  - 저장 시 start~end_date로 Day 자동 생성(day_index)
+
+events:
+  - on: create_success
+    do: /admin/projects/:id 이동 (S-22), Day 자동 생성됨
+
+tests:
+  - { name: 생성+Day자동, when: 3일치 기간 제출, then: [프로젝트 생성, day_count=3] }
+  - { name: 날짜검증, when: 종료<시작, then: [거부] }
+  - { name: 대표이미지 선택, when: 이미지 업로드, then: [cover_image_path 저장] }

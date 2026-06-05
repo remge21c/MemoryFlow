@@ -1,0 +1,43 @@
+# S-22 프로젝트 상세 (관리자 운영 허브)
+version: "2.0"
+screen:
+  name: 프로젝트 상세(허브)
+  route: /admin/projects/:id
+  role: admin
+  layout: tabs-mobile        # [확정 T-3] 탭, 모바일 우선(좁으면 가로스크롤/더보기)
+
+data_requirements:
+  - resource: projects
+    needs: [id, name, org_name, status, start_date, end_date, day_count]
+    filters: { id: ":id" }
+  - resource: storybooks
+    needs: [status, is_edit_locked]
+    filters: { project_id: ":id" }
+
+components:
+  - id: project_header
+    type: header
+    position: top
+    function: 프로젝트명·기간·상태, 스토리북 상태(편집중/승인됨)
+  - id: nav_tabs
+    type: tabs
+    position: top
+    note: 모바일에서 6개 초과 시 가로 스크롤 또는 더보기 시트(디자인 시스템 확정)
+    items:
+      - { label: 일정, target: S-23 schedule-design }
+      - { label: 초대, target: S-24 invite-manage }
+      - { label: 멤버, target: S-25 member-manage }
+      - { label: 편집, target: S-26 storybook-edit }
+      - { label: 공유, target: S-28 share-manage }
+      - { label: 영상, target: S-29 export-video }
+  - id: tab_content
+    type: outlet
+    position: main
+
+events:
+  - on: tab_select
+    do: 해당 서브 화면 라우트로 전환
+
+tests:
+  - { name: 허브 진입, when: 프로젝트 클릭, then: [기본 탭(일정) 표시, 스토리북 상태 표시] }
+  - { name: 탭 이동, when: 편집 탭, then: [S-26 표시] }
