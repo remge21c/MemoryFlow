@@ -1,0 +1,88 @@
+name: Deploy MemoryFlow
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            
+            echo "=== 1. 디렉터리 준비 ==="
+            sudo mkdir -p /var/www/memoryflow
+            sudo chown -R ubuntu:ubuntu /var/www/memoryflow
+            sudo mkdir -p /storage/memoryflow/db /storage/memoryflow/media
+            sudo chown -R ubuntu:ubuntu /storage/memoryflow
+            
+            echo "=== 2. 소스 코드 가져오기 ==="
+            if [ ! -d "/var/www/memoryflow/.git" ]; then
+              echo "저장소 클론 중..."
+              git clone https://github.com/remge21c/MemoryFlow.git /var/www/memoryflow
+            fi
+            
+            cd /var/www/memoryflow
+            git fetch origin main
+            git reset --hard origin/main
+            
+            echo "=== 3. Node.js 환경 로드 ==="
+            # NVM 로드 시도
+            export NVM_DIR="$HOME/.nvm"
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+              \. "$NVM_DIR/nvm.sh"
+              nvm use 22 || nvm use default || true
+            fi
+            
+            # Node 및 pnpm 실행 경로 및 설치 확인
+            echo "Node 버전: $(node -v)"
+            if ! command -v pnpm &> /dev/null; then
+              echo "pnpm 설치 중..."
+              npm install -g pnpm
+            fi
+            echo "pnpm 버전: $(pnpm -v)"
+            
+            echo "=== 4. 종속성 설치 및 빌드 ==="
+            pnpm install --frozen-lockfile
+            pnpm build
+            
+            echo "=== 5. 데이터베이스 마이그레이션 ==="
+            pnpm migrate
+            
+            echo "=== 6. 백엔드 서비스 재시작 ==="
+            # 서비스 파일이 등록되어 있는 경우에만 실행
+            if systemctl is-active --quiet memoryflow || systemctl is-failed --quiet memoryflow; then
+              sudo systemctl restart memoryflow
+              echo "서비스 재시작 완료"
+            else
+              echo "경고: memoryflow systemd 서비스가 아직 활성화되지 않았습니다. 수동 등록이 필요합니다."
+            fi
+            
+            echo "=== 7. 로컬 헬스 체크 ==="
+            sleep 3
+            if systemctl is-active --quiet memoryflow; then
+              curl -f http://localhost:5000/api/health || echo "경고: 헬스체크 응답 없음 (하지만 서비스는 구동 중)"
+            else
+              echo "경고: 서비스가 활성화되지 않았습니다."
+            fi
+
+      - name: Send Telegram Success Notification
+        if: success()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "text=✅ [MemoryFlow] 배포 성공!%0ACommit: ${{ github.sha }}%0AURL: https://memoryflow.vibeflow.kr"
+
+      - name: Send Telegram Failure Notification
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "text=❌ [MemoryFlow] 배포 실패!%0ACommit: ${{ github.sha }}%0AGitHub Actions 로그를 확인하세요."
