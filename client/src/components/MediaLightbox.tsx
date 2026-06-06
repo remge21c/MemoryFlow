@@ -10,6 +10,7 @@ export function MediaLightbox({
   onSaveStory,
   onDeleteMedia,
   onAddMedia,
+  onToggleInclude, // 추가
   onClose,
 }: {
   items: MediaDTO[];
@@ -19,6 +20,7 @@ export function MediaLightbox({
   onSaveStory?: (text: string) => Promise<void>;
   onDeleteMedia?: (mediaId: number) => Promise<void>;
   onAddMedia?: (files: FileList) => Promise<void>;
+  onToggleInclude?: (mediaId: number) => void; // 추가
   onClose: () => void;
 }) {
   const [items, setItems] = useState(initialItems);
@@ -33,6 +35,22 @@ export function MediaLightbox({
 
   const prev = useCallback(() => setI((v) => (v > 0 ? v - 1 : v)), []);
   const next = useCallback(() => setI((v) => (v < items.length - 1 ? v + 1 : v)), [items.length]);
+
+  // 부모 컴포넌트의 데이터 변경 시 items 동기화
+  useEffect(() => {
+    setItems(initialItems);
+  }, [initialItems]);
+
+  // 사진 선별 토글 처리
+  function handleToggleInclude() {
+    if (!onToggleInclude) return;
+    const mediaId = cur.id;
+    // 로컬 상태를 먼저 토글하여 즉각 피드백 제공
+    setItems((prevItems) =>
+      prevItems.map((m) => (m.id === mediaId ? { ...m, included: !m.included } : m))
+    );
+    onToggleInclude(mediaId);
+  }
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -95,6 +113,19 @@ export function MediaLightbox({
       >
         <span className="text-body-md">{i + 1} / {items.length}</span>
         <div className="flex items-center gap-2">
+          {onToggleInclude ? (
+            <button
+              onClick={handleToggleInclude}
+              className={`flex items-center gap-1.5 px-4 h-9 rounded-full font-semibold text-label-md transition-colors ${
+                cur.included
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+            >
+              <Icon name={cur.included ? 'check_box' : 'check_box_outline_blank'} className="text-[18px]" />
+              {cur.included ? '선택됨' : '선택하기'}
+            </button>
+          ) : null}
           {canEdit && !editMode ? (
             <button
               onClick={() => setEditMode(true)}
@@ -182,7 +213,13 @@ export function MediaLightbox({
           <div key={m.id} className="relative shrink-0">
             <button
               onClick={() => setI(idx)}
-              className={`relative w-14 h-14 rounded-md overflow-hidden block ${idx === i ? 'ring-2 ring-white' : 'opacity-60'}`}
+              className={`relative w-14 h-14 rounded-md overflow-hidden block ${
+                idx === i ? 'ring-2 ring-white' : ''
+              } ${
+                onToggleInclude
+                  ? (m.included ? (idx === i ? 'opacity-100' : 'opacity-70') : 'opacity-25')
+                  : (idx === i ? 'opacity-100' : 'opacity-60')
+              }`}
             >
               <img src={m.thumb_url ?? m.url} className="w-full h-full object-cover" alt="" />
               {m.type === 'video' ? (

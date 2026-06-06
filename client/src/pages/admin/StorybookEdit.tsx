@@ -233,6 +233,10 @@ export default function StorybookEdit() {
         <MediaLightbox
           items={lb.items}
           start={lb.start}
+          onToggleInclude={(mediaId) => {
+            const m = scene.media.find((x) => x.id === mediaId);
+            if (m) toggleMut.mutate({ id: mediaId, included: !m.included });
+          }}
           onClose={() => setLb(null)}
         />
       ) : null}
