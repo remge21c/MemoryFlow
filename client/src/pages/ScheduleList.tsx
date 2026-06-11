@@ -7,6 +7,7 @@ import { AppShell } from '../components/AppShell';
 import { Card, EmptyState, Icon, Spinner } from '../components/ui';
 import { MediaLightbox } from '../components/MediaLightbox';
 import { useActiveProject } from '../stores/activeProject';
+import { useMe } from '../lib/auth';
 
 interface FeedContribution {
   id: number;
@@ -27,6 +28,8 @@ export default function ScheduleList() {
   const { pid } = useParams();
   const setActive = useActiveProject((s) => s.setActive);
   const qc = useQueryClient();
+  const { data: meData } = useMe();
+  const isAdmin = meData?.user?.is_admin ?? false;
   const [lb, setLb] = useState<{ items: MediaDTO[]; start: number; story?: string; isMine?: boolean; contributionId?: number } | null>(null);
 
   const saveStory = useCallback(async (contributionId: number, text: string) => {
@@ -82,7 +85,7 @@ export default function ScheduleList() {
               </div>
 
               {day.schedules.map((s) => (
-                <SceneBlock key={s.id} pid={pid!} schedule={s} onOpen={(items, start, story, isMine, contributionId) => setLb({ items, start, story, isMine, contributionId })} />
+                <SceneBlock key={s.id} pid={pid!} schedule={s} onOpen={(items, start, story, isMine, contributionId) => setLb({ items, start, story, isMine, contributionId })} isAdmin={isAdmin} />
               ))}
             </section>
           ),
@@ -109,10 +112,12 @@ function SceneBlock({
   pid,
   schedule,
   onOpen,
+  isAdmin,
 }: {
   pid: string;
   schedule: FeedSchedule;
   onOpen: (items: MediaDTO[], start: number, story?: string, isMine?: boolean, contributionId?: number) => void;
+  isAdmin: boolean;
 }) {
   return (
     <div className="mb-6">
@@ -139,7 +144,7 @@ function SceneBlock({
       ) : (
         <div className="space-y-3">
           {schedule.contributions.map((c) => (
-            <Bubble key={c.id} c={c} pid={pid} scheduleId={schedule.id} onOpen={onOpen} />
+            <Bubble key={c.id} c={c} pid={pid} scheduleId={schedule.id} onOpen={onOpen} isAdmin={isAdmin} />
           ))}
         </div>
       )}
@@ -149,22 +154,27 @@ function SceneBlock({
 
 function Bubble({
   c,
+  pid,
+  scheduleId,
   onOpen,
+  isAdmin,
 }: {
   c: FeedContribution;
   pid: string;
   scheduleId: number;
   onOpen: (items: MediaDTO[], start: number, story?: string, isMine?: boolean, contributionId?: number) => void;
+  isAdmin: boolean;
 }) {
   const mine = c.is_mine;
+  const canEdit = mine || isAdmin;
 
   return (
-    <div>
+    <div className="relative group">
       {/* 사진/영상: 전체 폭 */}
       {c.media.length > 0 ? (
         <>
           {!mine ? <p className="text-label-sm text-on-surface-variant mb-1">{c.uploader_name}</p> : null}
-          <MediaBundle media={c.media} story={c.story_text} isMine={mine} contributionId={c.id} onOpen={onOpen} />
+          <MediaBundle media={c.media} story={c.story_text} isMine={mine || isAdmin} contributionId={c.id} onOpen={onOpen} />
         </>
       ) : null}
 
@@ -175,6 +185,17 @@ function Bubble({
           <p className="text-body-md text-on-surface leading-relaxed whitespace-pre-line">{c.story_text}</p>
         </div>
       ) : null}
+
+      {/* 우측 상단 수정/삭제 바로가기 버튼 (모바일 85% 투명도 항상 표시, 데스크톱 hover 시 표시) */}
+      {canEdit && (
+        <Link
+          to={`/projects/${pid}/schedules/${scheduleId}`}
+          className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-black/60 hover:bg-primary text-white flex items-center justify-center border border-white/20 opacity-85 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 transition-all shadow-md"
+          title="기록 수정/삭제"
+        >
+          <Icon name="edit" className="text-[16px]" />
+        </Link>
+      )}
     </div>
   );
 }

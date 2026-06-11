@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { MediaDTO, SceneDTO, StorybookDTO } from '@memoryflow/shared';
 import { formatSeconds } from '@memoryflow/shared';
@@ -162,11 +162,23 @@ export default function StorybookEdit() {
             <p className="text-body-md text-outline">업로더의 스토리가 아직 없습니다.</p>
           ) : (
             scene.contributions.map((c) => (
-              <div key={c.id} className="flex gap-3 p-3.5 bg-surface-lowest rounded-md border border-outline/10">
-                <span className="font-bold text-primary shrink-0">{c.uploader_name}</span>
-                <p className="text-body-md text-on-surface-variant">
-                  {c.story_text || <span className="italic text-outline">작성된 내용 없음</span>}
-                </p>
+              <div key={c.id} className="flex items-start justify-between p-3.5 bg-surface-lowest rounded-md border border-outline/10">
+                <div className="flex gap-3 min-w-0">
+                  <span className="font-bold text-primary shrink-0">{c.uploader_name}</span>
+                  <p className="text-body-md text-on-surface-variant break-words">
+                    {c.story_text || <span className="italic text-outline">작성된 내용 없음</span>}
+                  </p>
+                </div>
+                {!locked && (
+                  <Link
+                    to={`/projects/${pid}/schedules/${sid}`}
+                    className="text-label-sm text-primary hover:underline font-semibold shrink-0 ml-4 flex items-center gap-0.5"
+                    title="기록 수정/삭제"
+                  >
+                    <Icon name="edit" className="text-[14px]" />
+                    수정/삭제
+                  </Link>
+                )}
               </div>
             ))
           )}
