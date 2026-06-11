@@ -54,6 +54,11 @@ export default function ScheduleList() {
     qc.invalidateQueries({ queryKey: ['feed', pid] });
   }, [pid, qc]);
 
+  const { data, isLoading } = useQuery({
+    queryKey: ['feed', pid],
+    queryFn: () => apiGet<FeedData>(`/projects/${pid}/feed`),
+  });
+
   const allSchedules = data?.days.flatMap((d) =>
     d.schedules.map((s) => ({
       id: s.id,
@@ -63,11 +68,6 @@ export default function ScheduleList() {
       place: s.place,
     }))
   ) ?? [];
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['feed', pid],
-    queryFn: () => apiGet<FeedData>(`/projects/${pid}/feed`),
-  });
 
   useEffect(() => {
     if (data) setActive({ id: data.project.id, name: data.project.name, org_name: data.project.org_name ?? undefined });
