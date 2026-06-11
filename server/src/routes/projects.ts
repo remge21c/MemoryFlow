@@ -7,9 +7,12 @@ import { requireAdmin, requireAuth, requireMember, requireProjectAdmin } from '.
 import { HttpError } from '../lib/errors.js';
 import { ensureStorybook, mediaToDTO, scheduleToDTO } from '../services/scene.js';
 import { dayCount, dateForDay } from '../lib/date.js';
-import { projectDir } from '../lib/storage.js';
+import { projectDir, removeFile, saveBuffer, absPath } from '../lib/storage.js';
 import fs from 'node:fs';
-import { absPath } from '../lib/storage.js';
+import { verifyPassword } from '../lib/password.js';
+import { nanoid } from 'nanoid';
+import { streamFile } from '../lib/stream.js';
+import path from 'node:path';
 
 function toDTO(p: typeof schema.projects.$inferSelect): ProjectDTO {
   return {
@@ -18,6 +21,8 @@ function toDTO(p: typeof schema.projects.$inferSelect): ProjectDTO {
     org_name: p.orgName,
     description: p.description,
     cover_image_path: p.coverImagePath,
+    bgm_path: p.bgmPath,
+    bgm_url: p.bgmPath ? `/api/projects/${p.id}/bgm` : null,
     start_date: p.startDate,
     end_date: p.endDate,
     status: p.status as ProjectDTO['status'],
@@ -183,10 +188,28 @@ export async function projectRoutes(app: FastifyInstance) {
     return { project: toDTO(rows[0]!) };
   });
 
-  // 삭제 (관리자) — CASCADE + 파일 디렉터리 정리
+  // 삭제 (관리자) — CASCADE + 파일 디렉터리 정리 + 비밀번호 검증
   app.delete('/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
-    await requireProjectAdmin(req, id);
+    const u = await requireProjectAdmin(req, id);
+
+    const { password } = req.body as { password?: string };
+    if (!password) {
+      throw new HttpError(400, '비밀번호를 입력해야 합니다');
+    }
+
+    const userRow = (
+      await db.select().from(schema.users).where(eq(schema.users.id, u.id)).limit(1)
+    )[0];
+    if (!userRow) {
+      throw new HttpError(404, '사용자를 찾을 수 없습니다');
+    }
+
+    const matched = await verifyPassword(password, userRow.passwordHash);
+    if (!matched) {
+      throw new HttpError(403, '비밀번호가 올바르지 않습니다');
+    }
+
     await db.delete(schema.projects).where(eq(schema.projects.id, id));
     try {
       fs.rmSync(absPath(projectDir(id).images.split('/uploads')[0]!), {
@@ -197,5 +220,50 @@ export async function projectRoutes(app: FastifyInstance) {
       /* ignore */
     }
     return { ok: true };
+  });
+
+  // BGM 스트리밍 (로그인 멤버)
+  app.get('/:id/bgm', async (req, reply) => {
+    const id = Number((req.params as { id: string }).id);
+    await requireMember(req, id);
+    const proj = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
+    if (!proj || !proj.bgmPath) throw new HttpError(404, '배경 음악을 찾을 수 없습니다');
+    return streamFile(req, reply, proj.bgmPath);
+  });
+
+  // BGM 업로드 (관리자)
+  app.post('/:id/bgm', async (req) => {
+    const id = Number((req.params as { id: string }).id);
+    await requireProjectAdmin(req, id);
+    const file = await req.file();
+    if (!file) throw new HttpError(400, '오디오 파일이 필요합니다');
+    const buffer = await file.toBuffer();
+    const ext = path.extname(file.filename) || '.mp3';
+    const rel = path.posix.join(projectDir(id).bgm, `${nanoid(16)}${ext}`);
+    
+    // 기존 BGM 있으면 로컬 파일 삭제
+    const proj = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
+    if (proj?.bgmPath) {
+      removeFile(proj.bgmPath);
+    }
+    
+    saveBuffer(rel, buffer);
+    await db.update(schema.projects).set({ bgmPath: rel }).where(eq(schema.projects.id, id));
+    
+    const updated = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
+    return { project: toDTO(updated!) };
+  });
+
+  // BGM 삭제 (관리자)
+  app.delete('/:id/bgm', async (req) => {
+    const id = Number((req.params as { id: string }).id);
+    await requireProjectAdmin(req, id);
+    const proj = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
+    if (proj?.bgmPath) {
+      removeFile(proj.bgmPath);
+      await db.update(schema.projects).set({ bgmPath: null }).where(eq(schema.projects.id, id));
+    }
+    const updated = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
+    return { project: toDTO(updated!) };
   });
 }

@@ -20,6 +20,7 @@ export const projects = sqliteTable('projects', {
   orgName: text('org_name'),
   description: text('description'),
   coverImagePath: text('cover_image_path'),
+  bgmPath: text('bgm_path'),
   startDate: text('start_date').notNull(),
   endDate: text('end_date').notNull(),
   status: text('status').notNull().default('active'),

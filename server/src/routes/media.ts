@@ -39,7 +39,7 @@ export async function mediaRoutes(app: FastifyInstance) {
     const u = requireAuth(req);
     const ctx = await mediaContext(id);
     if (ctx.uploaderId !== u.id && !u.is_admin) throw new HttpError(403, '본인 미디어만 삭제할 수 있습니다');
-    assertNotLocked(await isProjectLocked(ctx.projectId));
+    if (!u.is_admin) assertNotLocked(await isProjectLocked(ctx.projectId));
     await db.delete(schema.media).where(eq(schema.media.id, id));
     removeFile(ctx.media.filePath);
     removeFile(ctx.media.thumbPath);

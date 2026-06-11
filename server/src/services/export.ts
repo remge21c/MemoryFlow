@@ -22,6 +22,19 @@ export async function exportPackage(projectId: number): Promise<ExportResult> {
   const outRel = path.posix.join(projectDir(projectId).outputs, `export-${stamp}`);
   ensureDir(outRel);
 
+  // BGM 파일 복사 처리
+  let bgmFile: string | null = null;
+  if (proj.bgmPath) {
+    const bgmBaseName = path.posix.basename(proj.bgmPath);
+    const bgmDestRel = path.posix.join(outRel, `bgm_${bgmBaseName}`);
+    try {
+      fs.copyFileSync(absPath(proj.bgmPath), absPath(bgmDestRel));
+      bgmFile = path.posix.relative(outRel, bgmDestRel);
+    } catch {
+      /* BGM 파일 누락 대응 */
+    }
+  }
+
   // project.json
   writeJson(path.posix.join(outRel, 'project.json'), {
     id: proj.id,
@@ -32,6 +45,7 @@ export async function exportPackage(projectId: number): Promise<ExportResult> {
     end_date: proj.endDate,
     default_photo_seconds: proj.defaultPhotoSeconds,
     cover_image_path: proj.coverImagePath,
+    bgm_path: bgmFile,
     exported_at: new Date().toISOString(),
   });
 
@@ -86,8 +100,13 @@ export async function exportPackage(projectId: number): Promise<ExportResult> {
     scenes,
   });
 
+  const exportedFiles = ['project.json', 'scene-timeline.json', 'media/'];
+  if (bgmFile) {
+    exportedFiles.push(bgmFile);
+  }
+
   return {
     dir: outRel,
-    files: ['project.json', 'scene-timeline.json', 'media/'],
+    files: exportedFiles,
   };
 }

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { ProjectDTO } from '@memoryflow/shared';
@@ -5,13 +6,25 @@ import { apiGet } from '../lib/api';
 import { AppShell } from '../components/AppShell';
 import { Button, Card, EmptyState, Icon, Pill, ProjectCardSkeleton } from '../components/ui';
 import { dateRange, PROJECT_STATUS_LABEL } from '../lib/format';
+import { useActiveProject } from '../stores/activeProject';
 
 export default function AdminProjects() {
   const nav = useNavigate();
+  const active = useActiveProject((s) => s.active);
+
+  useEffect(() => {
+    if (active) {
+      nav(`/admin/projects/${active.id}`, { replace: true });
+    }
+  }, [active, nav]);
+
   const { data, isLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: () => apiGet<{ projects: ProjectDTO[] }>('/projects'),
+    enabled: !active,
   });
+
+  if (active) return null;
 
   return (
     <AppShell>

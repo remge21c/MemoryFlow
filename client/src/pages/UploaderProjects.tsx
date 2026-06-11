@@ -1,10 +1,12 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { ProjectDTO } from '@memoryflow/shared';
 import { apiGet } from '../lib/api';
 import { AppShell } from '../components/AppShell';
 import { Card, EmptyState, Icon, Pill, ProjectCardSkeleton } from '../components/ui';
 import { dateRange, PROJECT_STATUS_LABEL } from '../lib/format';
+import { useActiveProject } from '../stores/activeProject';
 
 const STATUS_TONE: Record<string, 'primary' | 'success' | 'muted'> = {
   active: 'primary',
@@ -13,10 +15,22 @@ const STATUS_TONE: Record<string, 'primary' | 'success' | 'muted'> = {
 };
 
 export default function UploaderProjects() {
+  const navigate = useNavigate();
+  const active = useActiveProject((s) => s.active);
+
+  useEffect(() => {
+    if (active) {
+      navigate(`/projects/${active.id}`, { replace: true });
+    }
+  }, [active, navigate]);
+
   const { data, isLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: () => apiGet<{ projects: ProjectDTO[] }>('/projects'),
+    enabled: !active,
   });
+
+  if (active) return null;
 
   return (
     <AppShell>

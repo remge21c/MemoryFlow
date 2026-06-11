@@ -73,13 +73,35 @@ export async function contributionRoutes(app: FastifyInstance) {
     const u = requireAuth(req);
     const c = await contributionContext(id);
     if (c.uploaderId !== u.id && !u.is_admin) throw new HttpError(403, '본인 기여만 수정할 수 있습니다');
-    assertNotLocked(await isProjectLocked(c.projectId));
-    const body = (req.body ?? {}) as { story_text?: string };
+    if (!u.is_admin) assertNotLocked(await isProjectLocked(c.projectId));
+    const body = (req.body ?? {}) as { story_text?: string; schedule_id?: number };
+    
+    const patch: Record<string, any> = {
+      updatedAt: new Date().toISOString(),
+    };
+    if (body.story_text !== undefined) {
+      patch.storyText = body.story_text.trim();
+    }
+    if (body.schedule_id !== undefined) {
+      const targetSched = (
+        await db
+          .select()
+          .from(schema.schedules)
+          .where(and(eq(schema.schedules.id, body.schedule_id), eq(schema.schedules.projectId, c.projectId)))
+          .limit(1)
+      )[0];
+      if (!targetSched) {
+        throw new HttpError(400, '올바르지 않은 일정입니다');
+      }
+      patch.scheduleId = body.schedule_id;
+    }
+
     await db
       .update(schema.contributions)
-      .set({ storyText: (body.story_text ?? '').trim(), updatedAt: new Date().toISOString() })
+      .set(patch)
       .where(eq(schema.contributions.id, id));
-    const scene = await buildScene(c.projectId, c.scheduleId, { userId: u.id });
+
+    const scene = await buildScene(c.projectId, patch.scheduleId ?? c.scheduleId, { userId: u.id });
     return { scene };
   });
 
@@ -89,7 +111,7 @@ export async function contributionRoutes(app: FastifyInstance) {
     const u = requireAuth(req);
     const c = await contributionContext(id);
     if (c.uploaderId !== u.id && !u.is_admin) throw new HttpError(403, '본인 기여만 수정할 수 있습니다');
-    assertNotLocked(await isProjectLocked(c.projectId));
+    if (!u.is_admin) assertNotLocked(await isProjectLocked(c.projectId));
     const { files } = await collectMultipart(req);
     if (files.length) await addMediaToContribution(c.projectId, id, files);
     const scene = await buildScene(c.projectId, c.scheduleId, { userId: u.id });
@@ -102,7 +124,7 @@ export async function contributionRoutes(app: FastifyInstance) {
     const u = requireAuth(req);
     const c = await contributionContext(id);
     if (c.uploaderId !== u.id && !u.is_admin) throw new HttpError(403, '본인 기여만 삭제할 수 있습니다');
-    assertNotLocked(await isProjectLocked(c.projectId));
+    if (!u.is_admin) assertNotLocked(await isProjectLocked(c.projectId));
     await db.delete(schema.contributions).where(eq(schema.contributions.id, id));
     return { ok: true };
   });

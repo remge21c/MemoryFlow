@@ -12,7 +12,7 @@ export default function Settings() {
   const { data: me } = useMe();
   const user = me?.user;
   const nav = useNavigate();
-  const { active, setActive } = useActiveProject();
+  const { active, setActive, clear } = useActiveProject();
   const { data } = useQuery({
     queryKey: ['projects'],
     queryFn: () => apiGet<{ projects: ProjectDTO[] }>('/projects'),
@@ -73,7 +73,13 @@ export default function Settings() {
             <select
               value={active?.id ?? ''}
               onChange={(e) => {
-                const pid = Number(e.target.value);
+                const val = e.target.value;
+                if (!val) {
+                  clear();
+                  nav(user?.is_admin ? '/admin' : '/projects');
+                  return;
+                }
+                const pid = Number(val);
                 const p = data?.projects.find((x) => x.id === pid);
                 if (!p) return;
                 setActive({ id: p.id, name: p.name, org_name: p.org_name ?? undefined });

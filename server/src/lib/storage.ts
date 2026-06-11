@@ -10,6 +10,7 @@ export function projectDir(projectId: number) {
     thumbnails: path.posix.join('projects', String(projectId), 'thumbnails'),
     outputs: path.posix.join('projects', String(projectId), 'outputs'),
     finalVideos: path.posix.join('projects', String(projectId), 'final-videos'),
+    bgm: path.posix.join('projects', String(projectId), 'bgm'),
   };
 }
 

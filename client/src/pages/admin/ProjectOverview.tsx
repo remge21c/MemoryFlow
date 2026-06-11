@@ -1,13 +1,21 @@
-import { useOutletContext, useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useOutletContext, useParams, Link, useNavigate } from 'react-router-dom';
 import type { ProjectDetail } from './ProjectLayout';
-import { Card, Icon, Pill } from '../../components/ui';
+import { Card, Icon, Pill, Button, TextInput, Field, ErrorNote } from '../../components/ui';
 import { dateRange, PROJECT_STATUS_LABEL } from '../../lib/format';
+import { apiSend } from '../../lib/api';
 
 export default function ProjectOverview() {
   const data = useOutletContext<ProjectDetail>();
   const { pid } = useParams();
+  const navigate = useNavigate();
   const p = data.project;
   const scheduleCount = data.days.reduce((a, d) => a + d.schedules.length, 0);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const steps = [
     { to: 'schedules', icon: 'event', label: '일정(장면) 설계', desc: `${scheduleCount}개 장면 · ${p.day_count}일` },
@@ -17,6 +25,38 @@ export default function ProjectOverview() {
     { to: 'share', icon: 'share', label: '공유 링크', desc: '외부 열람 발급' },
     { to: 'videos', icon: 'movie', label: '영상·내보내기', desc: '패키지/최종 영상' },
   ];
+
+  const handleOpenDelete = () => {
+    const isConfirmed = window.confirm(
+      '정말로 이 프로젝트를 영구 삭제하시겠습니까?\n프로젝트 내의 모든 일정, 미디어 사진 및 동영상 자료가 CASCADE 처리되어 복구할 수 없이 영구적으로 삭제됩니다.'
+    );
+    if (isConfirmed) {
+      setErrorMsg('');
+      setConfirmPassword('');
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  const handleDelete = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!confirmPassword) {
+      setErrorMsg('비밀번호를 입력해 주세요.');
+      return;
+    }
+
+    setIsDeleting(true);
+    setErrorMsg('');
+
+    try {
+      await apiSend('DELETE', `/projects/${p.id}`, { password: confirmPassword });
+      setIsDeleteModalOpen(false);
+      navigate('/admin');
+    } catch (err: any) {
+      setErrorMsg(err.message || '프로젝트 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div>
@@ -30,7 +70,7 @@ export default function ProjectOverview() {
         {p.description ? <p className="text-body-md text-on-surface mt-2 whitespace-pre-line">{p.description}</p> : null}
       </Card>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 mb-8">
         {steps.map((s) => (
           <Link key={s.to} to={s.to}>
             <Card className="p-4 h-full">
@@ -41,6 +81,77 @@ export default function ProjectOverview() {
           </Link>
         ))}
       </div>
+
+      {/* Danger Zone */}
+      <Card className="p-5 border-error/20 bg-error/5 mt-8">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-error/10 text-error rounded-lg">
+            <Icon name="warning" className="text-[24px]" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-title-sm font-semibold text-error">위험 구역 (Danger Zone)</h3>
+            <p className="text-body-sm text-on-surface-variant mt-1">
+              이 프로젝트를 영구적으로 삭제합니다. 삭제된 일정, 미디어 파일, 업로더 정보 등 모든 데이터는 복구할 수 없습니다.
+            </p>
+            <div className="mt-4">
+              <Button variant="danger" onClick={handleOpenDelete} icon="delete">
+                프로젝트 영구 삭제
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-surface-lowest rounded-xl border border-outline/10 p-6 max-w-md w-full shadow-card">
+            <div className="flex items-center gap-2 text-error mb-4">
+              <Icon name="report" className="text-[28px]" />
+              <h3 className="text-title-md font-bold">프로젝트 영구 삭제</h3>
+            </div>
+            
+            <p className="text-body-md text-on-surface mb-6 leading-relaxed">
+              이 작업은 취소할 수 없습니다. 프로젝트를 안전하게 삭제하려면 현재 관리자의 로그인 비밀번호를 입력해 주십시오.
+            </p>
+
+            <form onSubmit={handleDelete} className="space-y-4">
+              <Field label="관리자 비밀번호">
+                <TextInput
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="비밀번호를 입력하세요"
+                  autoFocus
+                  disabled={isDeleting}
+                />
+              </Field>
+
+              {errorMsg && <ErrorNote message={errorMsg} />}
+
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  disabled={isDeleting}
+                >
+                  취소
+                </Button>
+                <Button
+                  type="submit"
+                  variant="danger"
+                  loading={isDeleting}
+                  icon="delete_forever"
+                >
+                  삭제 확인
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

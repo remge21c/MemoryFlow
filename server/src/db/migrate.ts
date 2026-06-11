@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS projects (
   org_name TEXT,
   description TEXT,
   cover_image_path TEXT,
+  bgm_path TEXT,
   start_date TEXT NOT NULL,
   end_date TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'active',
@@ -136,6 +137,16 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 export function migrate(): void {
   sqlite.exec(DDL);
+  try {
+    const columns = sqlite.prepare("PRAGMA table_info(projects)").all() as { name: string }[];
+    const hasBgm = columns.some(c => c.name === 'bgm_path');
+    if (!hasBgm) {
+      sqlite.exec("ALTER TABLE projects ADD COLUMN bgm_path TEXT");
+      console.log('[migrate] ADD COLUMN bgm_path to projects table.');
+    }
+  } catch (e) {
+    console.error('[migrate] Failed to check or alter projects table:', e);
+  }
 }
 
 // 직접 실행 시(pnpm migrate)

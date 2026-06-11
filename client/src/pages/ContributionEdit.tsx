@@ -7,6 +7,7 @@ import { apiDelete, apiForm, apiGet, apiPatch } from '../lib/api';
 import { AppShell, TopBar } from '../components/AppShell';
 import { Button, Card, Icon, Pill, Spinner, TextArea, ErrorNote } from '../components/ui';
 import { FileDropzone } from '../components/FileDropzone';
+import { useMe } from '../lib/auth';
 
 interface SceneResp {
   scene: SceneDTO;
@@ -17,10 +18,27 @@ export default function ContributionEdit() {
   const { pid, sid } = useParams();
   const qc = useQueryClient();
   const key = ['scene', pid, sid];
+  
   const { data, isLoading } = useQuery({
     queryKey: key,
     queryFn: () => apiGet<SceneResp>(`/projects/${pid}/schedules/${sid}/scene`),
   });
+
+  const { data: projData } = useQuery({
+    queryKey: ['project-schedules', pid],
+    queryFn: () => apiGet<{ days: { day_index: number; date: string; schedules: any[] }[] }>(`/projects/${pid}`),
+    enabled: !!pid,
+  });
+
+  const allSchedules = projData?.days.flatMap((d) =>
+    d.schedules.map((s) => ({
+      id: s.id,
+      dayIndex: d.day_index,
+      title: s.title,
+      time: s.time,
+      place: s.place,
+    }))
+  ) ?? [];
 
   const [story, setStory] = useState('');
   const [files, setFiles] = useState<File[]>([]);
@@ -44,9 +62,17 @@ export default function ContributionEdit() {
   if (isLoading) return <AppShell><Spinner /></AppShell>;
   if (!data) return <AppShell><TopBar title="장면" /></AppShell>;
 
+  const { data: me } = useMe();
+  const isAdmin = me?.user?.is_admin ?? false;
   const { scene, locked } = data;
-  const mine = scene.contributions.filter((c) => c.is_mine);
-  const others = scene.contributions.filter((c) => !c.is_mine);
+  const effectiveLocked = locked && !isAdmin;
+
+  const mine = isAdmin 
+    ? scene.contributions 
+    : scene.contributions.filter((c) => c.is_mine);
+  const others = isAdmin 
+    ? [] 
+    : scene.contributions.filter((c) => !c.is_mine);
 
   return (
     <AppShell>
@@ -56,7 +82,7 @@ export default function ContributionEdit() {
         {scene.schedule.category ? <Pill tone="muted">{scene.schedule.category}</Pill> : null}
       </div>
 
-      {locked ? (
+      {effectiveLocked ? (
         <div role="status" className="mb-6 flex items-center gap-2 rounded-md border border-outline/20 bg-surface-container px-3.5 py-3 text-on-surface text-body-md">
           <Icon name="lock" className="text-[18px] text-primary shrink-0" />
           <span>관리자가 편집을 잠갔습니다. 지금은 읽기 전용이에요.</span>
@@ -69,14 +95,14 @@ export default function ContributionEdit() {
           <h2 className="text-title-sm font-semibold mb-3">내 기록</h2>
           <div className="space-y-3">
             {mine.map((c) => (
-              <MyContribution key={c.id} c={c} locked={locked} onChange={() => qc.invalidateQueries({ queryKey: key })} />
+              <MyContribution key={c.id} c={c} locked={effectiveLocked} onChange={() => qc.invalidateQueries({ queryKey: key })} allSchedules={allSchedules} isAdmin={isAdmin} />
             ))}
           </div>
         </section>
       ) : null}
 
       {/* 새 기록 추가 */}
-      {!locked ? (
+      {!effectiveLocked ? (
         <section className="mb-8">
           <h2 className="text-title-sm font-semibold mb-3">{mine.length ? '기록 더 올리기' : '이 순간을 기록하기'}</h2>
           <Card className="p-4 space-y-3">
@@ -212,7 +238,15 @@ function MediaCarousel({ media, onDelete }: { media: ContributionDTO['media']; o
   );
 }
 
-function MyContribution({ c, locked, onChange }: { c: ContributionDTO; locked: boolean; onChange: () => void }) {
+interface ScheduleItem {
+  id: number;
+  dayIndex: number;
+  title: string;
+  time: string | null;
+  place: string | null;
+}
+
+function MyContribution({ c, locked, onChange, allSchedules, isAdmin }: { c: ContributionDTO; locked: boolean; onChange: () => void; allSchedules: ScheduleItem[]; isAdmin: boolean }) {
   const [text, setText] = useState(c.story_text ?? '');
   const [dirty, setDirty] = useState(false);
   const addRef = useRef<HTMLInputElement>(null);
@@ -240,7 +274,43 @@ function MyContribution({ c, locked, onChange }: { c: ContributionDTO; locked: b
 
   return (
     <Card className="p-4">
+      {(!c.is_mine || isAdmin) && (
+        <div className="flex items-center gap-2 mb-3 bg-secondary-container/30 px-3 py-1.5 rounded-lg border border-outline/10">
+          <Icon name="person" className="text-primary text-[18px]" />
+          <span className="font-semibold text-body-md text-on-surface-variant">{c.uploader_name}님의 기록</span>
+        </div>
+      )}
       <MediaCarousel media={c.media} onDelete={locked ? undefined : (id) => delMediaMut.mutate(id)} />
+      
+      {!locked && allSchedules.length > 0 && (
+        <div className="mt-3">
+          <label className="block text-label-sm text-outline uppercase tracking-wider mb-1.5">일정(장면) 이동</label>
+          <select
+            value={c.schedule_id}
+            onChange={async (e) => {
+              const targetSid = Number(e.target.value);
+              if (targetSid === c.schedule_id) return;
+              const confirmMove = window.confirm('이 기여를 선택하신 일정으로 이동하시겠습니까?\n이동 후에는 현재 화면에서 이 기록이 제외되며, 지정한 일정 화면으로 이동됩니다.');
+              if (confirmMove) {
+                try {
+                  await apiPatch(`/contributions/${c.id}`, { schedule_id: targetSid });
+                  onChange();
+                } catch (err: any) {
+                  alert(err.message || '일정 이동 중 오류가 발생했습니다.');
+                }
+              }
+            }}
+            className="w-full rounded-md border border-outline/30 bg-surface-lowest px-3 py-2 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50"
+            disabled={locked}
+          >
+            {allSchedules.map((s) => (
+              <option key={s.id} value={s.id}>
+                Day {s.dayIndex} - {s.title} {s.time ? `(${s.time})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       {!locked ? (
         <>
           <p className="text-label-sm text-outline uppercase tracking-wider mt-3 mb-1.5">스토리 메모</p>
