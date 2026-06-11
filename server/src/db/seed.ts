@@ -64,9 +64,58 @@ async function main() {
 
   // 저녁 집회 장면에 두 관점 기여(스토리만, 미디어는 업로드로)
   const evening = scheds.find((s) => s.title === '저녁 집회')!;
-  await db.insert(schema.contributions).values([
+  const contribs = await db.insert(schema.contributions).values([
     { projectId: proj.id, scheduleId: evening.id, uploaderId: upA, storyText: '은혜로운 찬양 시간이었다. 모두가 한마음으로 노래하는 순간이 너무 감동적이었음.', sortOrder: 0 },
     { projectId: proj.id, scheduleId: evening.id, uploaderId: upB, storyText: '무대 조명이 너무 예뻤어요. 사진으로 다 담기지 않는 그 오묘한 색감들이 기억에 남네요.', sortOrder: 1 },
+  ]).returning();
+
+  const contribA = contribs[0]!;
+  const contribB = contribs[1]!;
+
+  // A 기여에 사진 2장, B 기여에 사진 3장 추가 (총 5장)
+  await db.insert(schema.media).values([
+    // A의 기여 (사진 2장)
+    {
+      contributionId: contribA.id,
+      type: 'photo',
+      filePath: 'https://picsum.photos/id/10/800/600',
+      thumbPath: 'https://picsum.photos/id/10/200/200',
+      sortOrder: 0,
+      included: true
+    },
+    {
+      contributionId: contribA.id,
+      type: 'photo',
+      filePath: 'https://picsum.photos/id/11/800/600',
+      thumbPath: 'https://picsum.photos/id/11/200/200',
+      sortOrder: 1,
+      included: true
+    },
+    // B의 기여 (사진 3장)
+    {
+      contributionId: contribB.id,
+      type: 'photo',
+      filePath: 'https://picsum.photos/id/12/800/600',
+      thumbPath: 'https://picsum.photos/id/12/200/200',
+      sortOrder: 0,
+      included: true
+    },
+    {
+      contributionId: contribB.id,
+      type: 'photo',
+      filePath: 'https://picsum.photos/id/13/800/600',
+      thumbPath: 'https://picsum.photos/id/13/200/200',
+      sortOrder: 1,
+      included: true
+    },
+    {
+      contributionId: contribB.id,
+      type: 'photo',
+      filePath: 'https://picsum.photos/id/14/800/600',
+      thumbPath: 'https://picsum.photos/id/14/200/200',
+      sortOrder: 2,
+      included: true
+    }
   ]);
 
   console.log('[seed] 완료');
