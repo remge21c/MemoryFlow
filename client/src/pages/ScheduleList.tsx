@@ -30,7 +30,7 @@ export default function ScheduleList() {
   const qc = useQueryClient();
   const { data: meData } = useMe();
   const isAdmin = meData?.user?.is_admin ?? false;
-  const [lb, setLb] = useState<{ items: MediaDTO[]; start: number; story?: string; isMine?: boolean; contributionId?: number } | null>(null);
+  const [lb, setLb] = useState<{ items: MediaDTO[]; start: number; story?: string; isMine?: boolean; contributionId?: number; scheduleId?: number } | null>(null);
 
   const saveStory = useCallback(async (contributionId: number, text: string) => {
     await apiPatch(`/contributions/${contributionId}`, { story_text: text });
@@ -48,6 +48,21 @@ export default function ScheduleList() {
     await apiForm('POST', `/contributions/${contributionId}/media`, fd);
     qc.invalidateQueries({ queryKey: ['feed', pid] });
   }, [pid, qc]);
+
+  const changeSchedule = useCallback(async (contributionId: number, targetScheduleId: number) => {
+    await apiPatch(`/contributions/${contributionId}`, { schedule_id: targetScheduleId });
+    qc.invalidateQueries({ queryKey: ['feed', pid] });
+  }, [pid, qc]);
+
+  const allSchedules = data?.days.flatMap((d) =>
+    d.schedules.map((s) => ({
+      id: s.id,
+      dayIndex: d.day_index,
+      title: s.title,
+      time: s.time,
+      place: s.place,
+    }))
+  ) ?? [];
 
   const { data, isLoading } = useQuery({
     queryKey: ['feed', pid],
@@ -85,7 +100,7 @@ export default function ScheduleList() {
               </div>
 
               {day.schedules.map((s) => (
-                <SceneBlock key={s.id} pid={pid!} schedule={s} onOpen={(items, start, story, isMine, contributionId) => setLb({ items, start, story, isMine, contributionId })} isAdmin={isAdmin} />
+                <SceneBlock key={s.id} pid={pid!} schedule={s} onOpen={(items, start, story, isMine, contributionId, schedId) => setLb({ items, start, story, isMine, contributionId, scheduleId: schedId })} isAdmin={isAdmin} />
               ))}
             </section>
           ),
@@ -102,6 +117,9 @@ export default function ScheduleList() {
           onDeleteMedia={lb.contributionId ? deleteMedia : undefined}
           onAddMedia={lb.contributionId ? (files) => addMedia(lb.contributionId!, files) : undefined}
           onClose={() => setLb(null)}
+          allSchedules={allSchedules}
+          currentScheduleId={lb.scheduleId}
+          onChangeSchedule={lb.contributionId ? (targetSid) => changeSchedule(lb.contributionId!, targetSid) : undefined}
         />
       ) : null}
     </AppShell>
@@ -116,7 +134,7 @@ function SceneBlock({
 }: {
   pid: string;
   schedule: FeedSchedule;
-  onOpen: (items: MediaDTO[], start: number, story?: string, isMine?: boolean, contributionId?: number) => void;
+  onOpen: (items: MediaDTO[], start: number, story?: string, isMine?: boolean, contributionId?: number, scheduleId?: number) => void;
   isAdmin: boolean;
 }) {
   return (
@@ -144,7 +162,7 @@ function SceneBlock({
       ) : (
         <div className="space-y-3">
           {schedule.contributions.map((c) => (
-            <Bubble key={c.id} c={c} pid={pid} scheduleId={schedule.id} onOpen={onOpen} isAdmin={isAdmin} />
+            <Bubble key={c.id} c={c} pid={pid} scheduleId={schedule.id} onOpen={(items, start, story, isMine, contributionId, schedId) => onOpen(items, start, story, isMine, contributionId, schedId || schedule.id)} isAdmin={isAdmin} />
           ))}
         </div>
       )}
@@ -162,7 +180,7 @@ function Bubble({
   c: FeedContribution;
   pid: string;
   scheduleId: number;
-  onOpen: (items: MediaDTO[], start: number, story?: string, isMine?: boolean, contributionId?: number) => void;
+  onOpen: (items: MediaDTO[], start: number, story?: string, isMine?: boolean, contributionId?: number, scheduleId?: number) => void;
   isAdmin: boolean;
 }) {
   const mine = c.is_mine;
@@ -174,7 +192,7 @@ function Bubble({
       {c.media.length > 0 ? (
         <>
           {!mine ? <p className="text-label-sm text-on-surface-variant mb-1">{c.uploader_name}</p> : null}
-          <MediaBundle media={c.media} story={c.story_text} isMine={mine || isAdmin} contributionId={c.id} onOpen={onOpen} />
+          <MediaBundle media={c.media} story={c.story_text} isMine={mine || isAdmin} contributionId={c.id} scheduleId={scheduleId} onOpen={onOpen} />
         </>
       ) : null}
 
@@ -200,12 +218,13 @@ function Bubble({
   );
 }
 
-function MediaBundle({ media, story, isMine, contributionId, onOpen }: {
+function MediaBundle({ media, story, isMine, contributionId, scheduleId, onOpen }: {
   media: MediaDTO[];
   story?: string | null;
   isMine?: boolean;
   contributionId?: number;
-  onOpen: (items: MediaDTO[], start: number, story?: string, isMine?: boolean, contributionId?: number) => void;
+  scheduleId?: number;
+  onOpen: (items: MediaDTO[], start: number, story?: string, isMine?: boolean, contributionId?: number, scheduleId?: number) => void;
 }) {
   const [idx, setIdx] = useState(0);
   const cur = media[idx];
@@ -216,7 +235,7 @@ function MediaBundle({ media, story, isMine, contributionId, onOpen }: {
       {/* 현재 미디어 */}
       <button
         className="w-full h-full"
-        onClick={() => onOpen(media, idx, story ?? undefined, isMine, contributionId)}
+        onClick={() => onOpen(media, idx, story ?? undefined, isMine, contributionId, scheduleId)}
         aria-label="전체화면으로 보기"
       >
         <img src={cur.thumb_url ?? cur.url} loading="lazy" className="w-full h-full object-cover" alt="" />

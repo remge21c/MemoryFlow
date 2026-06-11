@@ -10,8 +10,11 @@ export function MediaLightbox({
   onSaveStory,
   onDeleteMedia,
   onAddMedia,
-  onToggleInclude, // 추가
+  onToggleInclude,
   onClose,
+  allSchedules,
+  currentScheduleId,
+  onChangeSchedule,
 }: {
   items: MediaDTO[];
   start: number;
@@ -20,8 +23,11 @@ export function MediaLightbox({
   onSaveStory?: (text: string) => Promise<void>;
   onDeleteMedia?: (mediaId: number) => Promise<void>;
   onAddMedia?: (files: FileList) => Promise<void>;
-  onToggleInclude?: (mediaId: number) => void; // 추가
+  onToggleInclude?: (mediaId: number) => void;
   onClose: () => void;
+  allSchedules?: { id: number; dayIndex: number; title: string; time?: string | null; place?: string | null }[];
+  currentScheduleId?: number;
+  onChangeSchedule?: (targetScheduleId: number) => Promise<void>;
 }) {
   const [items, setItems] = useState(initialItems);
   const [i, setI] = useState(start);
@@ -31,7 +37,12 @@ export function MediaLightbox({
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
+  const [selectedScheduleId, setSelectedScheduleId] = useState(currentScheduleId);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setSelectedScheduleId(currentScheduleId);
+  }, [currentScheduleId]);
 
   const prev = useCallback(() => setI((v) => (v > 0 ? v - 1 : v)), []);
   const next = useCallback(() => setI((v) => (v < items.length - 1 ? v + 1 : v)), [items.length]);
@@ -68,11 +79,17 @@ export function MediaLightbox({
   }, [onClose, prev, next, editMode]);
 
   async function handleSave() {
-    if (!onSaveStory) return;
     setSaving(true);
     try {
-      await onSaveStory(editText);
-      setCurrentStory(editText);
+      if (onSaveStory) {
+        await onSaveStory(editText);
+        setCurrentStory(editText);
+      }
+      if (onChangeSchedule && selectedScheduleId !== currentScheduleId && selectedScheduleId !== undefined) {
+        await onChangeSchedule(selectedScheduleId);
+        onClose();
+        return;
+      }
       setEditMode(false);
     } finally { setSaving(false); }
   }
@@ -176,14 +193,30 @@ export function MediaLightbox({
 
       {/* 메모 편집 영역 (수정 모드) */}
       {editMode ? (
-        <div className="shrink-0 px-4 pt-3 pb-1 space-y-2" onClick={(e) => e.stopPropagation()}>
+        <div className="shrink-0 px-4 pt-3 pb-1 space-y-2.5" onClick={(e) => e.stopPropagation()}>
           <textarea
             value={editText}
             onChange={(e) => setEditText(e.target.value)}
             placeholder="이 순간을 어떻게 기억하고 싶은지 적어주세요."
             rows={3}
-            className="w-full rounded-xl bg-white/10 text-white placeholder:text-white/40 text-body-md leading-relaxed px-3.5 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-white/40"
+            className="w-full rounded-xl bg-white/10 text-white placeholder:text-white/40 text-body-md leading-relaxed px-3.5 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-white/40 text-left"
           />
+          {allSchedules && allSchedules.length > 0 && onChangeSchedule && (
+            <div className="flex flex-col gap-1">
+              <label className="text-label-sm text-white/50 text-left">일정(장면) 이동</label>
+              <select
+                value={selectedScheduleId}
+                onChange={(e) => setSelectedScheduleId(Number(e.target.value))}
+                className="w-full rounded-xl bg-white/10 text-white border border-white/10 px-3.5 py-2 text-body-md focus:outline-none focus:ring-2 focus:ring-white/40"
+              >
+                {allSchedules.map((s) => (
+                  <option key={s.id} value={s.id} className="bg-neutral-900 text-white">
+                    Day {s.dayIndex} - {s.title} {s.time ? `(${s.time})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="flex justify-end">
             <button
               onClick={handleSave}
@@ -195,8 +228,19 @@ export function MediaLightbox({
           </div>
         </div>
       ) : (
-        (currentStory || (isMine && onSaveStory)) ? (
-          <div className="shrink-0 px-4 py-2" onClick={(e) => e.stopPropagation()}>
+        (currentStory || (isMine && onSaveStory) || (allSchedules && currentScheduleId)) ? (
+          <div className="shrink-0 px-4 py-2 space-y-1 text-left" onClick={(e) => e.stopPropagation()}>
+            {allSchedules && currentScheduleId && (
+              (() => {
+                const curSched = allSchedules.find((s) => s.id === currentScheduleId);
+                return curSched ? (
+                  <div className="flex items-center gap-1.5 text-white/50 text-label-sm">
+                    <Icon name="event" className="text-[14px]" />
+                    <span>Day {curSched.dayIndex} - {curSched.title} {curSched.time ? `(${curSched.time})` : ''}</span>
+                  </div>
+                ) : null;
+              })()
+            )}
             <p className="text-white/90 text-body-md leading-relaxed whitespace-pre-line max-h-20 overflow-y-auto">
               {currentStory || <span className="text-white/40 italic">메모 없음</span>}
             </p>
