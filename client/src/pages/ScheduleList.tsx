@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import type { MediaDTO, ScheduleDTO } from '@memoryflow/shared';
-import { apiDelete, apiForm, apiGet, apiPatch } from '../lib/api';
+import { apiGet } from '../lib/api';
 import { AppShell } from '../components/AppShell';
-import { Card, EmptyState, Icon, Spinner } from '../components/ui';
+import { EmptyState, Icon, Spinner } from '../components/ui';
 import { MediaLightbox } from '../components/MediaLightbox';
+import { MediaCarousel } from '../components/MediaCarousel';
 import { useActiveProject } from '../stores/activeProject';
 import { useMe } from '../lib/auth';
 
@@ -24,50 +25,25 @@ interface FeedData {
   days: { day_index: number; date: string; schedules: FeedSchedule[] }[];
 }
 
+/** 라이트박스 열기 정보 — 뷰어 전용. 수정은 editHref(기록 페이지)로 이동. */
+interface LightboxState {
+  items: MediaDTO[];
+  start: number;
+  story?: string;
+  editHref?: string;
+}
+
 export default function ScheduleList() {
   const { pid } = useParams();
   const setActive = useActiveProject((s) => s.setActive);
-  const qc = useQueryClient();
   const { data: meData } = useMe();
   const isAdmin = meData?.user?.is_admin ?? false;
-  const [lb, setLb] = useState<{ items: MediaDTO[]; start: number; story?: string; isMine?: boolean; contributionId?: number; scheduleId?: number } | null>(null);
-
-  const saveStory = useCallback(async (contributionId: number, text: string) => {
-    await apiPatch(`/contributions/${contributionId}`, { story_text: text });
-    qc.invalidateQueries({ queryKey: ['feed', pid] });
-  }, [pid, qc]);
-
-  const deleteMedia = useCallback(async (mediaId: number) => {
-    await apiDelete(`/media/${mediaId}`);
-    qc.invalidateQueries({ queryKey: ['feed', pid] });
-  }, [pid, qc]);
-
-  const addMedia = useCallback(async (contributionId: number, files: FileList) => {
-    const fd = new FormData();
-    Array.from(files).forEach((f) => fd.append('files', f));
-    await apiForm('POST', `/contributions/${contributionId}/media`, fd);
-    qc.invalidateQueries({ queryKey: ['feed', pid] });
-  }, [pid, qc]);
-
-  const changeSchedule = useCallback(async (contributionId: number, targetScheduleId: number) => {
-    await apiPatch(`/contributions/${contributionId}`, { schedule_id: targetScheduleId });
-    qc.invalidateQueries({ queryKey: ['feed', pid] });
-  }, [pid, qc]);
+  const [lb, setLb] = useState<LightboxState | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['feed', pid],
     queryFn: () => apiGet<FeedData>(`/projects/${pid}/feed`),
   });
-
-  const allSchedules = data?.days.flatMap((d) =>
-    d.schedules.map((s) => ({
-      id: s.id,
-      dayIndex: d.day_index,
-      title: s.title,
-      time: s.time,
-      place: s.place,
-    }))
-  ) ?? [];
 
   useEffect(() => {
     if (data) setActive({ id: data.project.id, name: data.project.name, org_name: data.project.org_name ?? undefined });
@@ -79,9 +55,9 @@ export default function ScheduleList() {
   const hasAnySchedule = data.days.some((d) => d.schedules.length > 0);
 
   return (
-    <AppShell>
-      {/* 헤더 */}
-      <div className="mb-5 min-w-0">
+    <AppShell max="max-w-2xl lg:max-w-3xl">
+      {/* 헤더 — 데스크톱은 상단 고정 타이틀 바가 대신함 */}
+      <div className="mb-5 min-w-0 lg:hidden">
         <h1 className="text-headline-md font-bold text-on-surface truncate">{data.project.name}</h1>
         {data.project.org_name ? <p className="text-body-md text-on-surface-variant truncate">{data.project.org_name}</p> : null}
       </div>
@@ -100,7 +76,7 @@ export default function ScheduleList() {
               </div>
 
               {day.schedules.map((s) => (
-                <SceneBlock key={s.id} pid={pid!} schedule={s} onOpen={(items, start, story, isMine, contributionId, schedId) => setLb({ items, start, story, isMine, contributionId, scheduleId: schedId })} isAdmin={isAdmin} />
+                <SceneBlock key={s.id} pid={pid!} schedule={s} onOpen={setLb} isAdmin={isAdmin} />
               ))}
             </section>
           ),
@@ -112,14 +88,8 @@ export default function ScheduleList() {
           items={lb.items}
           start={lb.start}
           story={lb.story}
-          isMine={lb.isMine}
-          onSaveStory={lb.contributionId ? (text) => saveStory(lb.contributionId!, text) : undefined}
-          onDeleteMedia={lb.contributionId ? deleteMedia : undefined}
-          onAddMedia={lb.contributionId ? (files) => addMedia(lb.contributionId!, files) : undefined}
+          editHref={lb.editHref}
           onClose={() => setLb(null)}
-          allSchedules={allSchedules}
-          currentScheduleId={lb.scheduleId}
-          onChangeSchedule={lb.contributionId ? (targetSid) => changeSchedule(lb.contributionId!, targetSid) : undefined}
         />
       ) : null}
     </AppShell>
@@ -134,7 +104,7 @@ function SceneBlock({
 }: {
   pid: string;
   schedule: FeedSchedule;
-  onOpen: (items: MediaDTO[], start: number, story?: string, isMine?: boolean, contributionId?: number, scheduleId?: number) => void;
+  onOpen: (lb: LightboxState) => void;
   isAdmin: boolean;
 }) {
   return (
@@ -162,7 +132,7 @@ function SceneBlock({
       ) : (
         <div className="space-y-3">
           {schedule.contributions.map((c) => (
-            <Bubble key={c.id} c={c} pid={pid} scheduleId={schedule.id} onOpen={(items, start, story, isMine, contributionId, schedId) => onOpen(items, start, story, isMine, contributionId, schedId || schedule.id)} isAdmin={isAdmin} />
+            <Bubble key={c.id} c={c} pid={pid} scheduleId={schedule.id} onOpen={onOpen} isAdmin={isAdmin} />
           ))}
         </div>
       )}
@@ -180,19 +150,30 @@ function Bubble({
   c: FeedContribution;
   pid: string;
   scheduleId: number;
-  onOpen: (items: MediaDTO[], start: number, story?: string, isMine?: boolean, contributionId?: number, scheduleId?: number) => void;
+  onOpen: (lb: LightboxState) => void;
   isAdmin: boolean;
 }) {
   const mine = c.is_mine;
   const canEdit = mine || isAdmin;
+  const editHref = `/projects/${pid}/schedules/${scheduleId}`;
 
   return (
-    <div className="relative group">
+    <div className="relative">
       {/* 사진/영상: 전체 폭 */}
       {c.media.length > 0 ? (
         <>
           {!mine ? <p className="text-label-sm text-on-surface-variant mb-1">{c.uploader_name}</p> : null}
-          <MediaBundle media={c.media} story={c.story_text} isMine={mine || isAdmin} contributionId={c.id} scheduleId={scheduleId} onOpen={onOpen} />
+          <MediaCarousel
+            media={c.media}
+            onItemClick={(start) =>
+              onOpen({
+                items: c.media,
+                start,
+                story: c.story_text || undefined,
+                editHref: canEdit ? editHref : undefined,
+              })
+            }
+          />
         </>
       ) : null}
 
@@ -204,95 +185,6 @@ function Bubble({
         </div>
       ) : null}
 
-      {/* 우측 상단 수정/삭제 바로가기 버튼 (모바일 85% 투명도 항상 표시, 데스크톱 hover 시 표시) */}
-      {canEdit && (
-        <Link
-          to={`/projects/${pid}/schedules/${scheduleId}`}
-          className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-black/60 hover:bg-primary text-white flex items-center justify-center border border-white/20 opacity-85 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 transition-all shadow-md"
-          title="기록 수정/삭제"
-        >
-          <Icon name="edit" className="text-[16px]" />
-        </Link>
-      )}
-    </div>
-  );
-}
-
-function MediaBundle({ media, story, isMine, contributionId, scheduleId, onOpen }: {
-  media: MediaDTO[];
-  story?: string | null;
-  isMine?: boolean;
-  contributionId?: number;
-  scheduleId?: number;
-  onOpen: (items: MediaDTO[], start: number, story?: string, isMine?: boolean, contributionId?: number, scheduleId?: number) => void;
-}) {
-  const [idx, setIdx] = useState(0);
-  const cur = media[idx];
-  if (!cur) return null;
-
-  return (
-    <div className="relative rounded-xl overflow-hidden bg-surface-container aspect-[4/3]">
-      {/* 현재 미디어 */}
-      <button
-        className="w-full h-full"
-        onClick={() => onOpen(media, idx, story ?? undefined, isMine, contributionId, scheduleId)}
-        aria-label="전체화면으로 보기"
-      >
-        <img src={cur.thumb_url ?? cur.url} loading="lazy" className="w-full h-full object-cover" alt="" />
-        {cur.type === 'video' ? (
-          <span className="absolute inset-0 flex items-center justify-center bg-black/25">
-            <Icon name="play_circle" fill className="text-white text-[40px]" />
-          </span>
-        ) : null}
-        {cur.type === 'video' && cur.duration_seconds ? (
-          <span className="absolute bottom-2 left-2 bg-black/55 text-white text-[11px] px-1.5 py-0.5 rounded">
-            {Math.round(cur.duration_seconds)}s
-          </span>
-        ) : null}
-      </button>
-
-      {/* 이전 버튼 */}
-      {idx > 0 ? (
-        <button
-          onClick={(e) => { e.stopPropagation(); setIdx((v) => v - 1); }}
-          aria-label="이전 사진"
-          className="absolute left-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-colors"
-        >
-          <Icon name="chevron_left" className="text-[22px]" />
-        </button>
-      ) : null}
-
-      {/* 다음 버튼 */}
-      {idx < media.length - 1 ? (
-        <button
-          onClick={(e) => { e.stopPropagation(); setIdx((v) => v + 1); }}
-          aria-label="다음 사진"
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-colors"
-        >
-          <Icon name="chevron_right" className="text-[22px]" />
-        </button>
-      ) : null}
-
-      {/* 장수 표시 */}
-      {media.length > 1 ? (
-        <span className="absolute bottom-2 right-2 bg-black/50 text-white text-[11px] font-medium px-2 py-0.5 rounded-full">
-          {idx + 1} / {media.length}
-        </span>
-      ) : null}
-
-      {/* 하단 점 인디케이터 (4장 이하일 때) */}
-      {media.length > 1 && media.length <= 4 ? (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-          {media.map((_, i) => (
-            <button
-              key={i}
-              onClick={(e) => { e.stopPropagation(); setIdx(i); }}
-              aria-label={`${i + 1}번째 사진`}
-              className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? 'bg-white' : 'bg-white/40'}`}
-            />
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 }

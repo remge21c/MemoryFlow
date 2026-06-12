@@ -7,6 +7,7 @@ import { apiDelete, apiForm, apiGet, apiPatch } from '../lib/api';
 import { AppShell, TopBar } from '../components/AppShell';
 import { Button, Card, Icon, Pill, Spinner, TextArea, ErrorNote } from '../components/ui';
 import { FileDropzone } from '../components/FileDropzone';
+import { MediaCarousel } from '../components/MediaCarousel';
 import { useMe } from '../lib/auth';
 
 interface SceneResp {
@@ -18,7 +19,8 @@ export default function ContributionEdit() {
   const { pid, sid } = useParams();
   const qc = useQueryClient();
   const key = ['scene', pid, sid];
-  
+  const { data: me } = useMe();
+
   const { data, isLoading } = useQuery({
     queryKey: key,
     queryFn: () => apiGet<SceneResp>(`/projects/${pid}/schedules/${sid}/scene`),
@@ -62,7 +64,6 @@ export default function ContributionEdit() {
   if (isLoading) return <AppShell><Spinner /></AppShell>;
   if (!data) return <AppShell><TopBar title="장면" /></AppShell>;
 
-  const { data: me } = useMe();
   const isAdmin = me?.user?.is_admin ?? false;
   const { scene, locked } = data;
   const effectiveLocked = locked && !isAdmin;
@@ -151,93 +152,6 @@ export default function ContributionEdit() {
   );
 }
 
-function MediaCarousel({ media, onDelete }: { media: ContributionDTO['media']; onDelete?: (id: number) => void }) {
-  const [idx, setIdx] = useState(0);
-  if (media.length === 0) return null;
-
-  const safeIdx = Math.min(idx, media.length - 1);
-  const cur = media[safeIdx];
-  if (!cur) return null;
-
-  return (
-    <div className="relative rounded-xl overflow-hidden bg-surface-container aspect-[4/3]">
-      <img
-        src={cur.thumb_url ?? cur.url}
-        alt={cur.type === 'video' ? '동영상 썸네일' : '기여 이미지'}
-        className="w-full h-full object-cover"
-        loading="lazy"
-      />
-      {cur.type === 'video' ? (
-        <span className="absolute inset-0 flex items-center justify-center bg-black/25">
-          <Icon name="play_circle" fill className="text-white text-[40px]" />
-        </span>
-      ) : null}
-      {cur.type === 'video' && cur.duration_seconds ? (
-        <span className="absolute bottom-2 left-2 bg-black/55 text-white text-[11px] px-1.5 py-0.5 rounded">
-          {Math.round(cur.duration_seconds)}s
-        </span>
-      ) : null}
-
-      {/* 삭제 버튼 */}
-      {onDelete ? (
-        <button
-          onClick={() => {
-            onDelete(cur.id);
-            setIdx((v) => Math.max(0, v - 1));
-          }}
-          aria-label="이 사진 삭제"
-          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
-        >
-          <Icon name="close" className="text-[18px]" />
-        </button>
-      ) : null}
-
-      {/* 이전 버튼 */}
-      {safeIdx > 0 ? (
-        <button
-          onClick={() => setIdx((v) => v - 1)}
-          aria-label="이전 사진"
-          className="absolute left-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-colors"
-        >
-          <Icon name="chevron_left" className="text-[22px]" />
-        </button>
-      ) : null}
-
-      {/* 다음 버튼 */}
-      {safeIdx < media.length - 1 ? (
-        <button
-          onClick={() => setIdx((v) => v + 1)}
-          aria-label="다음 사진"
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-colors"
-        >
-          <Icon name="chevron_right" className="text-[22px]" />
-        </button>
-      ) : null}
-
-      {/* 장수 표시 */}
-      {media.length > 1 ? (
-        <span className="absolute bottom-2 right-2 bg-black/50 text-white text-[11px] font-medium px-2 py-0.5 rounded-full">
-          {safeIdx + 1} / {media.length}
-        </span>
-      ) : null}
-
-      {/* 점 인디케이터 */}
-      {media.length > 1 && media.length <= 4 ? (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-          {media.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setIdx(i)}
-              aria-label={`${i + 1}번째 사진`}
-              className={`w-1.5 h-1.5 rounded-full transition-colors ${i === safeIdx ? 'bg-white' : 'bg-white/40'}`}
-            />
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 interface ScheduleItem {
   id: number;
   dayIndex: number;
@@ -280,7 +194,11 @@ function MyContribution({ c, locked, onChange, allSchedules, isAdmin }: { c: Con
           <span className="font-semibold text-body-md text-on-surface-variant">{c.uploader_name}님의 기록</span>
         </div>
       )}
-      <MediaCarousel media={c.media} onDelete={locked ? undefined : (id) => delMediaMut.mutate(id)} />
+      <MediaCarousel
+        media={c.media}
+        onDelete={locked ? undefined : (id) => delMediaMut.mutate(id)}
+        deletingId={delMediaMut.isPending ? delMediaMut.variables : null}
+      />
       
       {!locked && allSchedules.length > 0 && (
         <div className="mt-3">
