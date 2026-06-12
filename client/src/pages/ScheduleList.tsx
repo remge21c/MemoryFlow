@@ -35,7 +35,7 @@ interface LightboxState {
 
 export default function ScheduleList() {
   const { pid } = useParams();
-  const setActive = useActiveProject((s) => s.setActive);
+  const setViewing = useActiveProject((s) => s.setViewing);
   const { data: meData } = useMe();
   const isAdmin = meData?.user?.is_admin ?? false;
   const [lb, setLb] = useState<LightboxState | null>(null);
@@ -45,9 +45,10 @@ export default function ScheduleList() {
     queryFn: () => apiGet<FeedData>(`/projects/${pid}/feed`),
   });
 
+  // 보고 있는 프로젝트 표시(타이틀 바)만 갱신 — 활성화는 설정 페이지에서만
   useEffect(() => {
-    if (data) setActive({ id: data.project.id, name: data.project.name, org_name: data.project.org_name ?? undefined });
-  }, [data, setActive]);
+    if (data) setViewing({ id: data.project.id, name: data.project.name, org_name: data.project.org_name ?? undefined });
+  }, [data, setViewing]);
 
   if (isLoading) return <AppShell><Spinner /></AppShell>;
   if (!data) return <AppShell><EmptyState icon="error" title="프로젝트를 찾을 수 없습니다" /></AppShell>;

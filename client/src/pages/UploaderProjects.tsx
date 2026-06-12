@@ -42,7 +42,7 @@ export default function UploaderProjects() {
                   <div className="flex items-center gap-2">
                     <h2 className="text-title-sm font-semibold text-on-surface truncate">{p.name}</h2>
                     <Pill tone={STATUS_TONE[p.status] ?? 'muted'}>{PROJECT_STATUS_LABEL[p.status]}</Pill>
-                    {active?.id === p.id ? <Pill tone="primary">보는 중</Pill> : null}
+                    {active?.id === p.id ? <Pill tone="primary">활성</Pill> : null}
                   </div>
                   <p className="text-body-md text-on-surface-variant truncate">{p.org_name}</p>
                   <p className="text-label-sm text-outline mt-0.5">{dateRange(p.start_date, p.end_date)} · {p.day_count}일</p>

@@ -65,11 +65,14 @@ export default function Settings() {
         </div>
       </Card>
 
-      {/* 프로젝트 선택 */}
+      {/* 활성 프로젝트 — 활성화는 이 페이지에서만 가능 */}
       <section className="mb-6">
-        <h2 className="text-title-sm font-semibold mb-3">프로젝트 선택</h2>
+        <h2 className="text-title-sm font-semibold mb-3">활성 프로젝트</h2>
+        <p className="text-label-sm text-on-surface-variant mb-3">
+          홈과 사이드 메뉴가 기본으로 여는 프로젝트입니다. 다른 프로젝트를 둘러봐도 여기서 바꾸기 전까지 유지됩니다.
+        </p>
         <Card className="p-4">
-          <Field label="이동할 프로젝트">
+          <Field label="활성 프로젝트 선택">
             <select
               value={active?.id ?? ''}
               onChange={(e) => {

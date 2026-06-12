@@ -23,7 +23,11 @@ export function AppShell({
   const logout = useLogout();
   const loc = useLocation();
   const active = useActiveProject((s) => s.active);
+  const viewing = useActiveProject((s) => s.viewing);
   const user = data?.user;
+  // 프로젝트 화면에서는 "보고 있는 프로젝트"를 타이틀에 표시 (활성 프로젝트와 다를 수 있음)
+  const onProjectRoute = /^\/(admin\/)?projects\/\d+/.test(loc.pathname);
+  const titleProject = onProjectRoute && viewing ? viewing : active;
   const onAdminArea = loc.pathname.startsWith('/admin');
   // 관리자 프로젝트 안이면 햄버거 메뉴에 섹션 메뉴 노출
   const adminPid = loc.pathname.match(/^\/admin\/projects\/(\d+)/)?.[1];
@@ -42,11 +46,11 @@ export function AppShell({
         {/* 데스크톱 고정 타이틀 바 — 현재 프로젝트명 + 소속 */}
         {user ? (
           <div className="hidden lg:flex sticky top-0 z-40 items-center gap-3 h-14 px-6 bg-surface/95 backdrop-blur border-b border-outline-variant/20">
-            {active ? (
+            {titleProject ? (
               <div className="min-w-0">
-                <p className="text-title-sm font-bold text-on-surface truncate leading-tight">{active.name}</p>
-                {active.org_name ? (
-                  <p className="text-label-sm text-on-surface-variant truncate leading-tight">{active.org_name}</p>
+                <p className="text-title-sm font-bold text-on-surface truncate leading-tight">{titleProject.name}</p>
+                {titleProject.org_name ? (
+                  <p className="text-label-sm text-on-surface-variant truncate leading-tight">{titleProject.org_name}</p>
                 ) : null}
               </div>
             ) : (

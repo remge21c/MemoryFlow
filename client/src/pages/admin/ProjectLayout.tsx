@@ -24,11 +24,12 @@ export function useProjectDetail(pid: string | undefined) {
 export default function ProjectLayout() {
   const { pid } = useParams();
   const { data, isLoading } = useProjectDetail(pid);
-  const setActive = useActiveProject((s) => s.setActive);
+  const setViewing = useActiveProject((s) => s.setViewing);
 
+  // 보고 있는 프로젝트 표시(타이틀 바)만 갱신 — 활성화는 설정 페이지에서만
   useEffect(() => {
-    if (data) setActive({ id: data.project.id, name: data.project.name, org_name: data.project.org_name ?? undefined });
-  }, [data, setActive]);
+    if (data) setViewing({ id: data.project.id, name: data.project.name, org_name: data.project.org_name ?? undefined });
+  }, [data, setViewing]);
 
   return (
     <AppShell max="max-w-2xl lg:max-w-5xl">
