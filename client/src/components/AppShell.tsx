@@ -29,8 +29,10 @@ export function AppShell({
   const onProjectRoute = /^\/(admin\/)?projects\/\d+/.test(loc.pathname);
   const titleProject = onProjectRoute && viewing ? viewing : active;
   const onAdminArea = loc.pathname.startsWith('/admin');
-  // 관리자 프로젝트 안이면 햄버거 메뉴에 섹션 메뉴 노출
+  // 관리자 영역이면 보고 있는(없으면 활성) 프로젝트의 섹션 메뉴를 햄버거에 노출
   const adminPid = loc.pathname.match(/^\/admin\/projects\/(\d+)/)?.[1];
+  const adminMenuPid =
+    user?.is_admin && onAdminArea ? adminPid ?? (active ? String(active.id) : undefined) : undefined;
   const [menuOpen, setMenuOpen] = useState(false);
 
   // 영역 전환 시 활성 프로젝트가 있으면 목록이 아니라 바로 해당 화면으로
@@ -94,12 +96,12 @@ export function AppShell({
                     <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
                     <div className="absolute right-0 top-12 z-40 w-64 max-h-[80vh] overflow-y-auto rounded-xl border border-outline/15 bg-surface-lowest linen-shadow">
                       {/* 관리자 프로젝트 섹션 메뉴 */}
-                      {adminPid ? (
+                      {adminMenuPid ? (
                         <div className="border-b border-outline/10 py-1">
                           {ADMIN_PROJECT_TABS.map((t) => (
                             <NavLink
                               key={t.to}
-                              to={`/admin/projects/${adminPid}${t.to ? `/${t.to}` : ''}`}
+                              to={`/admin/projects/${adminMenuPid}${t.to ? `/${t.to}` : ''}`}
                               end={t.end}
                               onClick={() => setMenuOpen(false)}
                               className={({ isActive }) =>
@@ -120,24 +122,14 @@ export function AppShell({
                       {/* 관리자 영역 전환 */}
                       {user.is_admin ? (
                         onAdminArea ? (
-                          <>
-                            <Link
-                              to="/admin/projects/new"
-                              onClick={() => setMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 h-12 text-body-md text-on-surface hover:bg-surface-container border-b border-outline/10 transition-colors"
-                            >
-                              <Icon name="add_circle" className="text-[20px] text-on-surface-variant" />
-                              새 프로젝트
-                            </Link>
-                            <Link
-                              to={uploaderHome}
-                              onClick={() => setMenuOpen(false)}
-                              className="flex items-center gap-3 px-4 h-12 text-body-md text-on-surface hover:bg-surface-container border-b border-outline/10 transition-colors"
-                            >
-                              <Icon name="photo_library" className="text-[20px] text-on-surface-variant" />
-                              업로더 보기
-                            </Link>
-                          </>
+                          <Link
+                            to={uploaderHome}
+                            onClick={() => setMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 h-12 text-body-md text-on-surface hover:bg-surface-container border-b border-outline/10 transition-colors"
+                          >
+                            <Icon name="photo_library" className="text-[20px] text-on-surface-variant" />
+                            업로더 보기
+                          </Link>
                         ) : (
                           <Link
                             to={adminHome}
@@ -193,8 +185,9 @@ function Sidebar({
   const loc = useLocation();
   const active = useActiveProject((s) => s.active);
   const onAdminArea = loc.pathname.startsWith('/admin');
-  // /admin/projects/:pid 안이면 프로젝트 섹션 메뉴 노출
+  // 보고 있는 프로젝트가 있으면 그것, 없으면 활성 프로젝트의 섹션 메뉴
   const adminPid = loc.pathname.match(/^\/admin\/projects\/(\d+)/)?.[1];
+  const menuPid = adminPid ?? (active ? String(active.id) : undefined);
 
   return (
     <aside className="hidden lg:flex flex-col w-60 shrink-0 sticky top-0 h-screen border-r border-outline-variant/20 bg-surface-lowest">
@@ -207,40 +200,30 @@ function Sidebar({
         <span className="text-title-sm font-bold text-on-surface">MemoryFlow</span>
       </Link>
 
-      {/* 상황별 메뉴 */}
+      {/* 상황별 메뉴 — 최상단: 영역 전환, 그 아래: 프로젝트 섹션 메뉴 */}
       <nav className="flex-1 overflow-y-auto py-3 px-3">
-        {user.is_admin && onAdminArea ? (
-          <>
-            <SideLink to="/admin" icon="folder" label="프로젝트 목록" end />
-            <SideLink to="/admin/projects/new" icon="add_circle" label="새 프로젝트" end />
-            {adminPid ? (
-              <div className="mt-3 pt-3 border-t border-outline/10">
-                {ADMIN_PROJECT_TABS.map((t) => (
-                  <SideLink
-                    key={t.to}
-                    to={`/admin/projects/${adminPid}${t.to ? `/${t.to}` : ''}`}
-                    icon={t.icon}
-                    label={t.label}
-                    end={t.end}
-                  />
-                ))}
-              </div>
-            ) : active ? (
-              <SideLink to={`/admin/projects/${active.id}`} icon="dashboard" label="프로젝트 관리" />
-            ) : null}
-          </>
-        ) : null /* 업로더 화면: 별도 메뉴 없음 — 피드는 로고, 프로젝트 변경은 설정에서 */}
-      </nav>
-
-      {/* 하단: 전환 / 설정 / 로그아웃 — 활성 프로젝트가 있으면 바로 해당 화면으로 */}
-      <div className="border-t border-outline/10 py-3 px-3 shrink-0">
         {user.is_admin ? (
           onAdminArea ? (
-            <SideLink
-              to={active ? `/projects/${active.id}` : '/projects'}
-              icon="photo_library"
-              label="업로더 보기"
-            />
+            <>
+              <SideLink
+                to={active ? `/projects/${active.id}` : '/projects'}
+                icon="photo_library"
+                label="업로더 보기"
+              />
+              {menuPid ? (
+                <div className="mt-3 pt-3 border-t border-outline/10">
+                  {ADMIN_PROJECT_TABS.map((t) => (
+                    <SideLink
+                      key={t.to}
+                      to={`/admin/projects/${menuPid}${t.to ? `/${t.to}` : ''}`}
+                      icon={t.icon}
+                      label={t.label}
+                      end={t.end}
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </>
           ) : (
             <SideLink
               to={active ? `/admin/projects/${active.id}` : '/admin'}
@@ -248,7 +231,11 @@ function Sidebar({
               label="관리자 페이지"
             />
           )
-        ) : null}
+        ) : null /* 업로더: 별도 메뉴 없음 — 피드는 로고, 프로젝트 변경·생성은 설정에서 */}
+      </nav>
+
+      {/* 하단: 설정 / 로그아웃 */}
+      <div className="border-t border-outline/10 py-3 px-3 shrink-0">
         <SideLink to="/settings" icon="settings" label="설정" />
         <button
           onClick={onLogout}

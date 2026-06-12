@@ -9,7 +9,7 @@ import { useActiveProject } from '../stores/activeProject';
 
 export default function AdminProjects() {
   const nav = useNavigate();
-  const active = useActiveProject((s) => s.active);
+  const { active, setActive } = useActiveProject();
 
   const { data, isLoading } = useQuery({
     queryKey: ['projects'],
@@ -33,7 +33,11 @@ export default function AdminProjects() {
       ) : (
         <div className="space-y-3">
           {data.projects.map((p) => (
-            <Link key={p.id} to={`/admin/projects/${p.id}`}>
+            <Link
+              key={p.id}
+              to={`/admin/projects/${p.id}`}
+              onClick={() => setActive({ id: p.id, name: p.name, org_name: p.org_name ?? undefined })}
+            >
               <Card className="p-4 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Icon name="folder" className="text-primary text-[24px]" />

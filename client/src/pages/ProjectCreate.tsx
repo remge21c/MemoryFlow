@@ -5,9 +5,11 @@ import type { ProjectDTO } from '@memoryflow/shared';
 import { apiPost } from '../lib/api';
 import { AppShell, TopBar } from '../components/AppShell';
 import { Button, Field, TextInput, TextArea, ErrorNote } from '../components/ui';
+import { useActiveProject } from '../stores/activeProject';
 
 export default function ProjectCreate() {
   const nav = useNavigate();
+  const setActive = useActiveProject((s) => s.setActive);
   const [form, setForm] = useState({
     name: '',
     org_name: '',
@@ -20,7 +22,11 @@ export default function ProjectCreate() {
 
   const mut = useMutation({
     mutationFn: () => apiPost<{ project: ProjectDTO }>('/projects', form),
-    onSuccess: (r) => nav(`/admin/projects/${r.project.id}`),
+    onSuccess: (r) => {
+      // 생성한 프로젝트를 바로 활성화
+      setActive({ id: r.project.id, name: r.project.name, org_name: r.project.org_name ?? undefined });
+      nav(`/admin/projects/${r.project.id}`);
+    },
     onError: (e) => setErr((e as Error).message),
   });
 

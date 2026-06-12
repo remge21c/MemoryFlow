@@ -1,11 +1,28 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useOutletContext, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { VideoDTO, VideoStatus } from '@memoryflow/shared';
 import type { ProjectDetail } from './ProjectLayout';
-import { apiDelete, apiForm, apiGet, apiPatch, apiPost } from '../../lib/api';
+import { apiDelete, apiForm, apiGet, apiPatch } from '../../lib/api';
 import { Button, Card, EmptyState, Icon, Pill, Spinner } from '../../components/ui';
 import { VIDEO_STATUS_LABEL } from '../../lib/format';
+import {
+  ensureRWPermission,
+  loadDirHandle,
+  pickDirectory,
+  saveDirHandle,
+  supportsDirectoryPicker,
+  writeFileAt,
+} from '../../lib/localDir';
+
+interface ExportManifest {
+  folder_name: string;
+  project: Record<string, unknown>;
+  scene_timeline: Record<string, unknown>;
+  files: { path: string; url: string }[];
+}
+
+const DIR_KEY = 'videoflow-dir';
 
 export default function ExportVideo() {
   const { pid } = useParams();
@@ -14,21 +31,76 @@ export default function ExportVideo() {
   const key = ['videos', pid];
   const { data, isLoading } = useQuery({ queryKey: key, queryFn: () => apiGet<{ videos: VideoDTO[] }>(`/projects/${pid}/videos`) });
   const invalidate = () => qc.invalidateQueries({ queryKey: key });
-  
+
   const fileRef = useRef<HTMLInputElement>(null);
   const bgmFileRef = useRef<HTMLInputElement>(null);
-  
+
   const [exportMsg, setExportMsg] = useState('');
   const [err, setErr] = useState('');
 
   const p = detail.project;
   const approved = detail.storybook.status === 'approved';
 
-  const exportMut = useMutation({
-    mutationFn: () => apiPost<{ dir: string }>(`/projects/${pid}/export`),
-    onSuccess: (r) => setExportMsg(`패키지 생성됨: ${r.dir}`),
-    onError: (e) => setErr((e as Error).message),
-  });
+  // 내보내기 대상 로컬 폴더 (videoflow) — 한 번 지정하면 기억됨
+  const [dirHandle, setDirHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const fsSupported = supportsDirectoryPicker();
+
+  useEffect(() => {
+    loadDirHandle(DIR_KEY).then(setDirHandle);
+  }, []);
+
+  async function chooseFolder(): Promise<FileSystemDirectoryHandle | null> {
+    const h = await pickDirectory();
+    if (h) {
+      await saveDirHandle(DIR_KEY, h);
+      setDirHandle(h);
+    }
+    return h;
+  }
+
+  async function handleExport() {
+    setErr('');
+    setExportMsg('');
+    if (!fsSupported) {
+      setErr('이 브라우저는 폴더 저장을 지원하지 않습니다. Chrome 또는 Edge를 사용해주세요.');
+      return;
+    }
+    // BGM 미설정 확인
+    if (!p.bgm_path && !window.confirm('배경 음악(BGM)이 설정되지 않았습니다.\nBGM 없이 패키지를 내보낼까요?')) {
+      return;
+    }
+    const dir = dirHandle ?? (await chooseFolder());
+    if (!dir) return;
+    if (!(await ensureRWPermission(dir))) {
+      setErr('폴더 쓰기 권한이 필요합니다. 폴더를 다시 지정해주세요.');
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const manifest = await apiGet<ExportManifest>(`/projects/${pid}/export/manifest`);
+      const projDir = await dir.getDirectoryHandle(manifest.folder_name, { create: true });
+      await writeFileAt(projDir, 'project.json', JSON.stringify(manifest.project, null, 2));
+      await writeFileAt(projDir, 'scene-timeline.json', JSON.stringify(manifest.scene_timeline, null, 2));
+
+      setProgress({ done: 0, total: manifest.files.length });
+      for (let i = 0; i < manifest.files.length; i++) {
+        const f = manifest.files[i]!;
+        const res = await fetch(f.url, { credentials: 'include' });
+        if (!res.ok) throw new Error(`${f.path} 다운로드 실패 (${res.status})`);
+        await writeFileAt(projDir, f.path, await res.blob());
+        setProgress({ done: i + 1, total: manifest.files.length });
+      }
+      setExportMsg(`완료: ${dir.name}/${manifest.folder_name} — 파일 ${manifest.files.length + 2}개 저장됨`);
+    } catch (e) {
+      setErr((e as Error).message || '내보내기 중 오류가 발생했습니다');
+    } finally {
+      setExporting(false);
+      setProgress(null);
+    }
+  }
 
   const uploadMut = useMutation({
     mutationFn: (file: File) => {
@@ -74,12 +146,33 @@ export default function ExportVideo() {
       <Card className="p-4 mb-6">
         <h2 className="text-title-sm font-semibold mb-1">영상 제작용 패키지 내보내기</h2>
         <p className="text-body-md text-on-surface-variant mb-3">
-          승인된 스토리북을 project.json + scene-timeline.json + 미디어 묶음으로 내보냅니다.
+          승인된 스토리북을 지정한 로컬 폴더에 project.json + scene-timeline.json + 미디어로 저장합니다.
+          프로젝트별 하위 폴더가 자동으로 생성됩니다.
         </p>
-        <Button icon="archive" disabled={!approved} loading={exportMut.isPending} onClick={() => { setErr(''); exportMut.mutate(); }}>
+
+        {/* 내보내기 폴더 (videoflow) */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex-1 min-w-0 flex items-center gap-1.5 rounded-lg border border-outline/20 bg-surface-low px-3 py-2">
+            <Icon name="folder" className="text-primary text-[18px] shrink-0" />
+            <span className="text-body-md text-on-surface truncate">
+              {dirHandle ? dirHandle.name : '내보내기 폴더가 지정되지 않았습니다'}
+            </span>
+          </div>
+          <Button variant="secondary" className="h-9 px-4 text-label-sm shrink-0" onClick={() => chooseFolder()} disabled={exporting || !fsSupported}>
+            {dirHandle ? '폴더 변경' : '폴더 지정'}
+          </Button>
+        </div>
+
+        <Button icon="archive" disabled={!approved || exporting} loading={exporting} onClick={handleExport}>
           패키지 내보내기
         </Button>
         {!approved ? <p className="text-label-sm text-outline mt-2">스토리북 승인 후 사용할 수 있습니다.</p> : null}
+        {!fsSupported ? <p className="text-label-sm text-error mt-2">폴더 저장은 Chrome/Edge 브라우저에서만 지원됩니다.</p> : null}
+        {progress ? (
+          <p className="text-body-md text-on-surface-variant mt-2">
+            파일 저장 중… {progress.done} / {progress.total}
+          </p>
+        ) : null}
         {exportMsg ? <p className="text-body-md text-tertiary mt-2 break-all">{exportMsg}</p> : null}
         {err ? <p className="text-body-md text-error mt-2">{err}</p> : null}
       </Card>

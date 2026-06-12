@@ -1,42 +1,41 @@
-// 영상 제작용 패키지 내보내기 (PRD 11장) — 승인된 스토리북 → outputs/.
-// scene-timeline.json 은 8장 길이 모델과 1:1.
+// 영상 제작용 패키지 매니페스트 (PRD 11장, videoflow-export-spec.md)
+// 서버 디스크에 패키지를 만들지 않는다 — 클라이언트가 이 매니페스트를 받아
+// 지정한 로컬 폴더(videoflow)에 project.json / scene-timeline.json / media/* 를 직접 기록한다.
 import path from 'node:path';
-import fs from 'node:fs';
 import { asc, eq } from 'drizzle-orm';
 import { db, schema } from '../db/client.js';
-import { absPath, projectDir, writeJson, ensureDir } from '../lib/storage.js';
 import { buildScene } from './scene.js';
 
-export interface ExportResult {
-  dir: string; // 상대경로
-  files: string[];
+export interface ExportFileEntry {
+  /** 패키지 내 상대 경로 (예: media/12_abc.jpg, bgm_song.mp3) */
+  path: string;
+  /** 다운로드 URL (세션 인증 필요) */
+  url: string;
 }
 
-export async function exportPackage(projectId: number): Promise<ExportResult> {
+export interface ExportManifest {
+  folder_name: string;
+  project: Record<string, unknown>; // project.json 내용
+  scene_timeline: Record<string, unknown>; // scene-timeline.json 내용
+  files: ExportFileEntry[];
+}
+
+export async function buildExportManifest(projectId: number): Promise<ExportManifest> {
   const proj = (
     await db.select().from(schema.projects).where(eq(schema.projects.id, projectId)).limit(1)
   )[0];
   if (!proj) throw new Error('project not found');
 
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const outRel = path.posix.join(projectDir(projectId).outputs, `export-${stamp}`);
-  ensureDir(outRel);
+  const files: ExportFileEntry[] = [];
 
-  // BGM 파일 복사 처리
+  // BGM
   let bgmFile: string | null = null;
   if (proj.bgmPath) {
-    const bgmBaseName = path.posix.basename(proj.bgmPath);
-    const bgmDestRel = path.posix.join(outRel, `bgm_${bgmBaseName}`);
-    try {
-      fs.copyFileSync(absPath(proj.bgmPath), absPath(bgmDestRel));
-      bgmFile = path.posix.relative(outRel, bgmDestRel);
-    } catch {
-      /* BGM 파일 누락 대응 */
-    }
+    bgmFile = `bgm_${path.posix.basename(proj.bgmPath)}`;
+    files.push({ path: bgmFile, url: `/api/projects/${projectId}/bgm` });
   }
 
-  // project.json
-  writeJson(path.posix.join(outRel, 'project.json'), {
+  const projectJson = {
     id: proj.id,
     name: proj.name,
     org_name: proj.orgName,
@@ -47,7 +46,7 @@ export async function exportPackage(projectId: number): Promise<ExportResult> {
     cover_image_path: proj.coverImagePath,
     bgm_path: bgmFile,
     exported_at: new Date().toISOString(),
-  });
+  };
 
   const schedules = await db
     .select()
@@ -55,27 +54,18 @@ export async function exportPackage(projectId: number): Promise<ExportResult> {
     .where(eq(schema.schedules.projectId, projectId))
     .orderBy(asc(schema.schedules.dayIndex), asc(schema.schedules.sortOrder));
 
-  const mediaRel = path.posix.join(outRel, 'media');
-  ensureDir(mediaRel);
-
   const scenes = [];
   for (const sched of schedules) {
     const scene = await buildScene(projectId, sched.id, { onlyIncluded: true });
     if (!scene) continue;
     const photoSeconds = sched.photoSeconds ?? proj.defaultPhotoSeconds;
     const sceneMedia = scene.media.map((m) => {
-      // 미디어 파일 복사
-      const baseName = path.posix.basename(m.file_path);
-      const destRel = path.posix.join(mediaRel, `${m.id}_${baseName}`);
-      try {
-        fs.copyFileSync(absPath(m.file_path), absPath(destRel));
-      } catch {
-        /* 파일 없음은 건너뜀 */
-      }
+      const relPath = path.posix.join('media', `${m.id}_${path.posix.basename(m.file_path)}`);
+      files.push({ path: relPath, url: `/api/media/${m.id}` });
       return {
         id: m.id,
         type: m.type,
-        file: path.posix.relative(outRel, destRel),
+        file: relPath,
         duration_seconds:
           m.type === 'video' ? Number(m.duration_seconds ?? 0) : photoSeconds,
       };
@@ -93,20 +83,16 @@ export async function exportPackage(projectId: number): Promise<ExportResult> {
     });
   }
 
-  // scene-timeline.json (8장 모델 1:1)
-  writeJson(path.posix.join(outRel, 'scene-timeline.json'), {
+  const sceneTimeline = {
     project_id: projectId,
     total_seconds: scenes.reduce((a, s) => a + s.scene_seconds, 0),
     scenes,
-  });
-
-  const exportedFiles = ['project.json', 'scene-timeline.json', 'media/'];
-  if (bgmFile) {
-    exportedFiles.push(bgmFile);
-  }
+  };
 
   return {
-    dir: outRel,
-    files: exportedFiles,
+    folder_name: proj.name.replace(/[\\/:*?"<>|]/g, '_').trim() || `project-${projectId}`,
+    project: projectJson,
+    scene_timeline: sceneTimeline,
+    files,
   };
 }
