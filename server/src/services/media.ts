@@ -2,6 +2,7 @@
 import path from 'node:path';
 import ffmpeg from 'fluent-ffmpeg';
 import sharp from 'sharp';
+import { nanoid } from 'nanoid';
 import { env } from '../env.js';
 import { absPath, ensureDir, projectDir } from '../lib/storage.js';
 
@@ -82,6 +83,38 @@ function probeDuration(absSrc: string): Promise<number | null> {
       resolve(typeof d === 'number' ? Math.round(d * 100) / 100 : null);
     });
   });
+}
+
+export interface TrimResult {
+  relPath: string;
+  durationSeconds: number | null;
+  thumbPath: string | null;
+}
+
+/** 영상 구간 자르기 — 프레임 정확도를 위해 재인코딩(libx264/aac). 새 파일을 만들어 반환. */
+export async function trimVideo(
+  projectId: number,
+  relVideoPath: string,
+  startSec: number,
+  endSec: number,
+): Promise<TrimResult> {
+  const dirs = projectDir(projectId);
+  ensureDir(dirs.videos);
+  const baseName = nanoid(16);
+  const outRel = path.posix.join(dirs.videos, `${baseName}.mp4`);
+
+  await new Promise<void>((resolve, reject) => {
+    ffmpeg(absPath(relVideoPath))
+      .setStartTime(startSec)
+      .setDuration(endSec - startSec)
+      .outputOptions(['-c:v libx264', '-preset veryfast', '-crf 23', '-c:a aac', '-movflags +faststart'])
+      .on('end', () => resolve())
+      .on('error', (e) => reject(e))
+      .save(absPath(outRel));
+  });
+
+  const d = await makeVideoDerivatives(projectId, outRel, baseName);
+  return { relPath: outRel, durationSeconds: d.durationSeconds, thumbPath: d.thumbPath };
 }
 
 export function detectType(mimetype: string, filename: string): 'photo' | 'video' {

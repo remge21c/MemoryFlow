@@ -8,6 +8,7 @@ import { Button, Card, EmptyState, Icon, Pill, Spinner } from '../../components/
 import { VIDEO_STATUS_LABEL } from '../../lib/format';
 import {
   ensureRWPermission,
+  isDirHandleAlive,
   loadDirHandle,
   pickDirectory,
   saveDirHandle,
@@ -71,11 +72,24 @@ export default function ExportVideo() {
     if (!p.bgm_path && !window.confirm('배경 음악(BGM)이 설정되지 않았습니다.\nBGM 없이 패키지를 내보낼까요?')) {
       return;
     }
-    const dir = dirHandle ?? (await chooseFolder());
+    let dir = dirHandle ?? (await chooseFolder());
     if (!dir) return;
     if (!(await ensureRWPermission(dir))) {
       setErr('폴더 쓰기 권한이 필요합니다. 폴더를 다시 지정해주세요.');
       return;
+    }
+    // 저장해 둔 폴더 연결이 만료되었으면(폴더 이동/드라이브 변경 등) 자동으로 다시 선택
+    if (!(await isDirHandleAlive(dir))) {
+      setErr('');
+      dir = await chooseFolder();
+      if (!dir) {
+        setErr('폴더 연결이 만료되었습니다. 폴더를 다시 지정해주세요.');
+        return;
+      }
+      if (!(await ensureRWPermission(dir))) {
+        setErr('폴더 쓰기 권한이 필요합니다.');
+        return;
+      }
     }
 
     setExporting(true);
@@ -95,7 +109,14 @@ export default function ExportVideo() {
       }
       setExportMsg(`완료: ${dir.name}/${manifest.folder_name} — 파일 ${manifest.files.length + 2}개 저장됨`);
     } catch (e) {
-      setErr((e as Error).message || '내보내기 중 오류가 발생했습니다');
+      const msg = (e as Error).message ?? '';
+      // 쓰기 도중 핸들이 무효화된 경우 — 재지정 안내
+      if (msg.includes('state had changed') || (e as DOMException).name === 'InvalidStateError') {
+        setDirHandle(null);
+        setErr('폴더 연결이 만료되었습니다. "폴더 지정"을 눌러 다시 선택한 뒤 내보내기를 실행해주세요.');
+      } else {
+        setErr(msg || '내보내기 중 오류가 발생했습니다');
+      }
     } finally {
       setExporting(false);
       setProgress(null);

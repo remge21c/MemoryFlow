@@ -49,6 +49,20 @@ export async function loadDirHandle(key: string): Promise<FileSystemDirectoryHan
   }
 }
 
+/**
+ * 핸들이 아직 유효한지 검사. 폴더 이동/이름 변경, 드라이브 재연결 등으로
+ * "state had changed since it was read from disk" 류의 에러가 나면 false.
+ */
+export async function isDirHandleAlive(handle: FileSystemDirectoryHandle): Promise<boolean> {
+  try {
+    const it = (handle as unknown as { keys: () => AsyncIterableIterator<string> }).keys();
+    await it.next();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** 저장된 핸들의 읽기/쓰기 권한 확인(필요 시 재요청). */
 export async function ensureRWPermission(handle: FileSystemDirectoryHandle): Promise<boolean> {
   const h = handle as unknown as {

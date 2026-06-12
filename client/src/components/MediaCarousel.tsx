@@ -9,6 +9,7 @@ export function MediaCarousel({
   onItemClick,
   onDelete,
   deletingId,
+  onTrimVideo,
 }: {
   media: MediaDTO[];
   /** 슬라이드 탭 시 (라이트박스 열기 등). 없으면 단순 표시. */
@@ -16,6 +17,8 @@ export function MediaCarousel({
   /** 현재 슬라이드 삭제 버튼 (편집 화면용). */
   onDelete?: (mediaId: number) => void;
   deletingId?: number | null;
+  /** 현재 슬라이드가 영상일 때 자르기 버튼 (편집 화면용). */
+  onTrimVideo?: (media: MediaDTO) => void;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [idx, setIdx] = useState(0);
@@ -45,7 +48,7 @@ export function MediaCarousel({
     const el = trackRef.current;
     const slide = el?.children[i] as HTMLElement | undefined;
     if (!el || !slide) return;
-    el.scrollTo({ left: slide.offsetLeft + slide.offsetWidth / 2 - el.clientWidth / 2, behavior: 'smooth' });
+    el.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
   }
 
   const cur = media[Math.min(idx, media.length - 1)]!;
@@ -74,8 +77,9 @@ export function MediaCarousel({
               ) : null}
             </>
           );
-          const slideClass = `relative shrink-0 snap-center overflow-hidden rounded-xl bg-surface-container aspect-[4/3] ${
-            multi ? 'w-[86%] first:ml-[7%] last:mr-[7%]' : 'w-full'
+          // 왼쪽 붙임 정렬 — 첫 장은 단일 사진처럼 좌측에 딱 붙고, 다음 장이 오른쪽에 살짝 보임
+          const slideClass = `relative shrink-0 snap-start overflow-hidden rounded-xl bg-surface-container aspect-[4/3] ${
+            multi ? 'w-[86%]' : 'w-full'
           }`;
           return onItemClick ? (
             <button key={m.id} className={slideClass} onClick={() => onItemClick(i)} aria-label={`${i + 1}번째 미디어 전체화면으로 보기`}>
@@ -89,16 +93,30 @@ export function MediaCarousel({
         })}
       </div>
 
-      {/* 현재 슬라이드 삭제 (편집용) */}
-      {onDelete ? (
-        <button
-          onClick={() => onDelete(cur.id)}
-          disabled={deletingId === cur.id}
-          aria-label="이 사진 삭제"
-          className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 disabled:opacity-50 transition-colors"
-        >
-          <Icon name={deletingId === cur.id ? 'hourglass_empty' : 'close'} className="text-[18px]" />
-        </button>
+      {/* 현재 슬라이드 액션 (편집용): 영상 자르기 / 삭제 */}
+      {onTrimVideo || onDelete ? (
+        <div className="absolute top-2 right-2 z-10 flex gap-1.5">
+          {onTrimVideo && cur.type === 'video' ? (
+            <button
+              onClick={() => onTrimVideo(cur)}
+              aria-label="영상 자르기"
+              title="영상 자르기"
+              className="w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+            >
+              <Icon name="content_cut" className="text-[16px]" />
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button
+              onClick={() => onDelete(cur.id)}
+              disabled={deletingId === cur.id}
+              aria-label="이 사진 삭제"
+              className="w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 disabled:opacity-50 transition-colors"
+            >
+              <Icon name={deletingId === cur.id ? 'hourglass_empty' : 'close'} className="text-[18px]" />
+            </button>
+          ) : null}
+        </div>
       ) : null}
 
       {/* 데스크톱용 이전/다음 버튼 */}

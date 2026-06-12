@@ -104,6 +104,16 @@ export const changePasswordSchema = z.object({
 // ── 최종 영상 상태 (S-29) ──────────────────────────────
 export const updateVideoStatusSchema = z.object({ status: z.enum(VIDEO_STATUS) });
 
+// ── 영상 구간 자르기 ───────────────────────────────────
+export const trimMediaSchema = z
+  .object({
+    start_seconds: z.number().min(0),
+    end_seconds: z.number().positive(),
+  })
+  .refine((v) => v.end_seconds - v.start_seconds >= 1, {
+    message: '잘라낼 구간은 1초 이상이어야 합니다',
+  });
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type JoinInput = z.infer<typeof joinSchema>;

@@ -64,9 +64,9 @@ export function MediaLightbox({
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col" onClick={onClose}>
-      {/* 상단 바 */}
+      {/* 상단 바 — 본문 폭에 맞춰 중앙 정렬 */}
       <div
-        className="flex items-center justify-between px-4 h-14 text-white/90 shrink-0"
+        className="w-full max-w-3xl mx-auto flex items-center justify-between px-4 h-14 text-white/90 shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
         <span className="text-body-md">{i + 1} / {items.length}</span>
@@ -132,18 +132,18 @@ export function MediaLightbox({
         ) : null}
       </div>
 
-      {/* 스토리 (읽기 전용) */}
+      {/* 스토리 (읽기 전용) — 본문 폭에 맞춰 중앙 정렬 */}
       {story ? (
-        <div className="shrink-0 px-4 py-2 text-left" onClick={(e) => e.stopPropagation()}>
+        <div className="w-full max-w-3xl mx-auto shrink-0 px-4 py-2 text-left" onClick={(e) => e.stopPropagation()}>
           <p className="text-white/90 text-body-md leading-relaxed whitespace-pre-line max-h-20 overflow-y-auto">
             {story}
           </p>
         </div>
       ) : null}
 
-      {/* 하단 썸네일 스트립 */}
+      {/* 하단 썸네일 스트립 — 본문 폭에 맞춰 중앙 정렬 */}
       <div
-        className="flex items-center gap-2 overflow-x-auto no-scrollbar px-4 py-3 shrink-0"
+        className="w-full max-w-3xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar px-4 py-3 shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
         {items.map((m, idx) => (
