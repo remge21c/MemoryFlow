@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import type { ProjectDTO } from '@memoryflow/shared';
+import { apiGet } from './lib/api';
 import { useMe } from './lib/auth';
 import { useActiveProject } from './stores/activeProject';
 import { Spinner } from './components/ui';
@@ -33,12 +37,32 @@ function RequireAuth({ children, admin }: { children: ReactNode; admin?: boolean
 
 function RoleHome() {
   const { data, isLoading } = useMe();
-  const active = useActiveProject((s) => s.active);
+  const { active, setActive } = useActiveProject();
+  const user = data?.user;
+
+  // 활성 프로젝트가 없으면 첫 프로젝트를 자동 활성화 → 접속 즉시 피드로
+  const needAutoActivate = !!user && !active;
+  const { data: projData, isLoading: projLoading } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => apiGet<{ projects: ProjectDTO[] }>('/projects'),
+    enabled: needAutoActivate,
+  });
+  const first = projData?.projects[0];
+
+  useEffect(() => {
+    if (needAutoActivate && first) {
+      setActive({ id: first.id, name: first.name, org_name: first.org_name ?? undefined });
+    }
+  }, [needAutoActivate, first, setActive]);
+
   if (isLoading) return <Spinner />;
-  if (!data?.user) return <Navigate to="/login" replace />;
-  if (data.user.is_admin) return <Navigate to={active ? `/admin/projects/${active.id}` : '/admin'} replace />;
-  // 업로더 메인: 선택된(활성) 프로젝트 페이지로. 없으면 목록.
-  return <Navigate to={active ? `/projects/${active.id}` : '/projects'} replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!active) {
+    if (projLoading || first) return <Spinner />; // 자동 활성화 진행 중
+    // 합류/생성한 프로젝트가 하나도 없음 → 목록(빈 상태 안내)으로
+    return <Navigate to={user.is_admin ? '/admin' : '/projects'} replace />;
+  }
+  return <Navigate to={user.is_admin ? `/admin/projects/${active.id}` : `/projects/${active.id}`} replace />;
 }
 
 export default function App() {

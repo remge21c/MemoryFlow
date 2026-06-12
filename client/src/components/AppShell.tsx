@@ -255,8 +255,8 @@ function Sidebar({
           <Icon name="logout" className="text-[20px] text-on-surface-variant" />
           로그아웃
         </button>
-        <p className="px-3 pt-2.5 text-label-sm text-on-surface-variant truncate" title={user.email}>
-          {user.name}
+        <p className="px-3 pt-2.5 text-label-sm text-on-surface-variant truncate" title={user.name}>
+          {user.email}
         </p>
       </div>
     </aside>
