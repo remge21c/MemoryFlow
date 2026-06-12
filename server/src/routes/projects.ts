@@ -7,12 +7,11 @@ import { requireAdmin, requireAuth, requireMember, requireProjectAdmin } from '.
 import { HttpError } from '../lib/errors.js';
 import { ensureStorybook, mediaToDTO, scheduleToDTO } from '../services/scene.js';
 import { dayCount, dateForDay } from '../lib/date.js';
-import { projectDir, removeFile, saveBuffer, absPath } from '../lib/storage.js';
+import { projectDir, removeFile, absPath } from '../lib/storage.js';
 import fs from 'node:fs';
 import { verifyPassword } from '../lib/password.js';
-import { nanoid } from 'nanoid';
 import { streamFile } from '../lib/stream.js';
-import path from 'node:path';
+import { AUDIO_EXTENSIONS, saveUploadedFile } from '../services/upload.js';
 
 function toDTO(p: typeof schema.projects.$inferSelect): ProjectDTO {
   return {
@@ -237,17 +236,17 @@ export async function projectRoutes(app: FastifyInstance) {
     await requireProjectAdmin(req, id);
     const file = await req.file();
     if (!file) throw new HttpError(400, '오디오 파일이 필요합니다');
-    const buffer = await file.toBuffer();
-    const ext = path.extname(file.filename) || '.mp3';
-    const rel = path.posix.join(projectDir(id).bgm, `${nanoid(16)}${ext}`);
-    
+    const rel = await saveUploadedFile(file, projectDir(id).bgm, {
+      allowedExt: AUDIO_EXTENSIONS,
+      maxBytes: 50 * 1024 * 1024, // 50MB
+    });
+
     // 기존 BGM 있으면 로컬 파일 삭제
     const proj = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
     if (proj?.bgmPath) {
       removeFile(proj.bgmPath);
     }
-    
-    saveBuffer(rel, buffer);
+
     await db.update(schema.projects).set({ bgmPath: rel }).where(eq(schema.projects.id, id));
     
     const updated = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];

@@ -1,14 +1,13 @@
 import type { FastifyInstance } from 'fastify';
-import path from 'node:path';
-import { nanoid } from 'nanoid';
 import { asc, eq } from 'drizzle-orm';
 import { updateVideoStatusSchema } from '@memoryflow/shared';
 import type { VideoDTO } from '@memoryflow/shared';
 import { db, schema } from '../db/client.js';
 import { requireMember, requireProjectAdmin } from '../lib/guards.js';
 import { HttpError } from '../lib/errors.js';
-import { projectDir, removeFile, saveBuffer } from '../lib/storage.js';
+import { projectDir, removeFile } from '../lib/storage.js';
 import { streamFile } from '../lib/stream.js';
+import { saveUploadedFile, VIDEO_EXTENSIONS } from '../services/upload.js';
 
 function toDTO(v: typeof schema.projectVideos.$inferSelect): VideoDTO {
   return {
@@ -45,10 +44,10 @@ export async function videoRoutes(app: FastifyInstance) {
     await requireProjectAdmin(req, pid);
     const file = await req.file();
     if (!file) throw new HttpError(400, '영상 파일이 필요합니다');
-    const buffer = await file.toBuffer();
-    const ext = path.extname(file.filename) || '.mp4';
-    const rel = path.posix.join(projectDir(pid).finalVideos, `${nanoid(16)}${ext}`);
-    saveBuffer(rel, buffer);
+    const rel = await saveUploadedFile(file, projectDir(pid).finalVideos, {
+      allowedExt: VIDEO_EXTENSIONS,
+      maxBytes: 1024 * 1024 * 1024, // 1GB
+    });
     const inserted = await db
       .insert(schema.projectVideos)
       .values({ projectId: pid, filePath: rel })

@@ -38,7 +38,8 @@ async function assertSharedMedia(projectId: number, mediaId: number): Promise<st
 }
 
 export async function shareRoutes(app: FastifyInstance) {
-  app.get('/:token', async (req) => {
+  // 비로그인 공개 경로 — 토큰 무차별 대입 + 무거운 집계 반복 호출 방어
+  app.get('/:token', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (req) => {
     const token = (req.params as { token: string }).token;
     const { projectId } = await resolveShare(token);
 

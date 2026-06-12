@@ -3,7 +3,7 @@ import { desc, eq } from 'drizzle-orm';
 import { createShareLinkSchema } from '@memoryflow/shared';
 import type { ShareLinkDTO } from '@memoryflow/shared';
 import { db, schema } from '../db/client.js';
-import { requireProjectAdmin } from '../lib/guards.js';
+import { requireAdmin, requireProjectAdmin } from '../lib/guards.js';
 import { generateToken, tokenHash } from '../lib/hash.js';
 import { HttpError } from '../lib/errors.js';
 
@@ -50,6 +50,7 @@ export async function shareLinkRoutes(app: FastifyInstance) {
   });
 
   app.post('/share-links/:id/deactivate', async (req) => {
+    requireAdmin(req); // 존재 여부 노출 전에 인증 먼저
     const id = Number((req.params as { id: string }).id);
     const r = await db.select().from(schema.shareLinks).where(eq(schema.shareLinks.id, id)).limit(1);
     if (!r[0]) throw new HttpError(404, '공유 링크를 찾을 수 없습니다');

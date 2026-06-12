@@ -17,9 +17,10 @@
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^10.0.2",
     "@fastify/multipart": "^9.0.3",
+    "@fastify/rate-limit": "^11.0.0",
     "@memoryflow/shared": "workspace:*",
-    "better-sqlite3": "^11.8.1",
     "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.8.1",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.38.4",
     "fastify": "^5.2.1",
@@ -29,8 +30,8 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.12",
     "@types/bcryptjs": "^2.4.6",
+    "@types/better-sqlite3": "^7.6.12",
     "@types/fluent-ffmpeg": "^2.1.27",
     "@types/node": "^22.10.7",
     "tsx": "^4.19.2",

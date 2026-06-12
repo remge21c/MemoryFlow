@@ -24,8 +24,8 @@ async function resolveInvite(token: string) {
 }
 
 export async function joinRoutes(app: FastifyInstance) {
-  // 토큰 검증 (S-02 진입)
-  app.get('/:token', async (req): Promise<TokenValidationResult> => {
+  // 토큰 검증 (S-02 진입) — 토큰 무차별 대입 방어
+  app.get('/:token', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (req): Promise<TokenValidationResult> => {
     const token = (req.params as { token: string }).token;
     const r = await resolveInvite(token);
     if (!r || !r.invite.isActive) return { valid: false, expired: false, project_name: '' };
@@ -33,8 +33,8 @@ export async function joinRoutes(app: FastifyInstance) {
     return { valid: !expired, expired, project_name: r.projectName };
   });
 
-  // 합류 (가입 또는 기존 계정 로그인 후 합류)
-  app.post('/', async (req, reply) => {
+  // 합류 (가입 또는 기존 계정 로그인 후 합류) — 비밀번호 brute force 방어
+  app.post('/', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req, reply) => {
     const body = joinSchema.parse(req.body);
     const r = await resolveInvite(body.token);
     if (!r || !r.invite.isActive) throw new HttpError(400, '유효하지 않은 초대 링크입니다');

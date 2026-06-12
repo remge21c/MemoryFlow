@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
+import rateLimit from '@fastify/rate-limit';
 import { ZodError } from 'zod';
 import { env } from './env.js';
 import { migrate } from './db/migrate.js';
@@ -31,10 +32,21 @@ export async function buildApp() {
   });
 
   await app.register(cors, {
-    origin: true,
+    // 개발: vite dev 서버 등 모든 origin 허용. 프로덕션: CORS_ORIGIN 목록만 (미설정 시 동일 출처만).
+    origin: env.isProd ? (env.CORS_ORIGINS.length > 0 ? env.CORS_ORIGINS : false) : true,
     credentials: true,
   });
   await app.register(cookie, { secret: env.SESSION_SECRET });
+
+  // 라우트별 opt-in rate limit (로그인/가입/초대합류/공유열람 등 비인증·민감 경로)
+  await app.register(rateLimit, {
+    global: false,
+    errorResponseBuilder: () => ({
+      statusCode: 429,
+      error: 'rate_limited',
+      message: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요',
+    }),
+  });
 
   // 빈 본문 JSON 허용 (본문 없는 POST: 승인/로그아웃/무효화 등)
   app.addContentTypeParser('application/json', { parseAs: 'string' }, (_req, body, done) => {
@@ -70,6 +82,11 @@ export async function buildApp() {
     }
     if ((err as { statusCode?: number }).statusCode === 413) {
       return reply.status(413).send({ error: 'too_large', message: '파일이 너무 큽니다' });
+    }
+    if ((err as { statusCode?: number }).statusCode === 429) {
+      return reply
+        .status(429)
+        .send({ error: 'rate_limited', message: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요' });
     }
     reply.log.error(err);
     return reply.status(500).send({ error: 'internal', message: '서버 오류' });

@@ -4,21 +4,8 @@ import { db, schema } from '../db/client.js';
 import { assertNotLocked, isProjectLocked, requireAuth, requireMember } from '../lib/guards.js';
 import { HttpError } from '../lib/errors.js';
 import { buildScene } from '../services/scene.js';
-import { addMediaToContribution, type UploadedFile } from '../services/upload.js';
-
-async function collectMultipart(req: import('fastify').FastifyRequest) {
-  const fields: Record<string, string> = {};
-  const files: UploadedFile[] = [];
-  for await (const part of req.parts()) {
-    if (part.type === 'file') {
-      const buffer = await part.toBuffer();
-      files.push({ filename: part.filename, mimetype: part.mimetype, buffer });
-    } else {
-      fields[part.fieldname] = String(part.value);
-    }
-  }
-  return { fields, files };
-}
+import { addMediaToContribution, collectMultipartUpload, discardUploads } from '../services/upload.js';
+import { removeFile } from '../lib/storage.js';
 
 async function contributionContext(contributionId: number) {
   const r = await db
@@ -49,19 +36,33 @@ export async function contributionRoutes(app: FastifyInstance) {
     const u = await requireMember(req, pid);
     assertNotLocked(await isProjectLocked(pid));
 
-    const { fields, files } = await collectMultipart(req);
+    const sched = (
+      await db
+        .select({ id: schema.schedules.id })
+        .from(schema.schedules)
+        .where(and(eq(schema.schedules.id, sid), eq(schema.schedules.projectId, pid)))
+        .limit(1)
+    )[0];
+    if (!sched) throw new HttpError(404, '일정을 찾을 수 없습니다');
+
+    const { fields, files } = await collectMultipartUpload(req, pid);
     const storyText = (fields.story_text ?? '').trim();
     if (!storyText && files.length === 0) {
       throw new HttpError(400, '스토리 또는 사진/영상을 하나 이상 입력하세요');
     }
 
-    const inserted = await db
-      .insert(schema.contributions)
-      .values({ projectId: pid, scheduleId: sid, uploaderId: u.id, storyText })
-      .returning({ id: schema.contributions.id });
-    const contributionId = inserted[0]!.id;
-
-    if (files.length) await addMediaToContribution(pid, contributionId, files);
+    let contributionId: number;
+    try {
+      const inserted = await db
+        .insert(schema.contributions)
+        .values({ projectId: pid, scheduleId: sid, uploaderId: u.id, storyText })
+        .returning({ id: schema.contributions.id });
+      contributionId = inserted[0]!.id;
+      if (files.length) await addMediaToContribution(pid, contributionId, files);
+    } catch (e) {
+      discardUploads(files);
+      throw e;
+    }
 
     const scene = await buildScene(pid, sid, { userId: u.id });
     return { scene, contribution_id: contributionId };
@@ -112,20 +113,39 @@ export async function contributionRoutes(app: FastifyInstance) {
     const c = await contributionContext(id);
     if (c.uploaderId !== u.id && !u.is_admin) throw new HttpError(403, '본인 기여만 수정할 수 있습니다');
     if (!u.is_admin) assertNotLocked(await isProjectLocked(c.projectId));
-    const { files } = await collectMultipart(req);
-    if (files.length) await addMediaToContribution(c.projectId, id, files);
+    const { files } = await collectMultipartUpload(req, c.projectId);
+    try {
+      if (files.length) await addMediaToContribution(c.projectId, id, files);
+    } catch (e) {
+      discardUploads(files);
+      throw e;
+    }
     const scene = await buildScene(c.projectId, c.scheduleId, { userId: u.id });
     return { scene };
   });
 
-  // 기여 삭제 (소유자, 미잠금)
+  // 기여 삭제 (소유자, 미잠금) — 첨부 미디어 행/파일도 함께 정리 (FK: media → contributions)
   app.delete('/contributions/:id', async (req) => {
     const id = Number((req.params as { id: string }).id);
     const u = requireAuth(req);
     const c = await contributionContext(id);
     if (c.uploaderId !== u.id && !u.is_admin) throw new HttpError(403, '본인 기여만 삭제할 수 있습니다');
     if (!u.is_admin) assertNotLocked(await isProjectLocked(c.projectId));
+    const mediaRows = await db
+      .select({
+        filePath: schema.media.filePath,
+        thumbPath: schema.media.thumbPath,
+        previewPath: schema.media.previewPath,
+      })
+      .from(schema.media)
+      .where(eq(schema.media.contributionId, id));
+    await db.delete(schema.media).where(eq(schema.media.contributionId, id));
     await db.delete(schema.contributions).where(eq(schema.contributions.id, id));
+    for (const m of mediaRows) {
+      removeFile(m.filePath);
+      removeFile(m.thumbPath);
+      removeFile(m.previewPath);
+    }
     return { ok: true };
   });
 }
