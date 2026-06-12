@@ -1,4 +1,6 @@
 // AI 어댑터 (PRD 9장) — 동기 호출, 큐 없음, 30초 타임아웃.
+// 제공자: anthropic | gemini | lmstudio | stub.
+// 1차 제공자(gemini 등) 호출이 실패하면 LM Studio(로컬, OpenAI 호환)로 자동 폴백한다.
 // 미설정(AI_PROVIDER=stub)이면 로컬 스텁이 같은 인터페이스로 동작 → AI 없어도 편집/승인 가능.
 import { env } from '../env.js';
 import { targetChars } from '@memoryflow/shared';
@@ -25,25 +27,51 @@ export async function mergeStories(
 ): Promise<string> {
   const filled = perspectives.filter((p) => p.text.trim().length > 0);
   const chars = targetChars(sceneSeconds);
-  if (env.AI_PROVIDER === 'anthropic' && env.ANTHROPIC_API_KEY) {
-    return withTimeout(anthropicMerge(filled, chars, sceneTitle));
-  }
-  if (env.AI_PROVIDER === 'gemini' && env.GEMINI_API_KEY) {
-    return withTimeout(geminiMerge(filled, chars, sceneTitle));
-  }
-  return stubMerge(filled, chars);
+  const prompt =
+    `다음은 "${sceneTitle}" 장면에 대한 여러 사람의 한 줄 소감입니다. ` +
+    `이를 따뜻하고 자연스러운 한 단락 내레이션으로 합쳐주세요. ` +
+    `약 ${chars}자 내외, 영상 자막으로 읽기 좋게. 군더더기 없이 내레이션만 출력하세요.\n\n` +
+    filled.map((p) => `- ${p.name}: ${p.text}`).join('\n');
+  const out = await callAI(prompt);
+  return out ?? stubMerge(filled, chars);
 }
 
 /** 내레이션을 장면 길이에 맞게 요약. */
 export async function summarizeToLength(text: string, sceneSeconds: number): Promise<string> {
   const chars = targetChars(sceneSeconds);
-  if (env.AI_PROVIDER === 'anthropic' && env.ANTHROPIC_API_KEY) {
-    return withTimeout(anthropicSummarize(text, chars));
+  const prompt =
+    `다음 내레이션을 의미를 보존하면서 약 ${chars}자 이내로 자연스럽게 줄여주세요. ` +
+    `내레이션만 출력하세요.\n\n${text}`;
+  const out = await callAI(prompt);
+  return out ?? stubSummarize(text, chars);
+}
+
+/**
+ * 설정된 제공자로 호출, 실패하면 LM Studio 폴백, 그것도 실패하면 throw.
+ * 제공자가 stub(미설정)이면 null 반환 → 호출부에서 스텁 사용.
+ */
+async function callAI(prompt: string): Promise<string | null> {
+  let primary: (() => Promise<string>) | null = null;
+  if (env.AI_PROVIDER === 'anthropic' && env.ANTHROPIC_API_KEY) primary = () => anthropicGenerate(prompt);
+  else if (env.AI_PROVIDER === 'gemini' && env.GEMINI_API_KEY) primary = () => geminiGenerate(prompt);
+  else if (env.AI_PROVIDER === 'lmstudio') primary = () => lmstudioGenerate(prompt);
+  if (!primary) return null;
+
+  try {
+    return await withTimeout(primary());
+  } catch (e) {
+    console.error(`[ai] ${env.AI_PROVIDER} 호출 실패:`, (e as Error).message);
+    if (env.AI_PROVIDER !== 'lmstudio') {
+      try {
+        const out = await withTimeout(lmstudioGenerate(prompt));
+        console.log('[ai] LM Studio 폴백 성공');
+        return out;
+      } catch (e2) {
+        console.error('[ai] LM Studio 폴백도 실패:', (e2 as Error).message);
+      }
+    }
+    throw e;
   }
-  if (env.AI_PROVIDER === 'gemini' && env.GEMINI_API_KEY) {
-    return withTimeout(geminiSummarize(text, chars));
-  }
-  return stubSummarize(text, chars);
 }
 
 // ── 스텁 구현 (로컬, 결정적) ─────────────────────────────
@@ -74,132 +102,84 @@ function stubSummarize(text: string, chars: number): string {
   return out.trim();
 }
 
-// ── Anthropic 구현 (선택) ────────────────────────────────
-async function anthropicMerge(
-  perspectives: PerspectiveInput[],
-  chars: number,
-  sceneTitle: string,
-): Promise<string> {
-  const { default: Anthropic } = await import('@anthropic-ai/sdk');
-  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-  const body = perspectives.map((p) => `- ${p.name}: ${p.text}`).join('\n');
-  const msg = await client.messages.create({
-    model: env.AI_MODEL,
-    max_tokens: 1024,
-    messages: [
-      {
-        role: 'user',
-        content:
-          `다음은 "${sceneTitle}" 장면에 대한 여러 사람의 한 줄 소감입니다. ` +
-          `이를 따뜻하고 자연스러운 한 단락 내레이션으로 합쳐주세요. ` +
-          `약 ${chars}자 내외, 영상 자막으로 읽기 좋게. 군더더기 없이 내레이션만 출력하세요.\n\n${body}`,
-      },
-    ],
-  });
-  return extractText(msg);
-}
-
-async function anthropicSummarize(text: string, chars: number): Promise<string> {
+// ── Anthropic ────────────────────────────────────────────
+async function anthropicGenerate(prompt: string): Promise<string> {
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
   const msg = await client.messages.create({
     model: env.AI_MODEL,
     max_tokens: 1024,
-    messages: [
-      {
-        role: 'user',
-        content:
-          `다음 내레이션을 의미를 보존하면서 약 ${chars}자 이내로 자연스럽게 줄여주세요. ` +
-          `내레이션만 출력하세요.\n\n${text}`,
-      },
-    ],
+    messages: [{ role: 'user', content: prompt }],
   });
-  return extractText(msg);
-}
-
-function extractText(msg: { content: Array<{ type: string; text?: string }> }): string {
   return msg.content
     .filter((c) => c.type === 'text')
-    .map((c) => c.text ?? '')
+    .map((c) => ('text' in c ? c.text : ''))
     .join('')
     .trim();
 }
 
-// ── Gemini 구현 (가성비 모델 지원) ────────────────────────
-async function geminiMerge(
-  perspectives: PerspectiveInput[],
-  chars: number,
-  sceneTitle: string,
-): Promise<string> {
-  const apiKey = env.GEMINI_API_KEY;
+// ── Gemini ───────────────────────────────────────────────
+async function geminiGenerate(prompt: string): Promise<string> {
   const model = env.AI_MODEL || 'gemini-2.5-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-  
-  const body = perspectives.map((p) => `- ${p.name}: ${p.text}`).join('\n');
-  const prompt = `다음은 "${sceneTitle}" 장면에 대한 여러 사람의 한 줄 소감입니다. ` +
-    `이를 따뜻하고 자연스러운 한 단락 내레이션으로 합쳐주세요. ` +
-    `약 ${chars}자 내외, 영상 자막으로 읽기 좋게. 군더더기 없이 내레이션만 출력하세요.\n\n${body}`;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  // 키는 URL이 아니라 헤더로 전달 (로그/프록시 노출 방지)
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': env.GEMINI_API_KEY,
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 1024 },
+      }),
     },
-    body: JSON.stringify({
-      contents: [{
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        maxOutputTokens: 1024,
-      }
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Gemini API Error: ${response.status} - ${errText}`);
+  );
+  if (!res.ok) {
+    throw new Error(`Gemini API Error: ${res.status} - ${(await res.text()).slice(0, 300)}`);
   }
-
-  const resJson = await response.json() as any;
-  const text = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) {
-    throw new Error('Invalid response structure from Gemini API');
-  }
+  const json = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Invalid response structure from Gemini API');
   return text.trim();
 }
 
-async function geminiSummarize(text: string, chars: number): Promise<string> {
-  const apiKey = env.GEMINI_API_KEY;
-  const model = env.AI_MODEL || 'gemini-2.5-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-  
-  const prompt = `다음 내레이션을 의미를 보존하면서 약 ${chars}자 이내로 자연스럽게 줄여주세요. ` +
-    `내레이션만 출력하세요.\n\n${text}`;
+// ── LM Studio (OpenAI 호환 로컬 서버) ─────────────────────
+let cachedLmModel: string | null = null;
 
-  const response = await fetch(url, {
+async function lmstudioModel(): Promise<string> {
+  if (env.LMSTUDIO_MODEL) return env.LMSTUDIO_MODEL;
+  if (cachedLmModel) return cachedLmModel;
+  const res = await fetch(`${env.LMSTUDIO_BASE_URL}/models`);
+  if (!res.ok) throw new Error(`LM Studio 응답 없음 (${res.status}) — 서버가 켜져 있나요?`);
+  const json = (await res.json()) as { data?: { id: string }[] };
+  const id = json.data?.[0]?.id;
+  if (!id) throw new Error('LM Studio에 로드된 모델이 없습니다');
+  cachedLmModel = id;
+  return id;
+}
+
+async function lmstudioGenerate(prompt: string): Promise<string> {
+  const model = await lmstudioModel();
+  const res = await fetch(`${env.LMSTUDIO_BASE_URL}/chat/completions`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        maxOutputTokens: 1024,
-      }
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 1024,
+      temperature: 0.7,
     }),
   });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Gemini API Error: ${response.status} - ${errText}`);
+  if (!res.ok) {
+    cachedLmModel = null; // 모델 교체 등으로 무효해졌을 수 있음
+    throw new Error(`LM Studio API Error: ${res.status} - ${(await res.text()).slice(0, 300)}`);
   }
-
-  const resJson = await response.json() as any;
-  const resText = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!resText) {
-    throw new Error('Invalid response structure from Gemini API');
-  }
-  return resText.trim();
+  const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const text = json.choices?.[0]?.message?.content;
+  if (!text) throw new Error('Invalid response structure from LM Studio');
+  return text.trim();
 }

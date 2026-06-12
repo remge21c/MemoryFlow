@@ -30,10 +30,14 @@ export const env = {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),
-  AI_PROVIDER: (process.env.AI_PROVIDER ?? 'stub') as 'stub' | 'anthropic' | 'gemini',
+  AI_PROVIDER: (process.env.AI_PROVIDER ?? 'stub') as 'stub' | 'anthropic' | 'gemini' | 'lmstudio',
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? '',
   AI_MODEL: process.env.AI_MODEL ?? 'claude-opus-4-8',
+  /** LM Studio (OpenAI 호환 로컬 서버) — 1차 제공자 실패 시 폴백으로도 사용 */
+  LMSTUDIO_BASE_URL: process.env.LMSTUDIO_BASE_URL ?? 'http://localhost:1234/v1',
+  /** 비우면 LM Studio에 로드된 모델을 자동 사용 */
+  LMSTUDIO_MODEL: process.env.LMSTUDIO_MODEL ?? '',
   FFMPEG_PATH: process.env.FFMPEG_PATH ?? '',
   FFPROBE_PATH: process.env.FFPROBE_PATH ?? '',
   isProd,

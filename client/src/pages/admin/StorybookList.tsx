@@ -38,6 +38,29 @@ interface StorybookResp {
   total_seconds: number;
 }
 
+/** 장면 사진 그리드 — 모든 사진을 펼쳐서 표시. 영상은 재생 아이콘만 (재생 불가). */
+function SceneThumbs({ media, dimmed }: { media: SceneMedia[]; dimmed: boolean }) {
+  return (
+    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
+      {media.map((m) => (
+        <div key={m.id} className="relative rounded-md overflow-hidden bg-surface-container aspect-square">
+          <img
+            src={m.thumb_url ?? m.url}
+            className={`w-full h-full object-cover ${dimmed ? 'opacity-50' : ''}`}
+            alt=""
+            loading="lazy"
+          />
+          {m.type === 'video' ? (
+            <span className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+              <Icon name="play_circle" fill className="text-white text-[22px]" />
+            </span>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function SceneRowSkeleton() {
   return (
     <div aria-hidden="true" className="p-4 flex items-center gap-3 bg-surface-lowest rounded-lg border border-outline/10">
@@ -199,95 +222,80 @@ export default function StorybookList() {
                           </div>
                         </div>
 
-                        {/* 2. 바디 콘텐츠 */}
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                          {/* 대표 이미지 썸네일 */}
+                        {/* 2. 바디 콘텐츠 — 1열: 사진 → 내레이션 → 업로더 메모 */}
+                        <div className="space-y-3">
+                          {/* 사진 전체 표시 */}
                           {displayMedia.length > 0 ? (
-                            <div className="md:col-span-4 lg:col-span-3 col-span-1">
-                              <div className="relative rounded-lg overflow-hidden bg-surface-container aspect-[4/3] w-full">
-                                <img 
-                                  src={displayMedia[0]?.thumb_url ?? displayMedia[0]?.url} 
-                                  className={`w-full h-full object-cover ${includedMedia.length === 0 ? 'opacity-50' : ''}`} 
-                                  alt="" 
-                                  loading="lazy"
-                                />
-                                {displayMedia.length > 1 ? (
-                                  <span className="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
-                                    +{displayMedia.length - 1}장
-                                  </span>
-                                ) : null}
+                            <div>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <p className="text-label-sm text-outline/80 font-semibold flex items-center gap-1">
+                                  <Icon name="photo_library" className="text-[14px]" />
+                                  {includedMedia.length > 0 ? `선택된 사진 ${includedMedia.length}장` : `사진 ${displayMedia.length}장`}
+                                </p>
                                 {includedMedia.length === 0 ? (
-                                  <span className="absolute top-1.5 left-1.5 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
-                                    미선택
-                                  </span>
+                                  <span className="bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">미선택</span>
                                 ) : null}
                               </div>
+                              <SceneThumbs media={displayMedia} dimmed={includedMedia.length === 0} />
                             </div>
                           ) : (
-                            <div className="md:col-span-4 lg:col-span-3 col-span-1">
-                              <div className="rounded-lg border border-dashed border-outline/20 bg-surface-lowest aspect-[4/3] flex flex-col items-center justify-center text-outline text-label-sm">
-                                <Icon name="image_not_supported" className="text-[20px] mb-1 opacity-60" />
-                                사진 없음
-                              </div>
+                            <div className="rounded-lg border border-dashed border-outline/20 bg-surface-lowest py-5 flex flex-col items-center justify-center text-outline text-label-sm">
+                              <Icon name="image_not_supported" className="text-[20px] mb-1 opacity-60" />
+                              사진 없음
                             </div>
                           )}
 
-                          {/* 내레이션 & 업로더 사역 메모 */}
-                          <div className="md:col-span-8 lg:col-span-9 flex flex-col justify-between space-y-3">
-                            <div className="space-y-2">
-                              {/* 내레이션 대본 */}
-                              {s.has_narration ? (
-                                <div className="rounded-lg bg-primary/5 border border-primary/10 p-3">
-                                  <p className="text-label-sm text-primary font-bold flex items-center gap-1 mb-1">
-                                    <Icon name="volume_up" className="text-[16px]" />
-                                    최종 내레이션 대본
-                                  </p>
-                                  <p className="text-body-md text-on-surface leading-relaxed line-clamp-2 whitespace-pre-line">
-                                    {s.narration}
-                                  </p>
-                                </div>
-                              ) : (
-                                <div className="rounded-lg bg-surface-lowest border border-outline-variant/10 p-3">
-                                  <p className="text-label-sm text-outline font-bold flex items-center gap-1 mb-1">
-                                    <Icon name="volume_mute" className="text-[16px]" />
-                                    대본이 비어 있습니다
-                                  </p>
-                                  <p className="text-body-sm text-outline italic">
-                                    클릭하여 업로더의 생각들을 합친 첫 대본 초안을 만들어 보세요.
-                                  </p>
-                                </div>
-                              )}
+                          {/* 내레이션 대본 */}
+                          {s.has_narration ? (
+                            <div className="rounded-lg bg-primary/5 border border-primary/10 p-3">
+                              <p className="text-label-sm text-primary font-bold flex items-center gap-1 mb-1">
+                                <Icon name="volume_up" className="text-[16px]" />
+                                최종 내레이션 대본
+                              </p>
+                              <p className="text-body-md text-on-surface leading-relaxed whitespace-pre-line">
+                                {s.narration}
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="rounded-lg bg-surface-lowest border border-outline-variant/10 p-3">
+                              <p className="text-label-sm text-outline font-bold flex items-center gap-1 mb-1">
+                                <Icon name="volume_mute" className="text-[16px]" />
+                                대본이 비어 있습니다
+                              </p>
+                              <p className="text-body-sm text-outline italic">
+                                클릭하여 업로더의 생각들을 합친 첫 대본 초안을 만들어 보세요.
+                              </p>
+                            </div>
+                          )}
 
-                              {/* 업로더 메모 피드백 */}
-                              {s.stories.length > 0 ? (
-                                <div className="space-y-1">
-                                  <p className="text-label-sm text-outline/80 font-semibold flex items-center gap-1">
-                                    <Icon name="chat" className="text-[14px]" />
-                                    업로더 사역 메모 ({s.stories.length}개)
-                                  </p>
-                                  <div className="space-y-0.5">
-                                    {s.stories.slice(0, 2).map((st, i) => (
-                                      <div key={i} className="text-body-sm text-on-surface-variant truncate">
-                                        <span className="font-bold text-primary mr-1">{st.uploader_name}:</span>
-                                        <span>{st.story_text}</span>
-                                      </div>
-                                    ))}
+                          {/* 업로더 메모 */}
+                          {s.stories.length > 0 ? (
+                            <div className="space-y-1">
+                              <p className="text-label-sm text-outline/80 font-semibold flex items-center gap-1">
+                                <Icon name="chat" className="text-[14px]" />
+                                업로더 사역 메모 ({s.stories.length}개)
+                              </p>
+                              <div className="space-y-0.5">
+                                {s.stories.map((st, i) => (
+                                  <div key={i} className="text-body-sm text-on-surface-variant">
+                                    <span className="font-bold text-primary mr-1">{st.uploader_name}:</span>
+                                    <span>{st.story_text}</span>
                                   </div>
-                                </div>
-                              ) : (
-                                <p className="text-label-xs text-outline italic flex items-center gap-1">
-                                  <Icon name="info" className="text-[12px]" />
-                                  기록된 업로더 메모가 없습니다.
-                                </p>
-                              )}
+                                ))}
+                              </div>
                             </div>
+                          ) : (
+                            <p className="text-label-xs text-outline italic flex items-center gap-1">
+                              <Icon name="info" className="text-[12px]" />
+                              기록된 업로더 메모가 없습니다.
+                            </p>
+                          )}
 
-                            <div className="flex justify-end">
-                              <span className="inline-flex items-center gap-1 text-label-sm text-primary font-bold group-hover:underline">
-                                내레이션 편집 및 사진 선별
-                                <Icon name="arrow_forward" className="text-[16px]" />
-                              </span>
-                            </div>
+                          <div className="flex justify-end">
+                            <span className="inline-flex items-center gap-1 text-label-sm text-primary font-bold group-hover:underline">
+                              내레이션 편집 및 사진 선별
+                              <Icon name="arrow_forward" className="text-[16px]" />
+                            </span>
                           </div>
                         </div>
                       </Card>
