@@ -35,6 +35,13 @@ export async function buildExportManifest(projectId: number): Promise<ExportMani
     files.push({ path: bgmFile, url: `/api/projects/${projectId}/bgm` });
   }
 
+  // 대표사진(커버) — BGM과 동일하게 패키지에 실제 파일 포함
+  let coverFile: string | null = null;
+  if (proj.coverImagePath) {
+    coverFile = `cover_${path.posix.basename(proj.coverImagePath)}`;
+    files.push({ path: coverFile, url: `/api/projects/${projectId}/cover` });
+  }
+
   const projectJson = {
     id: proj.id,
     name: proj.name,
@@ -43,7 +50,7 @@ export async function buildExportManifest(projectId: number): Promise<ExportMani
     start_date: proj.startDate,
     end_date: proj.endDate,
     default_photo_seconds: proj.defaultPhotoSeconds,
-    cover_image_path: proj.coverImagePath,
+    cover_image_path: coverFile,
     bgm_path: bgmFile,
     exported_at: new Date().toISOString(),
   };

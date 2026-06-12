@@ -99,6 +99,7 @@ export async function collectMultipartUpload(req: FastifyRequest, projectId: num
 }
 
 export const VIDEO_EXTENSIONS = VIDEO_EXT;
+export const IMAGE_EXTENSIONS = PHOTO_EXT;
 export const AUDIO_EXTENSIONS = new Set(['.mp3', '.m4a', '.aac', '.wav', '.ogg']);
 
 /** 단일 multipart 파일을 화이트리스트/크기 제한 검증 후 스트리밍 저장. 상대경로 반환. */

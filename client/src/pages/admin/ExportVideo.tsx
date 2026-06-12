@@ -35,6 +35,7 @@ export default function ExportVideo() {
 
   const fileRef = useRef<HTMLInputElement>(null);
   const bgmFileRef = useRef<HTMLInputElement>(null);
+  const coverFileRef = useRef<HTMLInputElement>(null);
 
   const [exportMsg, setExportMsg] = useState('');
   const [err, setErr] = useState('');
@@ -156,6 +157,27 @@ export default function ExportVideo() {
     onError: (e) => setErr((e as Error).message),
   });
 
+  const coverUploadMut = useMutation({
+    mutationFn: (file: File) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      return apiForm('POST', `/projects/${pid}/cover`, fd);
+    },
+    onSuccess: () => {
+      if (coverFileRef.current) coverFileRef.current.value = '';
+      qc.invalidateQueries({ queryKey: ['project', pid] });
+    },
+    onError: (e) => setErr((e as Error).message),
+  });
+
+  const coverDeleteMut = useMutation({
+    mutationFn: () => apiDelete(`/projects/${pid}/cover`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project', pid] });
+    },
+    onError: (e) => setErr((e as Error).message),
+  });
+
   const statusMut = useMutation({
     mutationFn: ({ id, status }: { id: number; status: VideoStatus }) => apiPatch(`/videos/${id}`, { status }),
     onSuccess: invalidate,
@@ -196,6 +218,49 @@ export default function ExportVideo() {
         ) : null}
         {exportMsg ? <p className="text-body-md text-tertiary mt-2 break-all">{exportMsg}</p> : null}
         {err ? <p className="text-body-md text-error mt-2">{err}</p> : null}
+      </Card>
+
+      {/* 대표사진(커버) 설정 카드 */}
+      <Card className="p-4 mb-6">
+        <h2 className="text-title-sm font-semibold mb-1">대표사진(커버) 설정</h2>
+        <p className="text-body-md text-on-surface-variant mb-3">
+          영상 제작용 패키지를 내보낼 때 함께 패킹할 대표 이미지를 지정합니다. (오프닝/표지 등에 사용)
+        </p>
+
+        {p.cover_url ? (
+          <div className="bg-surface-low rounded-lg p-3 border border-outline/10 mb-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-body-md font-semibold text-on-surface flex items-center gap-1.5 truncate">
+                <Icon name="image" className="text-primary text-[20px] shrink-0" />
+                <span className="truncate">{p.cover_image_path?.split('/').pop()}</span>
+              </span>
+              <button
+                onClick={() => coverDeleteMut.mutate()}
+                className="text-on-surface-variant hover:text-error transition-colors shrink-0"
+                title="대표사진 삭제"
+                disabled={coverDeleteMut.isPending}
+              >
+                <Icon name="delete" />
+              </button>
+            </div>
+            <img src={p.cover_url} alt="프로젝트 대표사진" className="w-full max-h-48 object-contain rounded-lg bg-surface-container" />
+          </div>
+        ) : (
+          <div className="border border-dashed border-outline/30 rounded-lg p-4 text-center text-on-surface-variant mb-3">
+            <p className="text-body-md">설정된 대표사진이 없습니다.</p>
+          </div>
+        )}
+
+        <input
+          ref={coverFileRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => e.target.files?.[0] && coverUploadMut.mutate(e.target.files[0])}
+          className="block w-full text-body-md file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-primary file:font-semibold"
+          disabled={coverUploadMut.isPending || coverDeleteMut.isPending}
+        />
+        {coverUploadMut.isPending ? <p className="text-label-sm text-outline mt-2">대표사진 업로드 중…</p> : null}
+        {coverDeleteMut.isPending ? <p className="text-label-sm text-outline mt-2">대표사진 삭제 중…</p> : null}
       </Card>
 
       {/* 배경 음악(BGM) 설정 카드 */}

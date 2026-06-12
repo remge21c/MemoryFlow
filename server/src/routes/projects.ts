@@ -11,7 +11,7 @@ import { projectDir, removeFile, absPath } from '../lib/storage.js';
 import fs from 'node:fs';
 import { verifyPassword } from '../lib/password.js';
 import { streamFile } from '../lib/stream.js';
-import { AUDIO_EXTENSIONS, saveUploadedFile } from '../services/upload.js';
+import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS, saveUploadedFile } from '../services/upload.js';
 
 function toDTO(p: typeof schema.projects.$inferSelect): ProjectDTO {
   return {
@@ -20,6 +20,7 @@ function toDTO(p: typeof schema.projects.$inferSelect): ProjectDTO {
     org_name: p.orgName,
     description: p.description,
     cover_image_path: p.coverImagePath,
+    cover_url: p.coverImagePath ? `/api/projects/${p.id}/cover` : null,
     bgm_path: p.bgmPath,
     bgm_url: p.bgmPath ? `/api/projects/${p.id}/bgm` : null,
     start_date: p.startDate,
@@ -249,6 +250,51 @@ export async function projectRoutes(app: FastifyInstance) {
 
     await db.update(schema.projects).set({ bgmPath: rel }).where(eq(schema.projects.id, id));
     
+    const updated = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
+    return { project: toDTO(updated!) };
+  });
+
+  // 대표사진(커버) 스트리밍 (로그인 멤버)
+  app.get('/:id/cover', async (req, reply) => {
+    const id = Number((req.params as { id: string }).id);
+    await requireMember(req, id);
+    const proj = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
+    if (!proj || !proj.coverImagePath) throw new HttpError(404, '대표사진을 찾을 수 없습니다');
+    return streamFile(req, reply, proj.coverImagePath);
+  });
+
+  // 대표사진(커버) 업로드 (관리자) — 영상 패키지 project.json에 포함됨
+  app.post('/:id/cover', async (req) => {
+    const id = Number((req.params as { id: string }).id);
+    await requireProjectAdmin(req, id);
+    const file = await req.file();
+    if (!file) throw new HttpError(400, '이미지 파일이 필요합니다');
+    const rel = await saveUploadedFile(file, projectDir(id).cover, {
+      allowedExt: IMAGE_EXTENSIONS,
+      maxBytes: 25 * 1024 * 1024, // 25MB
+    });
+
+    // 기존 커버 있으면 로컬 파일 삭제
+    const proj = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
+    if (proj?.coverImagePath) {
+      removeFile(proj.coverImagePath);
+    }
+
+    await db.update(schema.projects).set({ coverImagePath: rel }).where(eq(schema.projects.id, id));
+
+    const updated = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
+    return { project: toDTO(updated!) };
+  });
+
+  // 대표사진(커버) 삭제 (관리자)
+  app.delete('/:id/cover', async (req) => {
+    const id = Number((req.params as { id: string }).id);
+    await requireProjectAdmin(req, id);
+    const proj = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
+    if (proj?.coverImagePath) {
+      removeFile(proj.coverImagePath);
+      await db.update(schema.projects).set({ coverImagePath: null }).where(eq(schema.projects.id, id));
+    }
     const updated = (await db.select().from(schema.projects).where(eq(schema.projects.id, id)).limit(1))[0];
     return { project: toDTO(updated!) };
   });

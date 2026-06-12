@@ -26,6 +26,7 @@ export interface ProjectDTO {
   org_name: string | null;
   description: string | null;
   cover_image_path: string | null;
+  cover_url: string | null;
   bgm_path: string | null;
   bgm_url: string | null;
   start_date: string;
