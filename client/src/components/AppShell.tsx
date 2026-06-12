@@ -33,9 +33,10 @@ export function AppShell({
   const adminPid = loc.pathname.match(/^\/admin\/projects\/(\d+)/)?.[1];
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const brandTo = user?.is_admin
-    ? (active ? `/admin/projects/${active.id}` : '/admin')
-    : (active ? `/projects/${active.id}` : '/projects');
+  // 영역 전환 시 활성 프로젝트가 있으면 목록이 아니라 바로 해당 화면으로
+  const uploaderHome = active ? `/projects/${active.id}` : '/projects';
+  const adminHome = active ? `/admin/projects/${active.id}` : '/admin';
+  const brandTo = user?.is_admin ? adminHome : uploaderHome;
 
   return (
     <div className="min-h-screen bg-surface lg:flex">
@@ -129,7 +130,7 @@ export function AppShell({
                               새 프로젝트
                             </Link>
                             <Link
-                              to="/projects"
+                              to={uploaderHome}
                               onClick={() => setMenuOpen(false)}
                               className="flex items-center gap-3 px-4 h-12 text-body-md text-on-surface hover:bg-surface-container border-b border-outline/10 transition-colors"
                             >
@@ -139,7 +140,7 @@ export function AppShell({
                           </>
                         ) : (
                           <Link
-                            to="/admin"
+                            to={adminHome}
                             onClick={() => setMenuOpen(false)}
                             className="flex items-center gap-3 px-4 h-12 text-body-md text-primary font-medium hover:bg-primary/5 border-b border-outline/10 transition-colors"
                           >
@@ -238,13 +239,21 @@ function Sidebar({
         )}
       </nav>
 
-      {/* 하단: 전환 / 설정 / 로그아웃 */}
+      {/* 하단: 전환 / 설정 / 로그아웃 — 활성 프로젝트가 있으면 바로 해당 화면으로 */}
       <div className="border-t border-outline/10 py-3 px-3 shrink-0">
         {user.is_admin ? (
           onAdminArea ? (
-            <SideLink to="/projects" icon="photo_library" label="업로더 보기" />
+            <SideLink
+              to={active ? `/projects/${active.id}` : '/projects'}
+              icon="photo_library"
+              label="업로더 보기"
+            />
           ) : (
-            <SideLink to="/admin" icon="admin_panel_settings" label="관리자 페이지" />
+            <SideLink
+              to={active ? `/admin/projects/${active.id}` : '/admin'}
+              icon="admin_panel_settings"
+              label="관리자 페이지"
+            />
           )
         ) : null}
         <SideLink to="/settings" icon="settings" label="설정" />
