@@ -58,9 +58,9 @@ export default function ScheduleList() {
   return (
     <AppShell max="max-w-2xl lg:max-w-3xl">
       {/* 헤더 — 데스크톱은 상단 고정 타이틀 바가 대신함 */}
-      <div className="mb-5 min-w-0 lg:hidden">
+      <div className="mb-5 min-w-0 lg:hidden flex items-baseline gap-2">
         <h1 className="text-headline-md font-bold text-on-surface truncate">{data.project.name}</h1>
-        {data.project.org_name ? <p className="text-body-md text-on-surface-variant truncate">{data.project.org_name}</p> : null}
+        {data.project.org_name ? <p className="text-body-md text-on-surface-variant truncate shrink-0">{data.project.org_name}</p> : null}
       </div>
 
       {!hasAnySchedule ? (

@@ -48,10 +48,10 @@ export function AppShell({
         {user ? (
           <div className="hidden lg:flex sticky top-0 z-40 items-center gap-3 h-14 px-6 bg-surface/95 backdrop-blur border-b border-outline-variant/20">
             {titleProject ? (
-              <div className="min-w-0">
-                <p className="text-title-sm font-bold text-on-surface truncate leading-tight">{titleProject.name}</p>
+              <div className="flex items-baseline gap-2 min-w-0">
+                <p className="text-title-sm font-bold text-on-surface truncate">{titleProject.name}</p>
                 {titleProject.org_name ? (
-                  <p className="text-label-sm text-on-surface-variant truncate leading-tight">{titleProject.org_name}</p>
+                  <p className="text-label-sm text-on-surface-variant truncate shrink-0">{titleProject.org_name}</p>
                 ) : null}
               </div>
             ) : (
@@ -229,14 +229,7 @@ function Sidebar({
               <SideLink to={`/admin/projects/${active.id}`} icon="dashboard" label="프로젝트 관리" />
             ) : null}
           </>
-        ) : (
-          <>
-            <SideLink to="/projects" icon="folder" label="내 프로젝트" end />
-            {active ? (
-              <SideLink to={`/projects/${active.id}`} icon="auto_stories" label="프로젝트 피드" />
-            ) : null}
-          </>
-        )}
+        ) : null /* 업로더 화면: 별도 메뉴 없음 — 피드는 로고, 프로젝트 변경은 설정에서 */}
       </nav>
 
       {/* 하단: 전환 / 설정 / 로그아웃 — 활성 프로젝트가 있으면 바로 해당 화면으로 */}
@@ -302,9 +295,9 @@ export function TopBar({ title, subtitle }: { title: string; subtitle?: string }
       >
         <Icon name="arrow_back" className="text-[24px]" />
       </button>
-      <div>
-        <h1 className="text-headline-md font-semibold text-on-surface leading-tight">{title}</h1>
-        {subtitle ? <p className="text-body-md text-on-surface-variant">{subtitle}</p> : null}
+      <div className="flex items-baseline gap-2 min-w-0">
+        <h1 className="text-headline-md font-semibold text-on-surface leading-tight truncate">{title}</h1>
+        {subtitle ? <p className="text-body-md text-on-surface-variant truncate shrink-0">{subtitle}</p> : null}
       </div>
     </div>
   );
