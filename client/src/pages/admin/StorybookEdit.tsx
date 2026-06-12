@@ -219,7 +219,8 @@ export default function StorybookEdit() {
       <section className="mb-3">
         <div className="flex items-center justify-between mb-2">
           <label className="text-label-sm text-outline uppercase tracking-wider">내레이션</label>
-          {!locked ? (
+          {/* 길이 초과일 때만 노출 — 손으로 다듬은 글을 보존한 채 길이만 줄여줌 */}
+          {!locked && over ? (
             <Button variant="ghost" className="h-8 px-3 text-label-sm" icon="shutter_speed" loading={sumMut.isPending} disabled={aiLoading || !narration.trim()} onClick={() => { setAiErr(''); sumMut.mutate(); }}>
               길이에 맞게 요약
             </Button>
