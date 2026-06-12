@@ -38,7 +38,7 @@ function RoleHome() {
   if (!data?.user) return <Navigate to="/login" replace />;
   if (data.user.is_admin) return <Navigate to={active ? `/admin/projects/${active.id}` : '/admin'} replace />;
   // 업로더 메인: 선택된(활성) 프로젝트 페이지로. 없으면 목록.
-  return <Navigate to={active ? `/projects/${active.id}` : '/settings'} replace />;
+  return <Navigate to={active ? `/projects/${active.id}` : '/projects'} replace />;
 }
 
 export default function App() {

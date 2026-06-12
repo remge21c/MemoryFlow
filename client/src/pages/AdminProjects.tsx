@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { ProjectDTO } from '@memoryflow/shared';
@@ -12,19 +11,10 @@ export default function AdminProjects() {
   const nav = useNavigate();
   const active = useActiveProject((s) => s.active);
 
-  useEffect(() => {
-    if (active) {
-      nav(`/admin/projects/${active.id}`, { replace: true });
-    }
-  }, [active, nav]);
-
   const { data, isLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: () => apiGet<{ projects: ProjectDTO[] }>('/projects'),
-    enabled: !active,
   });
-
-  if (active) return null;
 
   return (
     <AppShell>
@@ -52,6 +42,7 @@ export default function AdminProjects() {
                   <div className="flex items-center gap-2">
                     <h2 className="text-title-sm font-semibold truncate">{p.name}</h2>
                     <Pill tone="muted">{PROJECT_STATUS_LABEL[p.status]}</Pill>
+                    {active?.id === p.id ? <Pill tone="primary">작업 중</Pill> : null}
                   </div>
                   <p className="text-body-md text-on-surface-variant truncate">{p.org_name}</p>
                   <p className="text-label-sm text-outline mt-0.5">{dateRange(p.start_date, p.end_date)} · {p.day_count}일</p>

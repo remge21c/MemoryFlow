@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { ProjectDTO } from '@memoryflow/shared';
 import { apiGet } from '../lib/api';
@@ -15,22 +14,12 @@ const STATUS_TONE: Record<string, 'primary' | 'success' | 'muted'> = {
 };
 
 export default function UploaderProjects() {
-  const navigate = useNavigate();
   const active = useActiveProject((s) => s.active);
-
-  useEffect(() => {
-    if (active) {
-      navigate(`/projects/${active.id}`, { replace: true });
-    }
-  }, [active, navigate]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: () => apiGet<{ projects: ProjectDTO[] }>('/projects'),
-    enabled: !active,
   });
-
-  if (active) return null;
 
   return (
     <AppShell>
@@ -53,6 +42,7 @@ export default function UploaderProjects() {
                   <div className="flex items-center gap-2">
                     <h2 className="text-title-sm font-semibold text-on-surface truncate">{p.name}</h2>
                     <Pill tone={STATUS_TONE[p.status] ?? 'muted'}>{PROJECT_STATUS_LABEL[p.status]}</Pill>
+                    {active?.id === p.id ? <Pill tone="primary">보는 중</Pill> : null}
                   </div>
                   <p className="text-body-md text-on-surface-variant truncate">{p.org_name}</p>
                   <p className="text-label-sm text-outline mt-0.5">{dateRange(p.start_date, p.end_date)} · {p.day_count}일</p>

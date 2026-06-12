@@ -91,7 +91,7 @@ export default function StorybookEdit() {
   const aiLoading = mergeMut.isPending || sumMut.isPending;
 
   return (
-    <AppShell>
+    <AppShell max="max-w-2xl lg:max-w-5xl">
       {/* 1) 장면 페이저 */}
       <section className="flex items-center justify-between mb-5 border-b border-outline-variant/20 pb-3">
         <button onClick={() => nav(`/admin/projects/${pid}/storybook`)} className="text-on-surface-variant hover:text-primary">

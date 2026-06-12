@@ -82,25 +82,21 @@ export default function ProjectOverview() {
         ))}
       </div>
 
-      {/* Danger Zone */}
-      <Card className="p-5 border-error/20 bg-error/5 mt-8">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-error/10 text-error rounded-lg">
-            <Icon name="warning" className="text-[24px]" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-title-sm font-semibold text-error">위험 구역 (Danger Zone)</h3>
-            <p className="text-body-sm text-on-surface-variant mt-1">
-              이 프로젝트를 영구적으로 삭제합니다. 삭제된 일정, 미디어 파일, 업로더 정보 등 모든 데이터는 복구할 수 없습니다.
-            </p>
-            <div className="mt-4">
-              <Button variant="danger" onClick={handleOpenDelete} icon="delete">
-                프로젝트 영구 삭제
-              </Button>
-            </div>
-          </div>
+      {/* 프로젝트 삭제 — 하단에 조용히 배치 (실수 방지는 비밀번호 확인 모달이 담당) */}
+      <div className="mt-10 pt-5 border-t border-outline/15 flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-body-md font-medium text-on-surface">프로젝트 삭제</p>
+          <p className="text-label-sm text-on-surface-variant mt-0.5">
+            일정·사진·영상 등 모든 데이터가 영구 삭제되며 복구할 수 없습니다.
+          </p>
         </div>
-      </Card>
+        <button
+          onClick={handleOpenDelete}
+          className="shrink-0 h-9 px-4 rounded-full border border-error/40 text-error text-label-sm font-medium hover:bg-error/5 transition-colors"
+        >
+          삭제
+        </button>
+      </div>
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
