@@ -62,7 +62,8 @@ function RoleHome() {
     // 합류/생성한 프로젝트가 하나도 없음 → 목록(빈 상태 안내)으로
     return <Navigate to={user.is_admin ? '/admin' : '/projects'} replace />;
   }
-  return <Navigate to={user.is_admin ? `/admin/projects/${active.id}` : `/projects/${active.id}`} replace />;
+  // 활성 프로젝트가 있으면 역할과 무관하게 무조건 업로드 페이지로 (관리자는 메뉴에서 관리자 페이지로 전환)
+  return <Navigate to={`/projects/${active.id}`} replace />;
 }
 
 export default function App() {

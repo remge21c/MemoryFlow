@@ -95,7 +95,30 @@ export function AppShell({
                   <>
                     <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
                     <div className="absolute right-0 top-12 z-40 w-64 max-h-[80vh] overflow-y-auto rounded-xl border border-outline/15 bg-surface-lowest linen-shadow">
-                      {/* 관리자 프로젝트 섹션 메뉴 */}
+                      {/* 관리자 영역 전환 — 데스크톱 사이드바와 동일하게 최상단 */}
+                      {user.is_admin ? (
+                        onAdminArea ? (
+                          <Link
+                            to={uploaderHome}
+                            onClick={() => setMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 h-12 text-body-md text-on-surface hover:bg-surface-container border-b border-outline/10 transition-colors"
+                          >
+                            <Icon name="photo_library" className="text-[20px] text-on-surface-variant" />
+                            업로더 보기
+                          </Link>
+                        ) : (
+                          <Link
+                            to={adminHome}
+                            onClick={() => setMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 h-12 text-body-md text-primary font-medium hover:bg-primary/5 border-b border-outline/10 transition-colors"
+                          >
+                            <Icon name="admin_panel_settings" className="text-[20px]" />
+                            관리자 페이지
+                          </Link>
+                        )
+                      ) : null}
+
+                      {/* 관리자 프로젝트 섹션 메뉴 — 영역 전환 아래 (데스크톱과 동일 순서) */}
                       {adminMenuPid ? (
                         <div className="border-b border-outline/10 py-1">
                           {ADMIN_PROJECT_TABS.map((t) => (
@@ -117,29 +140,6 @@ export function AppShell({
                             </NavLink>
                           ))}
                         </div>
-                      ) : null}
-
-                      {/* 관리자 영역 전환 */}
-                      {user.is_admin ? (
-                        onAdminArea ? (
-                          <Link
-                            to={uploaderHome}
-                            onClick={() => setMenuOpen(false)}
-                            className="flex items-center gap-3 px-4 h-12 text-body-md text-on-surface hover:bg-surface-container border-b border-outline/10 transition-colors"
-                          >
-                            <Icon name="photo_library" className="text-[20px] text-on-surface-variant" />
-                            업로더 보기
-                          </Link>
-                        ) : (
-                          <Link
-                            to={adminHome}
-                            onClick={() => setMenuOpen(false)}
-                            className="flex items-center gap-3 px-4 h-12 text-body-md text-primary font-medium hover:bg-primary/5 border-b border-outline/10 transition-colors"
-                          >
-                            <Icon name="admin_panel_settings" className="text-[20px]" />
-                            관리자 페이지
-                          </Link>
-                        )
                       ) : null}
 
                       {/* 설정 / 로그아웃 */}
