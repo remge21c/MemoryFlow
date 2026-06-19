@@ -204,6 +204,8 @@ function ScheduleRowWithInsert({
 
 function ScheduleRow({ s, defSec, isSeq, onChange }: { s: ScheduleDTO; defSec: number; isSeq: boolean; onChange: () => void }) {
   const [edit, setEdit] = useState(false);
+  const [titleEdit, setTitleEdit] = useState(false);
+  const [titleVal, setTitleVal] = useState(s.title);
   const [f, setF] = useState({
     time: s.time ?? '',
     title: s.title,
@@ -211,12 +213,23 @@ function ScheduleRow({ s, defSec, isSeq, onChange }: { s: ScheduleDTO; defSec: n
     category: s.category ?? '',
     photo_seconds: s.photo_seconds ?? '',
   });
+
   const saveMut = useMutation({
     mutationFn: () =>
       apiPatch(`/schedules/${s.id}`, { ...f, photo_seconds: f.photo_seconds === '' ? null : Number(f.photo_seconds) }),
     onSuccess: () => { setEdit(false); onChange(); },
   });
+  const saveTitleMut = useMutation({
+    mutationFn: (title: string) => apiPatch(`/schedules/${s.id}`, { title }),
+    onSuccess: () => { setTitleEdit(false); onChange(); },
+  });
   const delMut = useMutation({ mutationFn: () => apiDelete(`/schedules/${s.id}`), onSuccess: onChange });
+
+  function commitTitle() {
+    const trimmed = titleVal.trim();
+    if (!trimmed || trimmed === s.title) { setTitleEdit(false); return; }
+    saveTitleMut.mutate(trimmed);
+  }
 
   if (edit) {
     return (
@@ -251,7 +264,24 @@ function ScheduleRow({ s, defSec, isSeq, onChange }: { s: ScheduleDTO; defSec: n
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           {s.time ? <span className="text-label-sm text-on-surface-variant">{s.time}</span> : null}
-          <span className="text-body-lg font-semibold truncate">{s.title}</span>
+          {isSeq && titleEdit ? (
+            <input
+              autoFocus
+              value={titleVal}
+              onChange={(e) => setTitleVal(e.target.value)}
+              onBlur={commitTitle}
+              onKeyDown={(e) => { if (e.key === 'Enter') commitTitle(); if (e.key === 'Escape') { setTitleEdit(false); setTitleVal(s.title); } }}
+              className="flex-1 rounded-md border border-primary/50 bg-surface-lowest px-2 py-0.5 text-body-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          ) : (
+            <span
+              className={`text-body-lg font-semibold truncate ${isSeq ? 'cursor-text hover:text-primary' : ''}`}
+              onClick={() => isSeq && setTitleEdit(true)}
+              title={isSeq ? '클릭하여 이름 편집' : undefined}
+            >
+              {s.title}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2 mt-1">
           {s.place ? <span className="text-label-sm text-outline">{s.place}</span> : null}

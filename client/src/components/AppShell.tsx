@@ -166,7 +166,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className={`${max} mx-auto px-5 py-6`}>{children}</main>
+        <main className={`${max} mx-auto lg:mx-0 px-5 lg:px-8 py-6`}>{children}</main>
       </div>
     </div>
   );
