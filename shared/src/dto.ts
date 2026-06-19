@@ -29,13 +29,14 @@ export interface ProjectDTO {
   cover_url: string | null;
   bgm_path: string | null;
   bgm_url: string | null;
-  start_date: string;
-  end_date: string;
+  schedule_type: 'date' | 'sequence';
+  start_date: string | null;  // sequence 타입은 null
+  end_date: string | null;    // sequence 타입은 null
   status: ProjectStatus;
   default_photo_seconds: number;
   created_by: number;
   created_at: string;
-  day_count: number;
+  day_count: number;  // sequence 타입은 현재 순번 수
 }
 
 export interface ScheduleDTO {

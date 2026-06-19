@@ -42,13 +42,15 @@ export async function buildExportManifest(projectId: number): Promise<ExportMani
     files.push({ path: coverFile, url: `/api/projects/${projectId}/cover` });
   }
 
+  const isSeq = proj.scheduleType === 'sequence';
   const projectJson = {
     id: proj.id,
     name: proj.name,
     org_name: proj.orgName,
     description: proj.description,
-    start_date: proj.startDate,
-    end_date: proj.endDate,
+    schedule_type: proj.scheduleType,
+    start_date: isSeq ? null : proj.startDate,
+    end_date: isSeq ? null : proj.endDate,
     default_photo_seconds: proj.defaultPhotoSeconds,
     cover_image_path: coverFile,
     bgm_path: bgmFile,
@@ -79,6 +81,7 @@ export async function buildExportManifest(projectId: number): Promise<ExportMani
     });
     scenes.push({
       schedule_id: sched.id,
+      scene_number: sched.dayIndex,
       day_index: sched.dayIndex,
       title: sched.title,
       time: sched.time,

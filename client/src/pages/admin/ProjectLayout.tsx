@@ -9,7 +9,7 @@ import { useActiveProject } from '../../stores/activeProject';
 
 export interface ProjectDetail {
   project: ProjectDTO;
-  days: { day_index: number; date: string; schedules: ScheduleDTO[] }[];
+  days: { day_index: number; date: string | null; schedules: ScheduleDTO[] }[];
   storybook: StorybookDTO;
 }
 

@@ -21,8 +21,8 @@ interface FeedContribution {
 }
 type FeedSchedule = ScheduleDTO & { contributions: FeedContribution[] };
 interface FeedData {
-  project: { id: number; name: string; org_name: string | null; start_date: string; end_date: string };
-  days: { day_index: number; date: string; schedules: FeedSchedule[] }[];
+  project: { id: number; name: string; org_name: string | null; start_date: string | null; end_date: string | null; schedule_type?: string };
+  days: { day_index: number; date: string | null; schedules: FeedSchedule[] }[];
 }
 
 /** 라이트박스 열기 정보 — 뷰어 전용. 수정은 editHref(기록 페이지)로 이동. */
@@ -72,7 +72,7 @@ export default function ScheduleList() {
               {/* 카톡 날짜 구분선 */}
               <div className="flex items-center justify-center my-4">
                 <span className="bg-secondary-container text-on-secondary-container text-body-md font-semibold px-4 py-1.5 rounded-full">
-                  Day {day.day_index} · {day.date}
+                  {day.date ? `Day ${day.day_index} · ${day.date}` : `#${day.day_index}`}
                 </span>
               </div>
 

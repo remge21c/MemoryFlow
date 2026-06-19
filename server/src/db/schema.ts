@@ -25,6 +25,7 @@ export const projects = sqliteTable('projects', {
   endDate: text('end_date').notNull(),
   status: text('status').notNull().default('active'),
   defaultPhotoSeconds: integer('default_photo_seconds').notNull().default(3),
+  scheduleType: text('schedule_type').notNull().default('date'), // 'date' | 'sequence'
   createdBy: integer('created_by').notNull().references(() => users.id),
   createdAt: text('created_at').notNull().default(now),
 });

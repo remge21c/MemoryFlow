@@ -144,6 +144,11 @@ export function migrate(): void {
       sqlite.exec("ALTER TABLE projects ADD COLUMN bgm_path TEXT");
       console.log('[migrate] ADD COLUMN bgm_path to projects table.');
     }
+    const hasScheduleType = columns.some(c => c.name === 'schedule_type');
+    if (!hasScheduleType) {
+      sqlite.exec("ALTER TABLE projects ADD COLUMN schedule_type TEXT NOT NULL DEFAULT 'date'");
+      console.log('[migrate] ADD COLUMN schedule_type to projects table.');
+    }
   } catch (e) {
     console.error('[migrate] Failed to check or alter projects table:', e);
   }

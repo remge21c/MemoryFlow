@@ -18,19 +18,27 @@ export const registerSchema = z.object({ name, email, password });
 export const joinSchema = z.object({ token: z.string().min(8), name, email, password });
 
 // ── 프로젝트 (S-21) ────────────────────────────────────
-export const createProjectSchema = z
-  .object({
-    name: z.string().trim().min(1).max(120),
-    org_name: z.string().trim().max(120).optional().default(''),
-    description: z.string().trim().max(4000).optional().default(''),
+const baseProject = z.object({
+  name: z.string().trim().min(1).max(120),
+  org_name: z.string().trim().max(120).optional().default(''),
+  description: z.string().trim().max(4000).optional().default(''),
+  default_photo_seconds: z.coerce.number().int().min(1).max(60).default(3),
+});
+
+export const createProjectSchema = z.union([
+  baseProject.extend({
+    schedule_type: z.literal('date'),
     start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD'),
     end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD'),
-    default_photo_seconds: z.coerce.number().int().min(1).max(60).default(3),
-  })
-  .refine((v) => v.end_date >= v.start_date, {
+  }).refine((v) => v.end_date >= v.start_date, {
     message: '종료일은 시작일 이후여야 합니다',
     path: ['end_date'],
-  });
+  }),
+  baseProject.extend({
+    schedule_type: z.literal('sequence'),
+    initial_sequence_count: z.coerce.number().int().min(1).max(200).default(10),
+  }),
+]);
 
 export const updateProjectSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
@@ -38,6 +46,15 @@ export const updateProjectSchema = z.object({
   description: z.string().trim().max(4000).optional(),
   status: z.enum(PROJECT_STATUS).optional(),
   default_photo_seconds: z.coerce.number().int().min(1).max(60).optional(),
+});
+
+// ── 세부일정 앞/뒤 삽입 ───────────────────────────────
+export const insertScheduleSchema = z.object({
+  title: z.string().trim().min(1).max(120).default('새 장면'),
+  time: z.string().trim().max(20).optional().default(''),
+  place: z.string().trim().max(120).optional().default(''),
+  category: z.string().trim().max(40).optional().default(''),
+  photo_seconds: z.coerce.number().int().min(1).max(60).nullable().optional(),
 });
 
 // ── 세부일정 / 장면 (S-23) ─────────────────────────────
@@ -118,6 +135,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type JoinInput = z.infer<typeof joinSchema>;
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
+export type InsertScheduleInput = z.infer<typeof insertScheduleSchema>;
 export type CreateScheduleInput = z.infer<typeof createScheduleSchema>;
 export type CreateContributionInput = z.infer<typeof createContributionSchema>;
 export type UpsertNarrationInput = z.infer<typeof upsertNarrationSchema>;

@@ -13,7 +13,8 @@ import { verifyPassword } from '../lib/password.js';
 import { streamFile } from '../lib/stream.js';
 import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS, saveUploadedFile } from '../services/upload.js';
 
-function toDTO(p: typeof schema.projects.$inferSelect): ProjectDTO {
+function toDTO(p: typeof schema.projects.$inferSelect, seqCount?: number): ProjectDTO {
+  const isSeq = p.scheduleType === 'sequence';
   return {
     id: p.id,
     name: p.name,
@@ -23,14 +24,25 @@ function toDTO(p: typeof schema.projects.$inferSelect): ProjectDTO {
     cover_url: p.coverImagePath ? `/api/projects/${p.id}/cover` : null,
     bgm_path: p.bgmPath,
     bgm_url: p.bgmPath ? `/api/projects/${p.id}/bgm` : null,
-    start_date: p.startDate,
-    end_date: p.endDate,
+    schedule_type: isSeq ? 'sequence' : 'date',
+    start_date: isSeq ? null : p.startDate,
+    end_date: isSeq ? null : p.endDate,
     status: p.status as ProjectDTO['status'],
     default_photo_seconds: p.defaultPhotoSeconds,
     created_by: p.createdBy,
     created_at: p.createdAt,
-    day_count: dayCount(p.startDate, p.endDate),
+    day_count: isSeq ? (seqCount ?? 0) : dayCount(p.startDate, p.endDate),
   };
+}
+
+async function sequenceCount(projectId: number): Promise<number> {
+  const rows = await db
+    .select({ cnt: schema.schedules.dayIndex })
+    .from(schema.schedules)
+    .where(eq(schema.schedules.projectId, projectId))
+    .orderBy(desc(schema.schedules.dayIndex))
+    .limit(1);
+  return rows[0]?.cnt ?? 0;
 }
 
 export async function projectRoutes(app: FastifyInstance) {
@@ -62,6 +74,37 @@ export async function projectRoutes(app: FastifyInstance) {
   app.post('/', async (req) => {
     const u = requireAdmin(req);
     const body = createProjectSchema.parse(req.body);
+
+    if (body.schedule_type === 'sequence') {
+      const DUMMY = '0000-01-01';
+      const inserted = await db
+        .insert(schema.projects)
+        .values({
+          name: body.name,
+          orgName: body.org_name,
+          description: body.description,
+          startDate: DUMMY,
+          endDate: DUMMY,
+          defaultPhotoSeconds: body.default_photo_seconds,
+          scheduleType: 'sequence',
+          createdBy: u.id,
+        })
+        .returning();
+      const p = inserted[0]!;
+      const count = body.initial_sequence_count;
+      await db.insert(schema.schedules).values(
+        Array.from({ length: count }, (_, i) => ({
+          projectId: p.id,
+          dayIndex: i + 1,
+          title: `장면 ${i + 1}`,
+          sortOrder: 0,
+        })),
+      );
+      await ensureStorybook(p.id);
+      return { project: toDTO(p, count) };
+    }
+
+    // date 타입 (기존)
     const inserted = await db
       .insert(schema.projects)
       .values({
@@ -71,6 +114,7 @@ export async function projectRoutes(app: FastifyInstance) {
         startDate: body.start_date,
         endDate: body.end_date,
         defaultPhotoSeconds: body.default_photo_seconds,
+        scheduleType: 'date',
         createdBy: u.id,
       })
       .returning();
@@ -91,16 +135,27 @@ export async function projectRoutes(app: FastifyInstance) {
       .from(schema.schedules)
       .where(eq(schema.schedules.projectId, id))
       .orderBy(asc(schema.schedules.dayIndex), asc(schema.schedules.sortOrder));
+    const sb = await ensureStorybook(id);
+
+    if (p.scheduleType === 'sequence') {
+      const seqCnt = scheds.length > 0 ? scheds[scheds.length - 1]!.dayIndex : 0;
+      const days = scheds.map((s) => ({
+        day_index: s.dayIndex,
+        date: null as string | null,
+        schedules: [scheduleToDTO(s)],
+      }));
+      return { project: toDTO(p, seqCnt), days, storybook: sb };
+    }
+
     const dc = dayCount(p.startDate, p.endDate);
     const days = Array.from({ length: dc }, (_, i) => {
       const dayIndex = i + 1;
       return {
         day_index: dayIndex,
-        date: dateForDay(p.startDate, dayIndex),
+        date: dateForDay(p.startDate, dayIndex) as string | null,
         schedules: scheds.filter((s) => s.dayIndex === dayIndex).map(scheduleToDTO),
       };
     });
-    const sb = await ensureStorybook(id);
     return { project: toDTO(p), days, storybook: sb };
   });
 
@@ -155,12 +210,23 @@ export async function projectRoutes(app: FastifyInstance) {
       contribBySched.set(r.c.scheduleId, arr);
     }
 
+    let days;
+    if (p.scheduleType === 'sequence') {
+      const seqCnt = scheds.length > 0 ? scheds[scheds.length - 1]!.dayIndex : 0;
+      days = scheds.map((s) => ({
+        day_index: s.dayIndex,
+        date: null as string | null,
+        schedules: [{ ...scheduleToDTO(s), contributions: contribBySched.get(s.id) ?? [] }],
+      }));
+      return { project: toDTO(p, seqCnt), days };
+    }
+
     const dc = dayCount(p.startDate, p.endDate);
-    const days = Array.from({ length: dc }, (_, i) => {
+    days = Array.from({ length: dc }, (_, i) => {
       const dayIndex = i + 1;
       return {
         day_index: dayIndex,
-        date: dateForDay(p.startDate, dayIndex),
+        date: dateForDay(p.startDate, dayIndex) as string | null,
         schedules: scheds
           .filter((s) => s.dayIndex === dayIndex)
           .map((s) => ({ ...scheduleToDTO(s), contributions: contribBySched.get(s.id) ?? [] })),
