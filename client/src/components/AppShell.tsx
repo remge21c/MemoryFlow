@@ -271,8 +271,28 @@ function SideLink({ to, icon, label, end }: { to: string; icon: string; label: s
   );
 }
 
-export function TopBar({ title, subtitle }: { title: string; subtitle?: string }) {
+export function TopBar({
+  title,
+  subtitle,
+  onTitleSave,
+}: {
+  title: string;
+  subtitle?: string;
+  onTitleSave?: (newTitle: string) => void;
+}) {
   const nav = useNavigate();
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(title);
+
+  // 외부에서 title이 바뀌면 (저장 후 쿼리 갱신) 동기화
+  if (!editing && val !== title) setVal(title);
+
+  function commit() {
+    const t = val.trim();
+    if (t && t !== title && onTitleSave) onTitleSave(t);
+    setEditing(false);
+  }
+
   return (
     <div className="flex items-center gap-3 mb-6">
       <button
@@ -282,9 +302,29 @@ export function TopBar({ title, subtitle }: { title: string; subtitle?: string }
       >
         <Icon name="arrow_back" className="text-[24px]" />
       </button>
-      <div className="flex items-baseline gap-2 min-w-0">
-        <h1 className="text-headline-md font-semibold text-on-surface leading-tight truncate">{title}</h1>
-        {subtitle ? <p className="text-body-md text-on-surface-variant truncate shrink-0">{subtitle}</p> : null}
+      <div className="flex items-baseline gap-2 min-w-0 flex-1">
+        {editing ? (
+          <input
+            autoFocus
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commit();
+              if (e.key === 'Escape') { setEditing(false); setVal(title); }
+            }}
+            className="flex-1 text-headline-md font-semibold text-on-surface bg-transparent border-b-2 border-primary focus:outline-none leading-tight"
+          />
+        ) : (
+          <h1
+            className={`text-headline-md font-semibold text-on-surface leading-tight truncate ${onTitleSave ? 'cursor-text hover:text-primary' : ''}`}
+            onClick={() => onTitleSave && setEditing(true)}
+            title={onTitleSave ? '클릭하여 제목 편집' : undefined}
+          >
+            {title}
+          </h1>
+        )}
+        {subtitle && !editing ? <p className="text-body-md text-on-surface-variant truncate shrink-0">{subtitle}</p> : null}
       </div>
     </div>
   );

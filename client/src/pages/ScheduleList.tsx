@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { MediaDTO, ScheduleDTO } from '@memoryflow/shared';
-import { apiGet } from '../lib/api';
+import { apiGet, apiPatch } from '../lib/api';
 import { AppShell } from '../components/AppShell';
 import { EmptyState, Icon, Spinner } from '../components/ui';
 import { MediaLightbox } from '../components/MediaLightbox';
@@ -108,13 +108,50 @@ function SceneBlock({
   onOpen: (lb: LightboxState) => void;
   isAdmin: boolean;
 }) {
+  const qc = useQueryClient();
+  const [titleEdit, setTitleEdit] = useState(false);
+  const [titleVal, setTitleVal] = useState(schedule.title);
+
+  if (!titleEdit && titleVal !== schedule.title) setTitleVal(schedule.title);
+
+  const saveTitleMut = useMutation({
+    mutationFn: (title: string) => apiPatch(`/schedules/${schedule.id}`, { title }),
+    onSuccess: () => { setTitleEdit(false); qc.invalidateQueries({ queryKey: ['feed', pid] }); },
+  });
+
+  function commitTitle() {
+    const t = titleVal.trim();
+    if (!t || t === schedule.title) { setTitleEdit(false); return; }
+    saveTitleMut.mutate(t);
+  }
+
   return (
     <div className="mb-6">
       {/* 세부일정 헤더 */}
       <div className="flex items-center justify-between mb-2.5">
-        <div className="flex items-center gap-2 min-w-0">
-          {schedule.time ? <span className="text-label-sm text-on-surface-variant">{schedule.time}</span> : null}
-          <h2 className="text-title-sm font-semibold text-on-surface truncate">{schedule.title}</h2>
+        <div className="flex items-center gap-2 min-w-0 flex-1 mr-3">
+          {schedule.time ? <span className="text-label-sm text-on-surface-variant shrink-0">{schedule.time}</span> : null}
+          {isAdmin && titleEdit ? (
+            <input
+              autoFocus
+              value={titleVal}
+              onChange={(e) => setTitleVal(e.target.value)}
+              onBlur={commitTitle}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitTitle();
+                if (e.key === 'Escape') { setTitleEdit(false); setTitleVal(schedule.title); }
+              }}
+              className="flex-1 rounded border border-primary/50 bg-surface-lowest px-2 py-0.5 text-title-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          ) : (
+            <h2
+              className={`text-title-sm font-semibold text-on-surface truncate ${isAdmin ? 'cursor-text hover:text-primary' : ''}`}
+              onClick={() => isAdmin && setTitleEdit(true)}
+              title={isAdmin ? '클릭하여 제목 편집' : undefined}
+            >
+              {schedule.title}
+            </h2>
+          )}
         </div>
         <Link
           to={`/projects/${pid}/schedules/${schedule.id}`}

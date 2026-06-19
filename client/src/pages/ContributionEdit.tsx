@@ -28,7 +28,7 @@ export default function ContributionEdit() {
 
   const { data: projData } = useQuery({
     queryKey: ['project-schedules', pid],
-    queryFn: () => apiGet<{ days: { day_index: number; date: string; schedules: any[] }[] }>(`/projects/${pid}`),
+    queryFn: () => apiGet<{ project: { schedule_type: string }; days: { day_index: number; date: string | null; schedules: any[] }[] }>(`/projects/${pid}`),
     enabled: !!pid,
   });
 
@@ -67,17 +67,33 @@ export default function ContributionEdit() {
   const isAdmin = me?.user?.is_admin ?? false;
   const { scene, locked } = data;
   const effectiveLocked = locked && !isAdmin;
+  const isSeq = projData?.project?.schedule_type === 'sequence';
 
-  const mine = isAdmin 
-    ? scene.contributions 
+  const saveTitleMut = useMutation({
+    mutationFn: (title: string) => apiPatch(`/schedules/${sid}`, { title }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  });
+
+  const mine = isAdmin
+    ? scene.contributions
     : scene.contributions.filter((c) => c.is_mine);
-  const others = isAdmin 
-    ? [] 
+  const others = isAdmin
+    ? []
     : scene.contributions.filter((c) => !c.is_mine);
+
+  const seqPrefix = isSeq ? `#${scene.schedule.day_index}` : null;
+  const subtitle = [
+    seqPrefix,
+    `${scene.schedule.time ?? ''} ${scene.schedule.place ?? ''}`.trim() || null,
+  ].filter(Boolean).join(' · ');
 
   return (
     <AppShell>
-      <TopBar title={scene.schedule.title} subtitle={`${scene.schedule.time ?? ''} ${scene.schedule.place ?? ''}`.trim()} />
+      <TopBar
+        title={scene.schedule.title}
+        subtitle={subtitle || undefined}
+        onTitleSave={isAdmin ? (t) => saveTitleMut.mutate(t) : undefined}
+      />
       <div className="flex items-center gap-2 mb-6">
         <Pill tone="muted">예상 {formatSeconds(scene.scene_seconds)}</Pill>
         {scene.schedule.category ? <Pill tone="muted">{scene.schedule.category}</Pill> : null}
@@ -357,7 +373,7 @@ function MyContribution({ c, locked, onChange, allSchedules, isAdmin }: { c: Con
           >
             {allSchedules.map((s) => (
               <option key={s.id} value={s.id}>
-                Day {s.dayIndex} - {s.title} {s.time ? `(${s.time})` : ''}
+                {isSeq ? `#${s.dayIndex}` : `Day ${s.dayIndex}`} - {s.title} {s.time ? `(${s.time})` : ''}
               </option>
             ))}
           </select>
