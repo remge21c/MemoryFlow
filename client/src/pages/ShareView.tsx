@@ -13,15 +13,46 @@ interface ShareMedia {
   duration_seconds: number | null;
 }
 interface ShareScene {
-  schedule: { id: number; title: string; time: string | null; place: string | null };
+  schedule: { id: number; day_index: number; title: string; time: string | null; place: string | null };
   media: ShareMedia[];
   narration: string;
   scene_seconds: number;
 }
 interface ShareData {
-  project: { name: string; org_name: string | null; description: string | null; start_date: string; end_date: string };
+  project: { name: string; org_name: string | null; description: string | null; start_date: string; end_date: string; schedule_type?: string };
   days: { day_index: number; date: string; scenes: ShareScene[] }[];
   videos: { id: number; url: string }[];
+}
+
+function SceneArticle({ scene, seqNo }: { scene: ShareScene; seqNo?: number }) {
+  return (
+    <article className="mb-8">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-title-sm font-semibold text-on-surface flex items-center gap-2 min-w-0">
+          {seqNo != null ? <span className="text-primary font-bold shrink-0">#{seqNo}</span> : null}
+          {scene.schedule.time ? <span className="text-on-surface-variant">{scene.schedule.time}</span> : null}
+          <span className="truncate">{scene.schedule.title}</span>
+        </h3>
+        <Pill tone="muted">{formatSeconds(scene.scene_seconds)}</Pill>
+      </div>
+      {scene.media.length > 0 ? (
+        <div className="space-y-2 mb-3">
+          {scene.media.map((m) =>
+            m.type === 'video' ? (
+              <video key={m.id} src={m.url} controls className="w-full rounded-lg linen-shadow bg-black" />
+            ) : (
+              <img key={m.id} src={m.url} loading="lazy" className="w-full rounded-lg linen-shadow object-contain" />
+            ),
+          )}
+        </div>
+      ) : null}
+      {scene.narration ? (
+        <p className="text-body-lg leading-relaxed text-on-surface bg-surface-lowest rounded-lg p-4 linen-shadow whitespace-pre-line">
+          {scene.narration}
+        </p>
+      ) : null}
+    </article>
+  );
 }
 
 export default function ShareView() {
@@ -68,41 +99,26 @@ export default function ShareView() {
           </section>
         ) : null}
 
-        {data.days.map((day) => (
-          <section key={day.day_index} className="mb-10">
-            <div className="flex items-baseline gap-2 mb-4">
-              <h2 className="text-headline-md font-bold text-primary">Day {day.day_index}</h2>
-              <span className="text-body-md text-on-surface-variant">{day.date}</span>
-            </div>
-            {day.scenes.map((scene) => (
-              <article key={scene.schedule.id} className="mb-8">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-title-sm font-semibold text-on-surface">
-                    {scene.schedule.time ? <span className="text-on-surface-variant mr-2">{scene.schedule.time}</span> : null}
-                    {scene.schedule.title}
-                  </h3>
-                  <Pill tone="muted">{formatSeconds(scene.scene_seconds)}</Pill>
-                </div>
-                {scene.media.length > 0 ? (
-                  <div className="space-y-2 mb-3">
-                    {scene.media.map((m) =>
-                      m.type === 'video' ? (
-                        <video key={m.id} src={m.url} controls className="w-full rounded-lg linen-shadow bg-black" />
-                      ) : (
-                        <img key={m.id} src={m.url} loading="lazy" className="w-full rounded-lg linen-shadow object-cover" />
-                      ),
-                    )}
-                  </div>
-                ) : null}
-                {scene.narration ? (
-                  <p className="text-body-lg leading-relaxed text-on-surface bg-surface-lowest rounded-lg p-4 linen-shadow whitespace-pre-line">
-                    {scene.narration}
-                  </p>
-                ) : null}
-              </article>
+        {data.project.schedule_type === 'sequence' ? (
+          // 순번(장면) 기반 — 날짜 그룹 없이 장면을 순서대로
+          <section className="mb-10">
+            {data.days.flatMap((d) => d.scenes).map((scene, i) => (
+              <SceneArticle key={scene.schedule.id} scene={scene} seqNo={i + 1} />
             ))}
           </section>
-        ))}
+        ) : (
+          data.days.map((day) => (
+            <section key={day.day_index} className="mb-10">
+              <div className="flex items-baseline gap-2 mb-4">
+                <h2 className="text-headline-md font-bold text-primary">Day {day.day_index}</h2>
+                <span className="text-body-md text-on-surface-variant">{day.date}</span>
+              </div>
+              {day.scenes.map((scene) => (
+                <SceneArticle key={scene.schedule.id} scene={scene} />
+              ))}
+            </section>
+          ))
+        )}
 
         <footer className="text-center text-label-sm text-outline/60 py-8 border-t border-outline-variant/20">
           MemoryFlow로 만든 추억 스토리북

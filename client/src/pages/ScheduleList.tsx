@@ -203,6 +203,7 @@ function Bubble({
           {!mine ? <p className="text-label-sm text-on-surface-variant mb-1">{c.uploader_name}</p> : null}
           <MediaCarousel
             media={c.media}
+            fit="contain"
             onItemClick={(start) =>
               onOpen({
                 items: c.media,

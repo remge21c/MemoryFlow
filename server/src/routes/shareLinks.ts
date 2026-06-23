@@ -22,7 +22,7 @@ export async function shareLinkRoutes(app: FastifyInstance) {
         is_active: r.isActive,
         expires_at: r.expiresAt,
         created_at: r.createdAt,
-        url: '',
+        url: r.token ? `/share/${r.token}` : '', // 토큰 보관분만 재열람 가능
       })) as ShareLinkDTO[],
     };
   });
@@ -35,7 +35,7 @@ export async function shareLinkRoutes(app: FastifyInstance) {
     const expiresAt = new Date(Date.now() + body.expires_days * 86_400_000).toISOString();
     const inserted = await db
       .insert(schema.shareLinks)
-      .values({ projectId: pid, tokenHash: tokenHash(raw), expiresAt })
+      .values({ projectId: pid, tokenHash: tokenHash(raw), token: raw, expiresAt })
       .returning();
     const r = inserted[0]!;
     return {

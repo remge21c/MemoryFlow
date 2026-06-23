@@ -69,14 +69,36 @@ export default function ShareManage() {
         <div className="space-y-2">
           {data.share_links.map((s) => {
             const expired = new Date(s.expires_at).getTime() < Date.now();
+            const fullUrl = s.url ? window.location.origin + s.url : '';
+            const openable = !!fullUrl && s.is_active && !expired;
             return (
               <Card key={s.id} className="p-4 flex items-center gap-3">
                 <Icon name="public" className="text-outline" />
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   {!s.is_active ? <Pill tone="muted">무효</Pill> : expired ? <Pill tone="muted">만료</Pill> : <Pill tone="success">활성</Pill>}
+                  {fullUrl ? (
+                    <a
+                      href={fullUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-body-md text-primary break-all hover:underline mt-1"
+                    >
+                      {fullUrl}
+                    </a>
+                  ) : null}
                   <p className="text-label-sm text-outline mt-1">만료 {formatDate(s.expires_at)}</p>
                 </div>
-                {s.is_active && !expired ? <button onClick={() => deact.mutate(s.id)} className="text-label-sm text-error">무효화</button> : null}
+                {fullUrl ? (
+                  <button onClick={() => navigator.clipboard?.writeText(fullUrl)} aria-label="링크 복사" title="링크 복사" className="shrink-0 text-primary">
+                    <Icon name="content_copy" />
+                  </button>
+                ) : null}
+                {openable ? (
+                  <a href={fullUrl} target="_blank" rel="noopener noreferrer" aria-label="링크 열기" title="새 탭에서 열기" className="shrink-0 text-primary">
+                    <Icon name="open_in_new" />
+                  </a>
+                ) : null}
+                {s.is_active && !expired ? <button onClick={() => deact.mutate(s.id)} className="shrink-0 text-label-sm text-error">무효화</button> : null}
               </Card>
             );
           })}

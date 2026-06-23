@@ -10,6 +10,7 @@ export function MediaCarousel({
   onDelete,
   deletingId,
   onTrimVideo,
+  fit = 'cover',
 }: {
   media: MediaDTO[];
   /** 슬라이드 탭 시 (라이트박스 열기 등). 없으면 단순 표시. */
@@ -19,6 +20,8 @@ export function MediaCarousel({
   deletingId?: number | null;
   /** 현재 슬라이드가 영상일 때 자르기 버튼 (편집 화면용). */
   onTrimVideo?: (media: MediaDTO) => void;
+  /** 'cover': 프레임 채움(잘림). 'contain': 사진 전체 표시(단일은 원본 비율, 다중은 레터박스). */
+  fit?: 'cover' | 'contain';
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [idx, setIdx] = useState(0);
@@ -62,9 +65,16 @@ export function MediaCarousel({
         className="flex gap-1.5 overflow-x-auto snap-x snap-mandatory no-scrollbar rounded-xl"
       >
         {media.map((m, i) => {
+          // 단일 사진 + contain: 고정 프레임 없이 원본 비율로 전체 표시. 그 외: 4:3 프레임.
+          const naturalFrame = fit === 'contain' && !multi;
+          const imgClass = fit === 'contain'
+            ? naturalFrame
+              ? 'w-full h-auto max-h-[80vh] object-contain'
+              : 'w-full h-full object-contain'
+            : 'w-full h-full object-cover';
           const inner = (
             <>
-              <img src={m.thumb_url ?? m.url} loading="lazy" className="w-full h-full object-cover" alt="" />
+              <img src={m.thumb_url ?? m.url} loading="lazy" className={imgClass} alt="" />
               {m.type === 'video' ? (
                 <span className="absolute inset-0 flex items-center justify-center bg-black/25">
                   <Icon name="play_circle" fill className="text-white text-[40px]" />
@@ -78,9 +88,10 @@ export function MediaCarousel({
             </>
           );
           // 왼쪽 붙임 정렬 — 첫 장은 단일 사진처럼 좌측에 딱 붙고, 다음 장이 오른쪽에 살짝 보임
-          const slideClass = `relative shrink-0 snap-start overflow-hidden rounded-xl bg-surface-container aspect-[4/3] ${
-            multi ? 'w-[86%]' : 'w-full'
-          }`;
+          // 단일 사진 + contain은 원본 비율을 위해 고정 4:3 프레임을 생략한다.
+          const slideClass = `relative shrink-0 snap-start overflow-hidden rounded-xl bg-surface-container ${
+            naturalFrame ? '' : 'aspect-[4/3]'
+          } ${multi ? 'w-[86%]' : 'w-full'}`;
           return onItemClick ? (
             <button key={m.id} className={slideClass} onClick={() => onItemClick(i)} aria-label={`${i + 1}번째 미디어 전체화면으로 보기`}>
               {inner}

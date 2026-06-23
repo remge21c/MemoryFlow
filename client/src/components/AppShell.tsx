@@ -38,7 +38,8 @@ export function AppShell({
   // 영역 전환 시 활성 프로젝트가 있으면 목록이 아니라 바로 해당 화면으로
   const uploaderHome = active ? `/projects/${active.id}` : '/projects';
   const adminHome = active ? `/admin/projects/${active.id}` : '/admin';
-  const brandTo = user?.is_admin ? adminHome : uploaderHome;
+  // 로고 클릭 시 역할과 무관하게 현재 프로젝트의 업로드 페이지(피드)로 이동
+  const brandTo = uploaderHome;
 
   return (
     <div className="min-h-screen bg-surface lg:flex">

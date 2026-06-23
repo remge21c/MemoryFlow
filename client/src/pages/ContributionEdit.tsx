@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ContributionDTO, MediaDTO, SceneDTO } from '@memoryflow/shared';
 import { formatSeconds } from '@memoryflow/shared';
@@ -17,6 +17,7 @@ interface SceneResp {
 
 export default function ContributionEdit() {
   const { pid, sid } = useParams();
+  const nav = useNavigate();
   const qc = useQueryClient();
   const key = ['scene', pid, sid];
   const { data: me } = useMe();
@@ -57,6 +58,8 @@ export default function ContributionEdit() {
       setStory('');
       setFiles([]);
       qc.invalidateQueries({ queryKey: key });
+      // 저장 후 업로더 메인(활성 프로젝트 피드)으로 이동
+      nav(`/projects/${pid}`);
     },
     onError: (e) => setErr((e as Error).message),
   });

@@ -6,7 +6,7 @@ import { tokenHash } from '../lib/hash.js';
 import { HttpError } from '../lib/errors.js';
 import { streamFile } from '../lib/stream.js';
 import { buildScene } from '../services/scene.js';
-import { dayCount, dateForDay } from '../lib/date.js';
+import { dateForDay } from '../lib/date.js';
 
 async function resolveShare(token: string) {
   const rows = await db
@@ -67,12 +67,17 @@ export async function shareRoutes(app: FastifyInstance) {
       sceneByDay.set(s.dayIndex, arr);
     }
 
-    const dc = dayCount(project.startDate, project.endDate);
-    const days = Array.from({ length: dc }, (_, i) => ({
-      day_index: i + 1,
-      date: dateForDay(project.startDate, i + 1),
-      scenes: sceneByDay.get(i + 1) ?? [],
-    })).filter((d) => d.scenes.length > 0);
+    const isSeq = project.scheduleType === 'sequence';
+    // 실제 장면이 존재하는 day_index만으로 그룹 구성.
+    // (날짜 범위로 생성하던 기존 방식은 sequence 프로젝트의 2번 이후 순번을 누락시켰음)
+    const presentDays = [...new Set(scheds.map((s) => s.dayIndex))].sort((a, b) => a - b);
+    const days = presentDays
+      .map((di) => ({
+        day_index: di,
+        date: isSeq ? '' : dateForDay(project.startDate, di),
+        scenes: sceneByDay.get(di) ?? [],
+      }))
+      .filter((d) => d.scenes.length > 0);
 
     const videos = await db
       .select()
@@ -87,6 +92,7 @@ export async function shareRoutes(app: FastifyInstance) {
         description: project.description,
         start_date: project.startDate,
         end_date: project.endDate,
+        schedule_type: project.scheduleType,
       },
       days,
       videos: videos.map((v) => ({ id: v.id, url: `/api/share/${token}/video/${v.id}` })),
