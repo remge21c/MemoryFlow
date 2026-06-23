@@ -61,6 +61,11 @@ export default function ContributionEdit() {
     onError: (e) => setErr((e as Error).message),
   });
 
+  const saveTitleMut = useMutation({
+    mutationFn: (title: string) => apiPatch(`/schedules/${sid}`, { title }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  });
+
   if (isLoading) return <AppShell><Spinner /></AppShell>;
   if (!data) return <AppShell><TopBar title="장면" /></AppShell>;
 
@@ -68,11 +73,6 @@ export default function ContributionEdit() {
   const { scene, locked } = data;
   const effectiveLocked = locked && !isAdmin;
   const isSeq = projData?.project?.schedule_type === 'sequence';
-
-  const saveTitleMut = useMutation({
-    mutationFn: (title: string) => apiPatch(`/schedules/${sid}`, { title }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
-  });
 
   const mine = isAdmin
     ? scene.contributions
@@ -112,7 +112,7 @@ export default function ContributionEdit() {
           <h2 className="text-title-sm font-semibold mb-3">내 기록</h2>
           <div className="space-y-3">
             {mine.map((c) => (
-              <MyContribution key={c.id} c={c} locked={effectiveLocked} onChange={() => qc.invalidateQueries({ queryKey: key })} allSchedules={allSchedules} isAdmin={isAdmin} />
+              <MyContribution key={c.id} c={c} locked={effectiveLocked} onChange={() => qc.invalidateQueries({ queryKey: key })} allSchedules={allSchedules} isAdmin={isAdmin} isSeq={isSeq} />
             ))}
           </div>
         </section>
@@ -301,7 +301,7 @@ interface ScheduleItem {
   place: string | null;
 }
 
-function MyContribution({ c, locked, onChange, allSchedules, isAdmin }: { c: ContributionDTO; locked: boolean; onChange: () => void; allSchedules: ScheduleItem[]; isAdmin: boolean }) {
+function MyContribution({ c, locked, onChange, allSchedules, isAdmin, isSeq }: { c: ContributionDTO; locked: boolean; onChange: () => void; allSchedules: ScheduleItem[]; isAdmin: boolean; isSeq: boolean }) {
   const [text, setText] = useState(c.story_text ?? '');
   const [dirty, setDirty] = useState(false);
   const [trimTarget, setTrimTarget] = useState<MediaDTO | null>(null);
