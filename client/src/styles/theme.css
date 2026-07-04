@@ -1,6 +1,7 @@
 /* MemoryFlow — Tailwind v4 theme (docs/design-system/tailwind-theme.css 동기화) */
 @theme {
-  --font-sans: "Be Vietnam Pro", "Pretendard", system-ui, sans-serif;
+  /* 폴백에 OS 한글 UI 폰트를 두어, 웹폰트 로드 전/실패 시 지표가 가까운 글꼴로 렌더 → 교체 시 레이아웃 밀림(FOUT reflow) 최소화 */
+  --font-sans: "Be Vietnam Pro", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
 
   --color-surface: #f9f9f7;
   --color-surface-dim: #dadad8;

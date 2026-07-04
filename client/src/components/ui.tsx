@@ -27,7 +27,9 @@ export function Button({ variant = 'primary', loading, icon, children, className
   };
   return (
     <button className={`${base} ${styles[variant]} ${className}`} disabled={disabled || loading} {...rest}>
-      {loading ? <Icon name="progress_activity" className="animate-spin text-[20px]" /> : icon ? <Icon name={icon} className="text-[20px]" /> : null}
+      {loading ? (
+        <span aria-hidden="true" className="inline-block w-5 h-5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+      ) : icon ? <Icon name={icon} className="text-[20px]" /> : null}
       {children}
     </button>
   );
@@ -127,10 +129,14 @@ export function ProjectCardSkeleton() {
   );
 }
 
-export function Spinner() {
+/** 아이콘 폰트에 의존하지 않는 순수 CSS 원형 스피너 (폰트 로드 전에도 깔끔하게 회전). */
+export function Spinner({ className = 'w-8 h-8 border-[3px]' }: { className?: string }) {
   return (
     <div role="status" aria-label="로딩 중" className="flex justify-center py-16 text-outline">
-      <Icon name="progress_activity" className="animate-spin text-[32px]" />
+      <span
+        aria-hidden="true"
+        className={`inline-block rounded-full border-current border-t-transparent animate-spin ${className}`}
+      />
     </div>
   );
 }

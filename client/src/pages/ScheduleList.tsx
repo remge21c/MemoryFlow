@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { MediaDTO, ScheduleDTO } from '@memoryflow/shared';
 import { apiGet, apiPatch } from '../lib/api';
 import { AppShell } from '../components/AppShell';
-import { EmptyState, Icon, Spinner } from '../components/ui';
+import { EmptyState, Icon, Skeleton } from '../components/ui';
 import { MediaLightbox } from '../components/MediaLightbox';
 import { MediaCarousel } from '../components/MediaCarousel';
 import { useActiveProject } from '../stores/activeProject';
@@ -50,7 +50,7 @@ export default function ScheduleList() {
     if (data) setViewing({ id: data.project.id, name: data.project.name, org_name: data.project.org_name ?? undefined });
   }, [data, setViewing]);
 
-  if (isLoading) return <AppShell><Spinner /></AppShell>;
+  if (isLoading) return <AppShell max="max-w-2xl lg:max-w-3xl"><FeedSkeleton /></AppShell>;
   if (!data) return <AppShell><EmptyState icon="error" title="프로젝트를 찾을 수 없습니다" /></AppShell>;
 
   const hasAnySchedule = data.days.some((d) => d.schedules.length > 0);
@@ -94,6 +94,26 @@ export default function ScheduleList() {
         />
       ) : null}
     </AppShell>
+  );
+}
+
+/** 피드 로딩 스켈레톤 — 실제 레이아웃(날짜 구분선 + 장면 블록)과 같은 구조라 로드 완료 시 튐이 없다. */
+function FeedSkeleton() {
+  return (
+    <div aria-hidden="true">
+      <div className="flex items-center justify-center my-4">
+        <Skeleton className="h-8 w-44 rounded-full" />
+      </div>
+      {[0, 1].map((s) => (
+        <div key={s} className="mb-6">
+          <div className="flex items-center justify-between mb-2.5">
+            <Skeleton className="h-4 w-2/5" />
+            <Skeleton className="h-4 w-12" />
+          </div>
+          <Skeleton className="w-full aspect-[4/3] rounded-xl" />
+        </div>
+      ))}
+    </div>
   );
 }
 
