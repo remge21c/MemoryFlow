@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ContributionDTO, MediaDTO, SceneDTO } from '@memoryflow/shared';
 import { formatSeconds } from '@memoryflow/shared';
@@ -70,6 +70,18 @@ export default function ContributionEdit() {
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
 
+  // 라이트박스 "수정"으로 넘어오면 #c-<id> 앵커의 해당 기록으로 스크롤 + 잠깐 강조
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!data || !hash) return;
+    const el = document.getElementById(hash.slice(1));
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('ring-2', 'ring-primary', 'rounded-lg');
+    const t = setTimeout(() => el.classList.remove('ring-2', 'ring-primary', 'rounded-lg'), 1600);
+    return () => clearTimeout(t);
+  }, [data, hash]);
+
   if (isLoading) return <AppShell><Spinner /></AppShell>;
   if (!data) return <AppShell><TopBar title="장면" /></AppShell>;
 
@@ -116,7 +128,9 @@ export default function ContributionEdit() {
           <h2 className="text-title-sm font-semibold mb-3">내 기록</h2>
           <div className="space-y-3">
             {mine.map((c) => (
-              <MyContribution key={c.id} c={c} locked={effectiveLocked} onChange={() => qc.invalidateQueries({ queryKey: key })} allSchedules={allSchedules} isAdmin={isAdmin} isSeq={isSeq} />
+              <div key={c.id} id={`c-${c.id}`} className="scroll-mt-20 transition-shadow">
+                <MyContribution c={c} locked={effectiveLocked} onChange={() => qc.invalidateQueries({ queryKey: key })} allSchedules={allSchedules} isAdmin={isAdmin} isSeq={isSeq} />
+              </div>
             ))}
           </div>
         </section>
