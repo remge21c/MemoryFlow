@@ -127,6 +127,11 @@ export default function ScheduleList() {
               ? async (mediaId) => { await delMediaMut.mutateAsync(mediaId); }
               : undefined
           }
+          onTrimmed={
+            lb.contributionId != null
+              ? () => qc.invalidateQueries({ queryKey: ['feed', pid] })
+              : undefined
+          }
           onClose={() => setLb(null)}
         />
       ) : null}

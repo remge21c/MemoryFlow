@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import type { MediaDTO } from '@memoryflow/shared';
 import { Icon } from './ui';
+import { TrimVideoModal } from './TrimVideoModal';
 
 export function MediaLightbox({
   items: initialItems,
@@ -12,6 +13,7 @@ export function MediaLightbox({
   onSaveStory,
   onAddMedia,
   onDeleteMedia,
+  onTrimmed,
   onToggleInclude,
   onClose,
 }: {
@@ -24,6 +26,8 @@ export function MediaLightbox({
   onAddMedia?: (files: FileList) => Promise<MediaDTO[]>;
   /** 있으면 편집 모드에서 현재 사진 삭제 */
   onDeleteMedia?: (mediaId: number) => Promise<void> | void;
+  /** 있으면 편집 모드에서 영상 자르기 허용 — 자른 뒤 목록 갱신을 위해 호출 */
+  onTrimmed?: () => Promise<void> | void;
   onToggleInclude?: (mediaId: number) => void;
   onClose: () => void;
 }) {
@@ -38,8 +42,10 @@ export function MediaLightbox({
   const [savedStory, setSavedStory] = useState(story ?? '');
   const [savingStory, setSavingStory] = useState(false);
   const [busyMedia, setBusyMedia] = useState(false);
+  const [trimTarget, setTrimTarget] = useState<MediaDTO | null>(null);
+  const [mediaVer, setMediaVer] = useState(0); // 자르기 후 교체된 영상 캐시 무효화용
 
-  const canEdit = !!(onSaveStory || onAddMedia || onDeleteMedia);
+  const canEdit = !!(onSaveStory || onAddMedia || onDeleteMedia || onTrimmed);
 
   const prev = useCallback(() => setI((v) => (v > 0 ? v - 1 : v)), []);
   const next = useCallback(() => setI((v) => (v < items.length - 1 ? v + 1 : v)), [items.length]);
@@ -104,6 +110,12 @@ export function MediaLightbox({
       setBusyMedia(false);
       if (addInputRef.current) addInputRef.current.value = '';
     }
+  }
+
+  async function handleTrimDone() {
+    setTrimTarget(null);
+    setMediaVer((v) => v + 1); // 교체된 영상 파일 캐시 무효화
+    if (onTrimmed) await onTrimmed();
   }
 
   useEffect(() => {
@@ -187,20 +199,40 @@ export function MediaLightbox({
           </button>
         ) : null}
 
-        {/* 편집 모드: 현재 사진 삭제 */}
-        {editing && onDeleteMedia ? (
-          <button
-            onClick={handleDeleteCurrent}
-            disabled={busyMedia}
-            aria-label="이 사진 삭제"
-            className="absolute top-2 right-2 z-10 flex items-center gap-1 px-3 h-9 rounded-full bg-error/90 text-on-error text-label-sm font-semibold hover:bg-error disabled:opacity-50"
-          >
-            <Icon name="delete" className="text-[18px]" /> 삭제
-          </button>
+        {/* 편집 모드: 현재 미디어 액션 (영상 자르기 / 삭제) */}
+        {editing && (onDeleteMedia || (onTrimmed && cur.type === 'video')) ? (
+          <div className="absolute top-2 right-2 z-10 flex flex-col items-end gap-2">
+            {onTrimmed && cur.type === 'video' ? (
+              <button
+                onClick={() => setTrimTarget(cur)}
+                disabled={busyMedia}
+                aria-label="영상 자르기"
+                className="flex items-center gap-1 px-3 h-9 rounded-full bg-white/15 text-white text-label-sm font-semibold hover:bg-white/25 disabled:opacity-50"
+              >
+                <Icon name="content_cut" className="text-[18px]" /> 자르기
+              </button>
+            ) : null}
+            {onDeleteMedia ? (
+              <button
+                onClick={handleDeleteCurrent}
+                disabled={busyMedia}
+                aria-label="이 사진 삭제"
+                className="flex items-center gap-1 px-3 h-9 rounded-full bg-error/90 text-on-error text-label-sm font-semibold hover:bg-error disabled:opacity-50"
+              >
+                <Icon name="delete" className="text-[18px]" /> 삭제
+              </button>
+            ) : null}
+          </div>
         ) : null}
 
         {cur.type === 'video' ? (
-          <video key={cur.id} src={cur.url} controls autoPlay className="max-h-full max-w-full rounded-lg bg-black" />
+          <video
+            key={`${cur.id}-${mediaVer}`}
+            src={mediaVer ? `${cur.url}${cur.url.includes('?') ? '&' : '?'}v=${mediaVer}` : cur.url}
+            controls
+            autoPlay
+            className="max-h-full max-w-full rounded-lg bg-black"
+          />
         ) : (
           <img key={cur.id} src={cur.url} className="max-h-full max-w-full object-contain rounded-lg" alt="" />
         )}
@@ -284,6 +316,10 @@ export function MediaLightbox({
           </button>
         ))}
       </div>
+
+      {trimTarget ? (
+        <TrimVideoModal media={trimTarget} onClose={() => setTrimTarget(null)} onDone={handleTrimDone} />
+      ) : null}
     </div>
   );
 }
