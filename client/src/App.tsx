@@ -6,7 +6,6 @@ import type { ProjectDTO } from '@memoryflow/shared';
 import { apiGet } from './lib/api';
 import { useMe } from './lib/auth';
 import { useActiveProject } from './stores/activeProject';
-import { Spinner } from './components/ui';
 
 import Login from './pages/Login';
 import Join from './pages/Join';
@@ -29,7 +28,7 @@ import ExportVideo from './pages/admin/ExportVideo';
 
 function RequireAuth({ children, admin }: { children: ReactNode; admin?: boolean }) {
   const { data, isLoading } = useMe();
-  if (isLoading) return <Spinner />;
+  if (isLoading) return null; // 인증 확인 중엔 회전 스피너 대신 조용히 대기 (목적지 스켈레톤이 자리를 채움)
   if (!data?.user) return <Navigate to="/login" replace />;
   if (admin && !data.user.is_admin) return <Navigate to="/projects" replace />;
   return <>{children}</>;
@@ -55,10 +54,10 @@ function RoleHome() {
     }
   }, [needAutoActivate, first, setActive]);
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
   if (!active) {
-    if (projLoading || first) return <Spinner />; // 자동 활성화 진행 중
+    if (projLoading || first) return null; // 자동 활성화 진행 중 — 회전 스피너 없이 대기
     // 합류/생성한 프로젝트가 하나도 없음 → 목록(빈 상태 안내)으로
     return <Navigate to={user.is_admin ? '/admin' : '/projects'} replace />;
   }
