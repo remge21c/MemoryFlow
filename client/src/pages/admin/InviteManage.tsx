@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { InviteDTO } from '@memoryflow/shared';
-import { apiGet, apiPost } from '../../lib/api';
+import { apiDelete, apiGet, apiPost } from '../../lib/api';
 import { Button, Card, EmptyState, Icon, Pill, Spinner } from '../../components/ui';
 import { formatDate } from '../../lib/format';
 
@@ -23,6 +23,10 @@ export default function InviteManage() {
   });
   const deact = useMutation({
     mutationFn: (id: number) => apiPost(`/invites/${id}/deactivate`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  });
+  const delMut = useMutation({
+    mutationFn: (id: number) => apiDelete(`/invites/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
 
@@ -66,18 +70,42 @@ export default function InviteManage() {
         <div className="space-y-2">
           {data.invites.map((inv) => {
             const expired = new Date(inv.expires_at).getTime() < Date.now();
+            const fullUrl = inv.url ? window.location.origin + inv.url : '';
+            const openable = !!fullUrl && inv.is_active && !expired;
             return (
               <Card key={inv.id} className="p-4 flex items-center gap-3">
                 <Icon name="link" className="text-outline" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    {!inv.is_active ? <Pill tone="muted">무효</Pill> : expired ? <Pill tone="muted">만료</Pill> : <Pill tone="success">활성</Pill>}
-                  </div>
+                <div className="flex-1 min-w-0">
+                  {!inv.is_active ? <Pill tone="muted">무효</Pill> : expired ? <Pill tone="muted">만료</Pill> : <Pill tone="success">활성</Pill>}
+                  {fullUrl ? (
+                    <a href={fullUrl} target="_blank" rel="noopener noreferrer" className="block text-body-md text-primary break-all hover:underline mt-1">
+                      {fullUrl}
+                    </a>
+                  ) : null}
                   <p className="text-label-sm text-outline mt-1">만료 {formatDate(inv.expires_at)}</p>
                 </div>
-                {inv.is_active && !expired ? (
-                  <button onClick={() => deact.mutate(inv.id)} className="text-label-sm text-error">무효화</button>
+                {fullUrl ? (
+                  <button onClick={() => navigator.clipboard?.writeText(fullUrl)} aria-label="링크 복사" title="링크 복사" className="shrink-0 text-primary">
+                    <Icon name="content_copy" />
+                  </button>
                 ) : null}
+                {openable ? (
+                  <a href={fullUrl} target="_blank" rel="noopener noreferrer" aria-label="링크 열기" title="새 탭에서 열기" className="shrink-0 text-primary">
+                    <Icon name="open_in_new" />
+                  </a>
+                ) : null}
+                {inv.is_active && !expired ? (
+                  <button onClick={() => deact.mutate(inv.id)} className="shrink-0 text-label-sm text-error">무효화</button>
+                ) : null}
+                <button
+                  onClick={() => { if (window.confirm('이 초대 링크를 삭제할까요?')) delMut.mutate(inv.id); }}
+                  disabled={delMut.isPending}
+                  aria-label="삭제"
+                  title="삭제"
+                  className="shrink-0 text-outline hover:text-error disabled:opacity-50"
+                >
+                  <Icon name="delete" />
+                </button>
               </Card>
             );
           })}

@@ -161,6 +161,15 @@ export function migrate(): void {
   } catch (e) {
     console.error('[migrate] Failed to check or alter share_links table:', e);
   }
+  try {
+    const inviteCols = sqlite.prepare("PRAGMA table_info(invites)").all() as { name: string }[];
+    if (!inviteCols.some(c => c.name === 'token')) {
+      sqlite.exec("ALTER TABLE invites ADD COLUMN token TEXT");
+      console.log('[migrate] ADD COLUMN token to invites table.');
+    }
+  } catch (e) {
+    console.error('[migrate] Failed to check or alter invites table:', e);
+  }
 }
 
 // 직접 실행 시(pnpm migrate)

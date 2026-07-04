@@ -3,7 +3,7 @@ import { useOutletContext, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ShareLinkDTO } from '@memoryflow/shared';
 import type { ProjectDetail } from './ProjectLayout';
-import { apiGet, apiPost } from '../../lib/api';
+import { apiDelete, apiGet, apiPost } from '../../lib/api';
 import { Button, Card, EmptyState, Icon, Pill, Spinner } from '../../components/ui';
 import { formatDate } from '../../lib/format';
 
@@ -24,6 +24,7 @@ export default function ShareManage() {
     },
   });
   const deact = useMutation({ mutationFn: (id: number) => apiPost(`/share-links/${id}/deactivate`), onSuccess: () => qc.invalidateQueries({ queryKey: key }) });
+  const delMut = useMutation({ mutationFn: (id: number) => apiDelete(`/share-links/${id}`), onSuccess: () => qc.invalidateQueries({ queryKey: key }) });
 
   const approved = detail.storybook.status === 'approved';
 
@@ -99,6 +100,15 @@ export default function ShareManage() {
                   </a>
                 ) : null}
                 {s.is_active && !expired ? <button onClick={() => deact.mutate(s.id)} className="shrink-0 text-label-sm text-error">무효화</button> : null}
+                <button
+                  onClick={() => { if (window.confirm('이 공유 링크를 삭제할까요?')) delMut.mutate(s.id); }}
+                  disabled={delMut.isPending}
+                  aria-label="삭제"
+                  title="삭제"
+                  className="shrink-0 text-outline hover:text-error disabled:opacity-50"
+                >
+                  <Icon name="delete" />
+                </button>
               </Card>
             );
           })}

@@ -58,4 +58,14 @@ export async function shareLinkRoutes(app: FastifyInstance) {
     await db.update(schema.shareLinks).set({ isActive: false }).where(eq(schema.shareLinks.id, id));
     return { ok: true };
   });
+
+  app.delete('/share-links/:id', async (req) => {
+    requireAdmin(req); // 존재 여부 노출 전에 인증 먼저
+    const id = Number((req.params as { id: string }).id);
+    const r = await db.select().from(schema.shareLinks).where(eq(schema.shareLinks.id, id)).limit(1);
+    if (!r[0]) throw new HttpError(404, '공유 링크를 찾을 수 없습니다');
+    await requireProjectAdmin(req, r[0].projectId);
+    await db.delete(schema.shareLinks).where(eq(schema.shareLinks.id, id));
+    return { ok: true };
+  });
 }

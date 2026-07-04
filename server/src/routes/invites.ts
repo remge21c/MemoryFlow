@@ -16,14 +16,13 @@ export async function inviteRoutes(app: FastifyInstance) {
       .from(schema.invites)
       .where(eq(schema.invites.projectId, pid))
       .orderBy(desc(schema.invites.createdAt));
-    // 원본 토큰은 저장 안 하므로 기존 링크 URL은 재생성 불가 → 상태만 표시
     return {
       invites: rows.map((r) => ({
         id: r.id,
         is_active: r.isActive,
         expires_at: r.expiresAt,
         created_at: r.createdAt,
-        url: '',
+        url: r.token ? `/join/${r.token}` : '', // 토큰 보관분만 재열람 가능
       })) as InviteDTO[],
     };
   });
@@ -36,7 +35,7 @@ export async function inviteRoutes(app: FastifyInstance) {
     const expiresAt = new Date(Date.now() + body.expires_days * 86_400_000).toISOString();
     const inserted = await db
       .insert(schema.invites)
-      .values({ projectId: pid, tokenHash: tokenHash(raw), expiresAt, createdBy: u.id })
+      .values({ projectId: pid, tokenHash: tokenHash(raw), token: raw, expiresAt, createdBy: u.id })
       .returning();
     const r = inserted[0]!;
     return {
@@ -56,6 +55,15 @@ export async function inviteRoutes(app: FastifyInstance) {
     if (!r[0]) throw new HttpError(404, '초대 링크를 찾을 수 없습니다');
     await requireProjectAdmin(req, r[0].projectId);
     await db.update(schema.invites).set({ isActive: false }).where(eq(schema.invites.id, id));
+    return { ok: true };
+  });
+
+  app.delete('/invites/:id', async (req) => {
+    const id = Number((req.params as { id: string }).id);
+    const r = await db.select().from(schema.invites).where(eq(schema.invites.id, id)).limit(1);
+    if (!r[0]) throw new HttpError(404, '초대 링크를 찾을 수 없습니다');
+    await requireProjectAdmin(req, r[0].projectId);
+    await db.delete(schema.invites).where(eq(schema.invites.id, id));
     return { ok: true };
   });
 }
