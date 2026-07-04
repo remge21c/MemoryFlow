@@ -20,6 +20,13 @@ if (isProd && (!sessionSecret || sessionSecret.length < 32)) {
   throw new Error('SESSION_SECRET 환경변수(32자 이상)가 필요합니다 (production)');
 }
 
+// 프로덕션에서 DB_PATH 미설정 시 기동을 막는다.
+// (미설정 시 시스템 디스크의 임시 DB(./data/db)로 조용히 폴백 → 재배포 때 데이터/공유링크가 유실됨)
+const dbPathEnv = process.env.DB_PATH;
+if (isProd && !dbPathEnv) {
+  throw new Error('DB_PATH 환경변수가 필요합니다 (production) — 미설정 시 임시 디스크로 폴백되어 데이터가 유실됩니다');
+}
+
 export const env = {
   PORT: Number(process.env.PORT ?? 4000),
   STORAGE_ROOT: resolve(process.env.STORAGE_ROOT ?? './storage'),
