@@ -1,8 +1,7 @@
-// 전체화면 미디어 뷰어 — 보기 전용.
-// 수정은 기록 페이지(ContributionEdit)로 일원화: editHref가 있으면 "수정" 버튼으로 이동만 시킨다.
+// 전체화면 미디어 뷰어 — 보기 + 그 자리 편집(스토리 글 / 사진 추가·삭제), 페이지 이동 없음.
 // 관리자 스토리북 사진 선별(onToggleInclude)은 "보면서 고르는" 작업이라 뷰어에 유지.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import type { ChangeEvent } from 'react';
 import type { MediaDTO } from '@memoryflow/shared';
 import { Icon } from './ui';
 
@@ -10,36 +9,58 @@ export function MediaLightbox({
   items: initialItems,
   start,
   story,
-  editHref,
   onSaveStory,
+  onAddMedia,
+  onDeleteMedia,
   onToggleInclude,
   onClose,
 }: {
   items: MediaDTO[];
   start: number;
   story?: string;
-  /** 사진 추가·삭제 등 전체 편집 페이지 경로 — "사진 편집" 링크로 노출 */
-  editHref?: string;
-  /** 있으면 라이트박스 안에서 스토리 글을 바로 편집·저장 (페이지 이동 없이) */
+  /** 있으면 "수정"으로 스토리 글을 그 자리에서 편집·저장 */
   onSaveStory?: (text: string) => Promise<void> | void;
+  /** 있으면 편집 모드에서 사진 추가 — 갱신된 미디어 목록을 반환하면 뷰어가 즉시 반영 */
+  onAddMedia?: (files: FileList) => Promise<MediaDTO[]>;
+  /** 있으면 편집 모드에서 현재 사진 삭제 */
+  onDeleteMedia?: (mediaId: number) => Promise<void> | void;
   onToggleInclude?: (mediaId: number) => void;
   onClose: () => void;
 }) {
   const [items, setItems] = useState(initialItems);
   const [i, setI] = useState(start);
   const touchX = useRef<number | null>(null);
+  const addInputRef = useRef<HTMLInputElement>(null);
 
-  // 인라인 스토리 편집 상태
-  const [editingStory, setEditingStory] = useState(false);
+  // 편집 상태 (글 + 사진 통합)
+  const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(story ?? '');
   const [savedStory, setSavedStory] = useState(story ?? '');
   const [savingStory, setSavingStory] = useState(false);
-  // 다른 사진으로 넘어가는 등 story prop이 바뀌면 표시값 동기화 (편집 중이 아닐 때만)
+  const [busyMedia, setBusyMedia] = useState(false);
+
+  const canEdit = !!(onSaveStory || onAddMedia || onDeleteMedia);
+
+  const prev = useCallback(() => setI((v) => (v > 0 ? v - 1 : v)), []);
+  const next = useCallback(() => setI((v) => (v < items.length - 1 ? v + 1 : v)), [items.length]);
+
+  // 부모 데이터 변경 시 동기화
+  useEffect(() => { setItems(initialItems); }, [initialItems]);
   useEffect(() => {
     setSavedStory(story ?? '');
-    setEditingStory(false);
     setDraft(story ?? '');
+    setEditing(false);
   }, [story]);
+
+  function handleToggleInclude() {
+    const target = items[i];
+    if (!onToggleInclude || !target) return;
+    const mediaId = target.id;
+    setItems((prevItems) =>
+      prevItems.map((m) => (m.id === mediaId ? { ...m, included: !m.included } : m)),
+    );
+    onToggleInclude(mediaId);
+  }
 
   async function handleSaveStory() {
     if (!onSaveStory) return;
@@ -48,30 +69,41 @@ export function MediaLightbox({
     try {
       await onSaveStory(text);
       setSavedStory(text);
-      setEditingStory(false);
     } finally {
       setSavingStory(false);
     }
   }
 
-  const prev = useCallback(() => setI((v) => (v > 0 ? v - 1 : v)), []);
-  const next = useCallback(() => setI((v) => (v < items.length - 1 ? v + 1 : v)), [items.length]);
-
-  // 부모 컴포넌트의 데이터 변경 시 items 동기화
-  useEffect(() => {
-    setItems(initialItems);
-  }, [initialItems]);
-
-  // 사진 선별 토글 처리
-  function handleToggleInclude() {
+  async function handleDeleteCurrent() {
     const target = items[i];
-    if (!onToggleInclude || !target) return;
-    const mediaId = target.id;
-    // 로컬 상태를 먼저 토글하여 즉각 피드백 제공
-    setItems((prevItems) =>
-      prevItems.map((m) => (m.id === mediaId ? { ...m, included: !m.included } : m))
-    );
-    onToggleInclude(mediaId);
+    if (!onDeleteMedia || !target) return;
+    if (!window.confirm('이 사진을 삭제할까요? 되돌릴 수 없습니다.')) return;
+    setBusyMedia(true);
+    try {
+      await onDeleteMedia(target.id);
+      const nextItems = items.filter((m) => m.id !== target.id);
+      setItems(nextItems);
+      if (nextItems.length === 0) { onClose(); return; }
+      setI((v) => Math.min(v, nextItems.length - 1));
+    } finally {
+      setBusyMedia(false);
+    }
+  }
+
+  async function handleAddFiles(e: ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!onAddMedia || !files || files.length === 0) return;
+    setBusyMedia(true);
+    try {
+      const updated = await onAddMedia(files);
+      if (Array.isArray(updated) && updated.length) {
+        setItems(updated);
+        setI(updated.length - 1); // 방금 추가한 마지막 사진으로 이동
+      }
+    } finally {
+      setBusyMedia(false);
+      if (addInputRef.current) addInputRef.current.value = '';
+    }
   }
 
   useEffect(() => {
@@ -113,21 +145,21 @@ export function MediaLightbox({
               {cur.included ? '선택됨' : '선택하기'}
             </button>
           ) : null}
-          {onSaveStory && !editingStory ? (
+          {canEdit && !editing ? (
             <button
-              onClick={() => { setDraft(savedStory); setEditingStory(true); }}
+              onClick={() => { setDraft(savedStory); setEditing(true); }}
               className="flex items-center gap-1 px-3 h-8 rounded-full bg-white/15 text-white text-label-sm hover:bg-white/25 transition-colors"
             >
               <Icon name="edit" className="text-[16px]" /> 수정
             </button>
           ) : null}
-          {editHref ? (
-            <Link
-              to={editHref}
-              className="flex items-center gap-1 px-3 h-8 rounded-full bg-white/10 text-white/80 text-label-sm hover:bg-white/20 transition-colors"
+          {editing ? (
+            <button
+              onClick={() => { setEditing(false); setDraft(savedStory); }}
+              className="flex items-center gap-1 px-3 h-8 rounded-full bg-white/15 text-white text-label-sm hover:bg-white/25 transition-colors"
             >
-              <Icon name="photo_library" className="text-[16px]" /> 사진 편집
-            </Link>
+              <Icon name="check" className="text-[16px]" /> 완료
+            </button>
           ) : null}
           <button onClick={onClose} className="p-2 hover:text-white" aria-label="닫기">
             <Icon name="close" className="text-[26px]" />
@@ -155,6 +187,18 @@ export function MediaLightbox({
           </button>
         ) : null}
 
+        {/* 편집 모드: 현재 사진 삭제 */}
+        {editing && onDeleteMedia ? (
+          <button
+            onClick={handleDeleteCurrent}
+            disabled={busyMedia}
+            aria-label="이 사진 삭제"
+            className="absolute top-2 right-2 z-10 flex items-center gap-1 px-3 h-9 rounded-full bg-error/90 text-on-error text-label-sm font-semibold hover:bg-error disabled:opacity-50"
+          >
+            <Icon name="delete" className="text-[18px]" /> 삭제
+          </button>
+        ) : null}
+
         {cur.type === 'video' ? (
           <video key={cur.id} src={cur.url} controls autoPlay className="max-h-full max-w-full rounded-lg bg-black" />
         ) : (
@@ -169,34 +213,42 @@ export function MediaLightbox({
         ) : null}
       </div>
 
-      {/* 스토리 — 본문 폭에 맞춰 중앙 정렬. 넉넉한 높이로 짧은 글은 스크롤 없이 전부 표시. onSaveStory 있으면 그 자리에서 편집 */}
-      {(savedStory || editingStory) ? (
+      {/* 스토리 + 편집 컨트롤 — 본문 폭에 맞춰 중앙 정렬 */}
+      {(savedStory || editing) ? (
         <div className="w-full max-w-3xl mx-auto shrink-0 px-4 py-3 text-left" onClick={(e) => e.stopPropagation()}>
-          {editingStory ? (
+          {editing ? (
             <div>
-              <textarea
-                autoFocus
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                rows={3}
-                placeholder="이 순간을 어떻게 기억하고 싶은지 적어주세요."
-                className="w-full rounded-lg bg-white/10 text-white placeholder:text-white/40 text-body-lg leading-relaxed px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-white/40 max-h-[32dvh]"
-              />
+              {onSaveStory ? (
+                <textarea
+                  autoFocus
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  rows={3}
+                  placeholder="이 순간을 어떻게 기억하고 싶은지 적어주세요."
+                  className="w-full rounded-lg bg-white/10 text-white placeholder:text-white/40 text-body-lg leading-relaxed px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-white/40 max-h-[28dvh]"
+                />
+              ) : null}
               <div className="flex items-center gap-2 mt-2">
-                <button
-                  onClick={handleSaveStory}
-                  disabled={savingStory}
-                  className="px-4 h-9 rounded-full bg-primary text-on-primary font-semibold text-label-md disabled:opacity-50"
-                >
-                  {savingStory ? '저장 중…' : '저장'}
-                </button>
-                <button
-                  onClick={() => { setEditingStory(false); setDraft(savedStory); }}
-                  className="px-4 h-9 rounded-full bg-white/10 text-white text-label-md hover:bg-white/20"
-                >
-                  취소
-                </button>
+                {onSaveStory ? (
+                  <button
+                    onClick={handleSaveStory}
+                    disabled={savingStory}
+                    className="px-4 h-9 rounded-full bg-primary text-on-primary font-semibold text-label-md disabled:opacity-50"
+                  >
+                    {savingStory ? '저장 중…' : '글 저장'}
+                  </button>
+                ) : null}
+                {onAddMedia ? (
+                  <button
+                    onClick={() => addInputRef.current?.click()}
+                    disabled={busyMedia}
+                    className="flex items-center gap-1 px-4 h-9 rounded-full bg-white/10 text-white text-label-md hover:bg-white/20 disabled:opacity-50"
+                  >
+                    <Icon name="add_photo_alternate" className="text-[18px]" /> {busyMedia ? '추가 중…' : '사진 추가'}
+                  </button>
+                ) : null}
               </div>
+              <input ref={addInputRef} type="file" accept="image/*,video/*" multiple hidden onChange={handleAddFiles} />
             </div>
           ) : (
             <p className="text-white/90 text-body-lg leading-relaxed whitespace-pre-line max-h-[32dvh] overflow-y-auto no-scrollbar">

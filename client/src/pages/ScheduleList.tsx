@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { MediaDTO, ScheduleDTO } from '@memoryflow/shared';
-import { apiGet, apiPatch } from '../lib/api';
+import type { MediaDTO, SceneDTO, ScheduleDTO } from '@memoryflow/shared';
+import { apiDelete, apiForm, apiGet, apiPatch } from '../lib/api';
 import { AppShell } from '../components/AppShell';
 import { EmptyState, Icon, Skeleton } from '../components/ui';
 import { MediaLightbox } from '../components/MediaLightbox';
@@ -30,8 +30,7 @@ interface LightboxState {
   items: MediaDTO[];
   start: number;
   story?: string;
-  editHref?: string;
-  /** 내 기록이면 해당 기여 id — 라이트박스에서 스토리 인라인 편집용 */
+  /** 내 기록이면 해당 기여 id — 라이트박스에서 그 자리 편집(글/사진)용 */
   contributionId?: number;
 }
 
@@ -50,6 +49,18 @@ export default function ScheduleList() {
 
   const saveStoryMut = useMutation({
     mutationFn: ({ id, text }: { id: number; text: string }) => apiPatch(`/contributions/${id}`, { story_text: text }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['feed', pid] }),
+  });
+  const addMediaMut = useMutation({
+    mutationFn: ({ id, files }: { id: number; files: FileList }) => {
+      const fd = new FormData();
+      Array.from(files).forEach((f) => fd.append('files', f));
+      return apiForm<{ scene: SceneDTO }>('POST', `/contributions/${id}/media`, fd);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['feed', pid] }),
+  });
+  const delMediaMut = useMutation({
+    mutationFn: (mediaId: number) => apiDelete(`/media/${mediaId}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['feed', pid] }),
   });
 
@@ -97,10 +108,23 @@ export default function ScheduleList() {
           items={lb.items}
           start={lb.start}
           story={lb.story}
-          editHref={lb.editHref}
           onSaveStory={
             lb.contributionId != null
               ? async (text) => { await saveStoryMut.mutateAsync({ id: lb.contributionId!, text }); }
+              : undefined
+          }
+          onAddMedia={
+            lb.contributionId != null
+              ? async (files) => {
+                  const res = await addMediaMut.mutateAsync({ id: lb.contributionId!, files });
+                  const contrib = res.scene.contributions.find((c) => c.id === lb.contributionId);
+                  return contrib?.media ?? [];
+                }
+              : undefined
+          }
+          onDeleteMedia={
+            lb.contributionId != null
+              ? async (mediaId) => { await delMediaMut.mutateAsync(mediaId); }
               : undefined
           }
           onClose={() => setLb(null)}
@@ -203,7 +227,7 @@ function SceneBlock({
       ) : (
         <div className="space-y-3">
           {schedule.contributions.map((c) => (
-            <Bubble key={c.id} c={c} pid={pid} scheduleId={schedule.id} onOpen={onOpen} isAdmin={isAdmin} />
+            <Bubble key={c.id} c={c} onOpen={onOpen} isAdmin={isAdmin} />
           ))}
         </div>
       )}
@@ -213,20 +237,15 @@ function SceneBlock({
 
 function Bubble({
   c,
-  pid,
-  scheduleId,
   onOpen,
   isAdmin,
 }: {
   c: FeedContribution;
-  pid: string;
-  scheduleId: number;
   onOpen: (lb: LightboxState) => void;
   isAdmin: boolean;
 }) {
   const mine = c.is_mine;
   const canEdit = mine || isAdmin;
-  const editHref = `/projects/${pid}/schedules/${scheduleId}`;
 
   return (
     <div className="relative">
@@ -242,7 +261,6 @@ function Bubble({
                 items: c.media,
                 start,
                 story: c.story_text || undefined,
-                editHref: canEdit ? editHref : undefined,
                 contributionId: canEdit ? c.id : undefined,
               })
             }
