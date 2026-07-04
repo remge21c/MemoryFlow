@@ -36,8 +36,9 @@ export function MediaLightbox({
 
   // 사진 선별 토글 처리
   function handleToggleInclude() {
-    if (!onToggleInclude) return;
-    const mediaId = cur.id;
+    const target = items[i];
+    if (!onToggleInclude || !target) return;
+    const mediaId = target.id;
     // 로컬 상태를 먼저 토글하여 즉각 피드백 제공
     setItems((prevItems) =>
       prevItems.map((m) => (m.id === mediaId ? { ...m, included: !m.included } : m))
@@ -132,10 +133,10 @@ export function MediaLightbox({
         ) : null}
       </div>
 
-      {/* 스토리 (읽기 전용) — 본문 폭에 맞춰 중앙 정렬 */}
+      {/* 스토리 (읽기 전용) — 본문 폭에 맞춰 중앙 정렬. 넉넉한 높이로 짧은 글은 스크롤 없이 전부 표시 */}
       {story ? (
-        <div className="w-full max-w-3xl mx-auto shrink-0 px-4 py-2 text-left" onClick={(e) => e.stopPropagation()}>
-          <p className="text-white/90 text-body-md leading-relaxed whitespace-pre-line max-h-20 overflow-y-auto">
+        <div className="w-full max-w-3xl mx-auto shrink-0 px-4 py-3 text-left" onClick={(e) => e.stopPropagation()}>
+          <p className="text-white/90 text-body-lg leading-relaxed whitespace-pre-line max-h-[32dvh] overflow-y-auto no-scrollbar">
             {story}
           </p>
         </div>
