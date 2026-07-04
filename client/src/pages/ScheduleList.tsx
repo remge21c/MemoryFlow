@@ -25,16 +25,19 @@ interface FeedData {
   days: { day_index: number; date: string | null; schedules: FeedSchedule[] }[];
 }
 
-/** 라이트박스 열기 정보 — 뷰어 전용. 수정은 editHref(기록 페이지)로 이동. */
+/** 라이트박스 열기 정보 — 스토리는 그 자리에서 편집(contributionId), 사진 편집은 editHref로 이동. */
 interface LightboxState {
   items: MediaDTO[];
   start: number;
   story?: string;
   editHref?: string;
+  /** 내 기록이면 해당 기여 id — 라이트박스에서 스토리 인라인 편집용 */
+  contributionId?: number;
 }
 
 export default function ScheduleList() {
   const { pid } = useParams();
+  const qc = useQueryClient();
   const setViewing = useActiveProject((s) => s.setViewing);
   const { data: meData } = useMe();
   const isAdmin = meData?.user?.is_admin ?? false;
@@ -43,6 +46,11 @@ export default function ScheduleList() {
   const { data, isLoading } = useQuery({
     queryKey: ['feed', pid],
     queryFn: () => apiGet<FeedData>(`/projects/${pid}/feed`),
+  });
+
+  const saveStoryMut = useMutation({
+    mutationFn: ({ id, text }: { id: number; text: string }) => apiPatch(`/contributions/${id}`, { story_text: text }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['feed', pid] }),
   });
 
   // 보고 있는 프로젝트 표시(타이틀 바)만 갱신 — 활성화는 설정 페이지에서만
@@ -90,6 +98,11 @@ export default function ScheduleList() {
           start={lb.start}
           story={lb.story}
           editHref={lb.editHref}
+          onSaveStory={
+            lb.contributionId != null
+              ? async (text) => { await saveStoryMut.mutateAsync({ id: lb.contributionId!, text }); }
+              : undefined
+          }
           onClose={() => setLb(null)}
         />
       ) : null}
@@ -230,6 +243,7 @@ function Bubble({
                 start,
                 story: c.story_text || undefined,
                 editHref: canEdit ? editHref : undefined,
+                contributionId: canEdit ? c.id : undefined,
               })
             }
           />

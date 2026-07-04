@@ -11,20 +11,48 @@ export function MediaLightbox({
   start,
   story,
   editHref,
+  onSaveStory,
   onToggleInclude,
   onClose,
 }: {
   items: MediaDTO[];
   start: number;
   story?: string;
-  /** 내 기록이면 수정 페이지 경로 — "수정" 버튼으로 노출 */
+  /** 사진 추가·삭제 등 전체 편집 페이지 경로 — "사진 편집" 링크로 노출 */
   editHref?: string;
+  /** 있으면 라이트박스 안에서 스토리 글을 바로 편집·저장 (페이지 이동 없이) */
+  onSaveStory?: (text: string) => Promise<void> | void;
   onToggleInclude?: (mediaId: number) => void;
   onClose: () => void;
 }) {
   const [items, setItems] = useState(initialItems);
   const [i, setI] = useState(start);
   const touchX = useRef<number | null>(null);
+
+  // 인라인 스토리 편집 상태
+  const [editingStory, setEditingStory] = useState(false);
+  const [draft, setDraft] = useState(story ?? '');
+  const [savedStory, setSavedStory] = useState(story ?? '');
+  const [savingStory, setSavingStory] = useState(false);
+  // 다른 사진으로 넘어가는 등 story prop이 바뀌면 표시값 동기화 (편집 중이 아닐 때만)
+  useEffect(() => {
+    setSavedStory(story ?? '');
+    setEditingStory(false);
+    setDraft(story ?? '');
+  }, [story]);
+
+  async function handleSaveStory() {
+    if (!onSaveStory) return;
+    const text = draft.trim();
+    setSavingStory(true);
+    try {
+      await onSaveStory(text);
+      setSavedStory(text);
+      setEditingStory(false);
+    } finally {
+      setSavingStory(false);
+    }
+  }
 
   const prev = useCallback(() => setI((v) => (v > 0 ? v - 1 : v)), []);
   const next = useCallback(() => setI((v) => (v < items.length - 1 ? v + 1 : v)), [items.length]);
@@ -85,12 +113,20 @@ export function MediaLightbox({
               {cur.included ? '선택됨' : '선택하기'}
             </button>
           ) : null}
-          {editHref ? (
-            <Link
-              to={editHref}
+          {onSaveStory && !editingStory ? (
+            <button
+              onClick={() => { setDraft(savedStory); setEditingStory(true); }}
               className="flex items-center gap-1 px-3 h-8 rounded-full bg-white/15 text-white text-label-sm hover:bg-white/25 transition-colors"
             >
               <Icon name="edit" className="text-[16px]" /> 수정
+            </button>
+          ) : null}
+          {editHref ? (
+            <Link
+              to={editHref}
+              className="flex items-center gap-1 px-3 h-8 rounded-full bg-white/10 text-white/80 text-label-sm hover:bg-white/20 transition-colors"
+            >
+              <Icon name="photo_library" className="text-[16px]" /> 사진 편집
             </Link>
           ) : null}
           <button onClick={onClose} className="p-2 hover:text-white" aria-label="닫기">
@@ -133,12 +169,40 @@ export function MediaLightbox({
         ) : null}
       </div>
 
-      {/* 스토리 (읽기 전용) — 본문 폭에 맞춰 중앙 정렬. 넉넉한 높이로 짧은 글은 스크롤 없이 전부 표시 */}
-      {story ? (
+      {/* 스토리 — 본문 폭에 맞춰 중앙 정렬. 넉넉한 높이로 짧은 글은 스크롤 없이 전부 표시. onSaveStory 있으면 그 자리에서 편집 */}
+      {(savedStory || editingStory) ? (
         <div className="w-full max-w-3xl mx-auto shrink-0 px-4 py-3 text-left" onClick={(e) => e.stopPropagation()}>
-          <p className="text-white/90 text-body-lg leading-relaxed whitespace-pre-line max-h-[32dvh] overflow-y-auto no-scrollbar">
-            {story}
-          </p>
+          {editingStory ? (
+            <div>
+              <textarea
+                autoFocus
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                rows={3}
+                placeholder="이 순간을 어떻게 기억하고 싶은지 적어주세요."
+                className="w-full rounded-lg bg-white/10 text-white placeholder:text-white/40 text-body-lg leading-relaxed px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-white/40 max-h-[32dvh]"
+              />
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={handleSaveStory}
+                  disabled={savingStory}
+                  className="px-4 h-9 rounded-full bg-primary text-on-primary font-semibold text-label-md disabled:opacity-50"
+                >
+                  {savingStory ? '저장 중…' : '저장'}
+                </button>
+                <button
+                  onClick={() => { setEditingStory(false); setDraft(savedStory); }}
+                  className="px-4 h-9 rounded-full bg-white/10 text-white text-label-md hover:bg-white/20"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-white/90 text-body-lg leading-relaxed whitespace-pre-line max-h-[32dvh] overflow-y-auto no-scrollbar">
+              {savedStory}
+            </p>
+          )}
         </div>
       ) : null}
 
