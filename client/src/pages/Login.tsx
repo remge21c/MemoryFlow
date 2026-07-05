@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiPost } from '../lib/api';
 import { Button, Field, Icon, TextInput, ErrorNote } from '../components/ui';
+import { BrandMark } from '../components/Brand';
 
 export default function Login() {
   const nav = useNavigate();
@@ -38,8 +39,8 @@ export default function Login() {
     <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-surface">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <Icon name="auto_stories" className="text-primary text-[44px] mb-2" />
-          <h1 className="text-display-lg font-bold text-primary">MemoryFlow</h1>
+          <BrandMark className="w-16 h-16 mb-3" />
+          <h1 className="text-display-lg font-bold text-[#1e5b39]">Memory Flow</h1>
           <p className="text-body-md text-on-surface-variant mt-1">함께 만드는 추억 스토리북</p>
         </div>
 

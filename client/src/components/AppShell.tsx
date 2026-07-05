@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Icon } from './ui';
+import { Brand } from './Brand';
 import { useLogout, useMe } from '../lib/auth';
 import { useActiveProject } from '../stores/activeProject';
 import { ADMIN_PROJECT_TABS } from '../lib/adminNav';
@@ -71,10 +72,9 @@ export function AppShell({
             {/* 브랜드 */}
             <Link
               to={brandTo}
-              className="flex items-center gap-1.5 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
+              className="flex items-center shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
             >
-              <Icon name="auto_stories" className="text-primary text-[24px]" />
-              <span className="text-title-sm font-bold text-on-surface">MemoryFlow</span>
+              <Brand markClassName="w-7 h-7" textClassName="text-title-sm" />
             </Link>
 
             <div className="flex-1" />
@@ -195,10 +195,9 @@ function Sidebar({
       {/* 브랜드 */}
       <Link
         to={brandTo}
-        className="flex items-center gap-1.5 h-14 px-5 border-b border-outline/10 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+        className="flex items-center h-14 px-5 border-b border-outline/10 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
       >
-        <Icon name="auto_stories" className="text-primary text-[24px]" />
-        <span className="text-title-sm font-bold text-on-surface">MemoryFlow</span>
+        <Brand markClassName="w-7 h-7" textClassName="text-title-sm" />
       </Link>
 
       {/* 상황별 메뉴 — 최상단: 영역 전환, 그 아래: 프로젝트 섹션 메뉴 */}

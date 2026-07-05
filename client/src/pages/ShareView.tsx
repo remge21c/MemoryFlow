@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { formatSeconds } from '@memoryflow/shared';
 import { apiGet } from '../lib/api';
 import { Icon, Spinner, Pill } from '../components/ui';
+import { BrandMark } from '../components/Brand';
 import { dateRange } from '../lib/format';
 
 interface ShareMedia {
@@ -79,7 +80,7 @@ export default function ShareView() {
       <div className="max-w-2xl mx-auto px-5">
         <header className="py-8 text-center border-b border-outline-variant/20 mb-6">
           <div className="flex justify-center mb-2">
-            <Icon name="auto_stories" className="text-primary text-[32px]" />
+            <BrandMark className="w-10 h-10" />
           </div>
           {data.project.org_name ? <p className="text-label-sm text-on-surface-variant">{data.project.org_name}</p> : null}
           <h1 className="text-display-lg font-bold text-on-surface mt-1">{data.project.name}</h1>
@@ -121,7 +122,7 @@ export default function ShareView() {
         )}
 
         <footer className="text-center text-label-sm text-outline/60 py-8 border-t border-outline-variant/20">
-          MemoryFlow로 만든 추억 스토리북
+          Memory Flow로 만든 추억 스토리북
         </footer>
       </div>
     </div>
