@@ -14,6 +14,12 @@ const MIME: Record<string, string> = {
   '.mov': 'video/quicktime',
   '.webm': 'video/webm',
   '.mkv': 'video/x-matroska',
+  // 오디오(BGM) — 없으면 octet-stream으로 나가 브라우저가 재생을 거부함
+  '.mp3': 'audio/mpeg',
+  '.m4a': 'audio/mp4',
+  '.aac': 'audio/aac',
+  '.wav': 'audio/wav',
+  '.ogg': 'audio/ogg',
 };
 
 export function contentType(relPath: string): string {
