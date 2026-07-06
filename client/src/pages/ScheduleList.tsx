@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { MediaDTO } from '@memoryflow/shared';
 import { apiGet, apiPatch } from '../lib/api';
@@ -36,6 +36,18 @@ export default function ScheduleList() {
   useEffect(() => {
     if (data) setViewing({ id: data.project.id, name: data.project.name, org_name: data.project.org_name ?? undefined });
   }, [data, setViewing]);
+
+  // 전체보기에서 #s-<id>로 넘어오면 해당 일정으로 스크롤 + 잠깐 강조
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!data || !hash) return;
+    const el = document.getElementById(hash.slice(1));
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.classList.add('ring-2', 'ring-primary', 'rounded-xl');
+    const t = setTimeout(() => el.classList.remove('ring-2', 'ring-primary', 'rounded-xl'), 1600);
+    return () => clearTimeout(t);
+  }, [data, hash]);
 
   if (isLoading) return <AppShell max="max-w-2xl lg:max-w-3xl"><FeedSkeleton /></AppShell>;
   if (!data) return <AppShell><EmptyState icon="error" title="프로젝트를 찾을 수 없습니다" /></AppShell>;
@@ -133,7 +145,7 @@ function SceneBlock({
   }
 
   return (
-    <div className="mb-6">
+    <div id={`s-${schedule.id}`} className="mb-6 scroll-mt-20 transition-shadow">
       {/* 세부일정 헤더 */}
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-2 min-w-0 flex-1 mr-3">

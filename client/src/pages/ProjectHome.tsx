@@ -170,8 +170,8 @@ function TimelineItem({ pid, s, isLast }: { pid: string; s: FeedSchedule; isLast
         {!isLast ? <div className={`w-0.5 flex-1 my-1 rounded ${recorded ? 'bg-tertiary/35' : 'bg-outline/15'}`} /> : null}
       </div>
 
-      {/* 기록 카드 */}
-      <Link to={`/projects/${pid}/schedules/${s.id}`} className="flex-1 min-w-0 pb-3">
+      {/* 기록 카드 — 보기 피드(세부일정)의 해당 일정으로 이동 */}
+      <Link to={`/projects/${pid}/records#s-${s.id}`} className="flex-1 min-w-0 pb-3">
         <Card className={`p-3.5 transition-colors hover:border-primary/40 hover:bg-surface-low ${recorded ? '' : 'bg-surface/60'}`}>
           <div className="flex items-center gap-2">
             {s.time ? <span className="text-label-sm text-on-surface-variant shrink-0">{s.time}</span> : null}
