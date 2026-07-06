@@ -12,6 +12,7 @@ import Join from './pages/Join';
 import ShareView from './pages/ShareView';
 import Settings from './pages/Settings';
 import UploaderProjects from './pages/UploaderProjects';
+import ProjectHome from './pages/ProjectHome';
 import ScheduleList from './pages/ScheduleList';
 import ContributionEdit from './pages/ContributionEdit';
 import AdminProjects from './pages/AdminProjects';
@@ -78,7 +79,8 @@ export default function App() {
 
       {/* 업로더 */}
       <Route path="/projects" element={<RequireAuth><UploaderProjects /></RequireAuth>} />
-      <Route path="/projects/:pid" element={<RequireAuth><ScheduleList /></RequireAuth>} />
+      <Route path="/projects/:pid" element={<RequireAuth><ProjectHome /></RequireAuth>} />
+      <Route path="/projects/:pid/records" element={<RequireAuth><ScheduleList /></RequireAuth>} />
       <Route path="/projects/:pid/schedules/:sid" element={<RequireAuth><ContributionEdit /></RequireAuth>} />
 
       {/* 관리자 */}

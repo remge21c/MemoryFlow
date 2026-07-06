@@ -8,6 +8,12 @@ import { useActiveProject } from '../stores/activeProject';
 import { ADMIN_PROJECT_TABS } from '../lib/adminNav';
 import type { SessionUser } from '@memoryflow/shared';
 
+/** 업로더 프로젝트 메뉴 — 전체보기(메인) / 세부일정(기록 피드). */
+const UPLOADER_TABS = [
+  { to: '', end: true, icon: 'home', label: '전체보기' },
+  { to: 'records', end: false, icon: 'photo_library', label: '세부일정' },
+] as const;
+
 /**
  * 앱 공통 셸.
  * - 데스크톱(lg 이상): 왼쪽 고정 사이드바 (상황별 메뉴 + 하단에 전환/설정/로그아웃)
@@ -34,6 +40,9 @@ export function AppShell({
   const adminPid = loc.pathname.match(/^\/admin\/projects\/(\d+)/)?.[1];
   const adminMenuPid =
     user?.is_admin && onAdminArea ? adminPid ?? (active ? String(active.id) : undefined) : undefined;
+  // 업로더 영역(관리자 영역 아님)에서 현재/활성 프로젝트의 업로더 탭을 노출
+  const uploaderMenuPid =
+    user && !onAdminArea ? loc.pathname.match(/^\/projects\/(\d+)/)?.[1] ?? (active ? String(active.id) : undefined) : undefined;
   const [menuOpen, setMenuOpen] = useState(false);
 
   // 영역 전환 시 활성 프로젝트가 있으면 목록이 아니라 바로 해당 화면으로
@@ -96,6 +105,30 @@ export function AppShell({
                   <>
                     <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
                     <div className="absolute right-0 top-12 z-40 w-64 max-h-[80vh] overflow-y-auto rounded-xl border border-outline/15 bg-surface-lowest linen-shadow">
+                      {/* 업로더 메뉴 — 전체보기 / 세부일정 (관리자 메뉴와 분리) */}
+                      {uploaderMenuPid ? (
+                        <div className="border-b border-outline/10 py-1">
+                          {UPLOADER_TABS.map((t) => (
+                            <NavLink
+                              key={t.to}
+                              to={`/projects/${uploaderMenuPid}${t.to ? `/${t.to}` : ''}`}
+                              end={t.end}
+                              onClick={() => setMenuOpen(false)}
+                              className={({ isActive }) =>
+                                `flex items-center gap-3 px-4 h-11 text-body-md transition-colors ${
+                                  isActive
+                                    ? 'text-primary font-semibold bg-primary/5'
+                                    : 'text-on-surface hover:bg-surface-container'
+                                }`
+                              }
+                            >
+                              <Icon name={t.icon} className="text-[20px]" />
+                              {t.label}
+                            </NavLink>
+                          ))}
+                        </div>
+                      ) : null}
+
                       {/* 관리자 영역 전환 — 데스크톱 사이드바와 동일하게 최상단 */}
                       {user.is_admin ? (
                         onAdminArea ? (
@@ -189,6 +222,7 @@ function Sidebar({
   // 보고 있는 프로젝트가 있으면 그것, 없으면 활성 프로젝트의 섹션 메뉴
   const adminPid = loc.pathname.match(/^\/admin\/projects\/(\d+)/)?.[1];
   const menuPid = adminPid ?? (active ? String(active.id) : undefined);
+  const uploaderPid = loc.pathname.match(/^\/projects\/(\d+)/)?.[1] ?? (active ? String(active.id) : undefined);
 
   return (
     <aside className="hidden lg:flex flex-col w-60 shrink-0 sticky top-0 h-screen border-r border-outline-variant/20 bg-surface-lowest">
@@ -200,38 +234,55 @@ function Sidebar({
         <Brand markClassName="w-7 h-7" textClassName="text-title-sm" />
       </Link>
 
-      {/* 상황별 메뉴 — 최상단: 영역 전환, 그 아래: 프로젝트 섹션 메뉴 */}
+      {/* 상황별 메뉴 — 관리자 영역: 관리자 섹션 / 업로더 영역: 전체보기·세부일정 */}
       <nav className="flex-1 overflow-y-auto py-3 px-3">
-        {user.is_admin ? (
-          onAdminArea ? (
-            <>
-              <SideLink
-                to={active ? `/projects/${active.id}` : '/projects'}
-                icon="photo_library"
-                label="업로더 보기"
-              />
-              {menuPid ? (
-                <div className="mt-3 pt-3 border-t border-outline/10">
-                  {ADMIN_PROJECT_TABS.map((t) => (
-                    <SideLink
-                      key={t.to}
-                      to={`/admin/projects/${menuPid}${t.to ? `/${t.to}` : ''}`}
-                      icon={t.icon}
-                      label={t.label}
-                      end={t.end}
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </>
-          ) : (
+        {user.is_admin && onAdminArea ? (
+          <>
             <SideLink
-              to={active ? `/admin/projects/${active.id}` : '/admin'}
-              icon="admin_panel_settings"
-              label="관리자 페이지"
+              to={active ? `/projects/${active.id}` : '/projects'}
+              icon="photo_library"
+              label="업로더 보기"
             />
-          )
-        ) : null /* 업로더: 별도 메뉴 없음 — 피드는 로고, 프로젝트 변경·생성은 설정에서 */}
+            {menuPid ? (
+              <div className="mt-3 pt-3 border-t border-outline/10">
+                {ADMIN_PROJECT_TABS.map((t) => (
+                  <SideLink
+                    key={t.to}
+                    to={`/admin/projects/${menuPid}${t.to ? `/${t.to}` : ''}`}
+                    icon={t.icon}
+                    label={t.label}
+                    end={t.end}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <>
+            {/* 업로더 메뉴 */}
+            {uploaderPid
+              ? UPLOADER_TABS.map((t) => (
+                  <SideLink
+                    key={t.to}
+                    to={`/projects/${uploaderPid}${t.to ? `/${t.to}` : ''}`}
+                    icon={t.icon}
+                    label={t.label}
+                    end={t.end}
+                  />
+                ))
+              : null}
+            {/* 관리자면 관리자 페이지 전환 */}
+            {user.is_admin ? (
+              <div className={uploaderPid ? 'mt-3 pt-3 border-t border-outline/10' : ''}>
+                <SideLink
+                  to={active ? `/admin/projects/${active.id}` : '/admin'}
+                  icon="admin_panel_settings"
+                  label="관리자 페이지"
+                />
+              </div>
+            ) : null}
+          </>
+        )}
       </nav>
 
       {/* 하단: 설정 / 로그아웃 */}

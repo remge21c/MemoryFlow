@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { MediaDTO, ScheduleDTO } from '@memoryflow/shared';
+import type { MediaDTO } from '@memoryflow/shared';
 import { apiGet, apiPatch } from '../lib/api';
 import { AppShell } from '../components/AppShell';
 import { EmptyState, Icon, Skeleton } from '../components/ui';
@@ -9,21 +9,7 @@ import { MediaLightbox } from '../components/MediaLightbox';
 import { MediaCarousel } from '../components/MediaCarousel';
 import { useActiveProject } from '../stores/activeProject';
 import { useMe } from '../lib/auth';
-
-interface FeedContribution {
-  id: number;
-  uploader_id: number;
-  uploader_name: string;
-  is_mine: boolean;
-  story_text: string;
-  created_at: string;
-  media: MediaDTO[];
-}
-type FeedSchedule = ScheduleDTO & { contributions: FeedContribution[] };
-interface FeedData {
-  project: { id: number; name: string; org_name: string | null; start_date: string | null; end_date: string | null; schedule_type?: string };
-  days: { day_index: number; date: string | null; schedules: FeedSchedule[] }[];
-}
+import type { FeedContribution, FeedData, FeedSchedule } from '../lib/feed';
 
 /** 라이트박스 열기 정보 — 뷰어 전용. 편집은 editHref(기록 페이지의 해당 기록)로 이동. */
 interface LightboxState {
