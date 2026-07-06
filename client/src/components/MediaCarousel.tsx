@@ -62,7 +62,7 @@ export function MediaCarousel({
       <div
         ref={trackRef}
         onScroll={handleScroll}
-        className="flex gap-1.5 overflow-x-auto snap-x snap-mandatory no-scrollbar rounded-xl"
+        className="flex gap-1.5 overflow-x-auto snap-x snap-mandatory no-scrollbar rounded-md"
       >
         {media.map((m, i) => {
           // 단일 사진 + contain: 고정 프레임 없이 원본 비율로 전체 표시. 그 외: 4:3 프레임.
@@ -89,9 +89,9 @@ export function MediaCarousel({
           );
           // 왼쪽 붙임 정렬 — 첫 장은 단일 사진처럼 좌측에 딱 붙고, 다음 장이 오른쪽에 살짝 보임
           // 단일 사진 + contain은 원본 비율을 위해 고정 4:3 프레임을 생략한다.
-          const slideClass = `relative shrink-0 snap-start overflow-hidden rounded-xl bg-surface-container ${
+          const slideClass = `relative shrink-0 snap-start overflow-hidden rounded-md bg-surface-container ${
             naturalFrame ? '' : 'aspect-[4/3]'
-          } ${multi ? 'w-[86%]' : 'w-full'}`;
+          } ${multi ? 'w-[92%]' : 'w-full'}`;
           return onItemClick ? (
             <button key={m.id} className={slideClass} onClick={() => onItemClick(i)} aria-label={`${i + 1}번째 미디어 전체화면으로 보기`}>
               {inner}
