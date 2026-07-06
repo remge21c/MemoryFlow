@@ -1,11 +1,12 @@
 // MemoryFlow 브랜드 로고 — 조리개(셔터) 마크 + 워드마크.
-// 로고 고유색(틸 스퀘어 + 다크 그린 워드마크)을 사용해 앱의 웜 오프화이트 배경에 자연스럽게 얹힌다.
+// 스퀘어는 디자인 시스템 틸 토큰(tertiary-container), 워드마크는 on-surface(뉴트럴)로
+// 앱의 웜 팔레트/토큰 체계에 정렬. 조리개 컬러가 브랜드 포인트.
 
 /** 아이콘만 (라운드 틸 스퀘어 안의 컬러 조리개). className으로 크기 지정. */
 export function BrandMark({ className = 'w-8 h-8' }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 100" className={className} role="img" aria-label="MemoryFlow">
-      <rect x="6" y="6" width="88" height="88" rx="24" fill="#2f6a67" />
+      <rect x="6" y="6" width="88" height="88" rx="24" fill="#00818a" />
       <circle cx="50" cy="50" r="37" fill="#fdfdfb" />
       {/* 조리개 날개 (스월형) */}
       <path fill="#1f8f80" d="M84.00 50.00 A34 34 0 0 1 67.00 79.44 L51.15 60.94 L60.05 54.47 Z" />
@@ -31,7 +32,7 @@ export function Brand({
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <BrandMark className={markClassName} />
-      <span className={`font-bold tracking-tight text-[#1e5b39] whitespace-nowrap ${textClassName}`}>
+      <span className={`font-bold tracking-tight text-on-surface whitespace-nowrap ${textClassName}`}>
         Memory Flow
       </span>
     </span>

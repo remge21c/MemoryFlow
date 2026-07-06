@@ -40,7 +40,7 @@ export default function Login() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <BrandMark className="w-16 h-16 mb-3" />
-          <h1 className="text-display-lg font-bold text-[#1e5b39]">Memory Flow</h1>
+          <h1 className="text-display-lg font-bold text-on-surface">Memory Flow</h1>
           <p className="text-body-md text-on-surface-variant mt-1">함께 만드는 추억 스토리북</p>
         </div>
 
