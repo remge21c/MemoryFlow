@@ -20,7 +20,9 @@ export function useBgm(url: string | null | undefined) {
   // 오디오 준비 + 마지막 설정 복원
   useEffect(() => {
     if (!url) return;
-    const audio = new Audio(url);
+    // 캐시 버스트 — 과거 잘못된 MIME(application/octet-stream) 응답이 캐시된 경우를 우회
+    const src = `${url}${url.includes('?') ? '&' : '?'}v=2`;
+    const audio = new Audio(src);
     audio.loop = true;
     audio.volume = readVol();
     audioRef.current = audio;
