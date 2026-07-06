@@ -79,17 +79,23 @@ export default function ProjectHome() {
         </div>
       </div>
 
-      {/* 진행률 */}
+      {/* 진행 요약 — 원형 링 + 남은 개수 */}
       {total > 0 ? (
-        <div className="mb-6">
-          <div className="flex justify-between text-label-sm text-on-surface-variant mb-1.5">
-            <span className="font-medium">기록 진행</span>
-            <span>{recordedCount} / {total} 일정</span>
+        <Card className="p-4 mb-6 flex items-center gap-4">
+          <ProgressRing pct={pct} />
+          <div className="min-w-0">
+            <p className="text-title-sm font-bold text-on-surface">
+              {pct === 100 ? '기록 완료 🎉' : recordedCount === 0 ? '기록을 시작해요' : '기록 진행 중'}
+            </p>
+            <p className="text-body-md text-on-surface-variant mt-0.5">
+              <span className="text-tertiary font-semibold">{recordedCount}개 완료</span>
+              {total - recordedCount > 0 ? <span> · {total - recordedCount}개 남음</span> : null}
+            </p>
+            <div className="mt-2 h-1.5 w-40 max-w-full rounded-full bg-surface-container overflow-hidden">
+              <div className="h-full bg-tertiary rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
+            </div>
           </div>
-          <div className="h-2 rounded-full bg-surface-container overflow-hidden">
-            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
-          </div>
-        </div>
+        </Card>
       ) : null}
 
       {/* 일정별 진행 목록 */}
@@ -104,9 +110,9 @@ export default function ProjectHome() {
                   {day.date ? `Day ${day.day_index} · ${day.date}` : `#${day.day_index}`}
                 </span>
               </div>
-              <div className="space-y-2">
-                {day.schedules.map((s) => (
-                  <ScheduleProgressRow key={s.id} pid={pid!} s={s} />
+              <div>
+                {day.schedules.map((s, idx) => (
+                  <TimelineItem key={s.id} pid={pid!} s={s} isLast={idx === day.schedules.length - 1} />
                 ))}
               </div>
             </section>
@@ -117,34 +123,88 @@ export default function ProjectHome() {
   );
 }
 
-function ScheduleProgressRow({ pid, s }: { pid: string; s: FeedSchedule }) {
+/** 원형 진행 링 — 가운데 퍼센트. */
+function ProgressRing({ pct }: { pct: number }) {
+  const r = 26;
+  const C = 2 * Math.PI * r;
+  return (
+    <div className="relative w-16 h-16 shrink-0">
+      <svg width="64" height="64" viewBox="0 0 64 64" className="-rotate-90">
+        <circle cx="32" cy="32" r={r} fill="none" strokeWidth="6" className="stroke-surface-container" />
+        <circle
+          cx="32" cy="32" r={r} fill="none" strokeWidth="6" strokeLinecap="round"
+          className="stroke-tertiary transition-all duration-700"
+          style={{ strokeDasharray: C, strokeDashoffset: C * (1 - pct / 100) }}
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-title-sm font-bold text-tertiary">{pct}%</span>
+    </div>
+  );
+}
+
+/** 타임라인 항목 — 좌측 진행 레일(노드+연결선) + 기록 카드(상태·카운트·썸네일). */
+function TimelineItem({ pid, s, isLast }: { pid: string; s: FeedSchedule; isLast: boolean }) {
   const recordN = s.contributions.length;
   const recorded = recordN > 0;
-  const photos = s.contributions.reduce((a, c) => a + c.media.filter((m) => m.type === 'photo').length, 0);
-  const videos = s.contributions.reduce((a, c) => a + c.media.filter((m) => m.type === 'video').length, 0);
-  const counts = [
-    `기록 ${recordN}`,
-    photos ? `사진 ${photos}` : null,
-    videos ? `영상 ${videos}` : null,
-  ].filter(Boolean).join(' · ');
+  const media = s.contributions.flatMap((c) => c.media);
+  const photos = media.filter((m) => m.type === 'photo').length;
+  const videos = media.filter((m) => m.type === 'video').length;
+  const thumbs = media.slice(0, 5);
+  const counts = [`기록 ${recordN}`, photos ? `사진 ${photos}` : null, videos ? `영상 ${videos}` : null]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
-    <Link to={`/projects/${pid}/schedules/${s.id}`}>
-      <Card className="p-3.5 flex items-center gap-3 hover:border-primary/30 hover:bg-surface-low transition-colors">
-        <Icon name={recorded ? 'check_circle' : 'radio_button_unchecked'} fill={recorded} className={`text-[22px] shrink-0 ${recorded ? 'text-tertiary' : 'text-outline/50'}`} />
-        <div className="flex-1 min-w-0">
+    <div className="flex gap-3">
+      {/* 진행 레일 */}
+      <div className="flex flex-col items-center pt-1">
+        <div
+          className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ring-4 transition-colors ${
+            recorded
+              ? 'bg-tertiary text-on-tertiary ring-tertiary/15'
+              : 'bg-surface-lowest text-outline/50 ring-outline/10 border border-outline/25'
+          }`}
+        >
+          <Icon name={recorded ? 'check' : 'more_horiz'} className="text-[16px]" />
+        </div>
+        {!isLast ? <div className={`w-0.5 flex-1 my-1 rounded ${recorded ? 'bg-tertiary/35' : 'bg-outline/15'}`} /> : null}
+      </div>
+
+      {/* 기록 카드 */}
+      <Link to={`/projects/${pid}/schedules/${s.id}`} className="flex-1 min-w-0 pb-3">
+        <Card className={`p-3.5 transition-colors hover:border-primary/40 hover:bg-surface-low ${recorded ? '' : 'bg-surface/60'}`}>
           <div className="flex items-center gap-2">
             {s.time ? <span className="text-label-sm text-on-surface-variant shrink-0">{s.time}</span> : null}
-            <span className="text-body-lg font-semibold text-on-surface truncate">{s.title}</span>
+            <span className={`text-body-lg font-semibold truncate flex-1 ${recorded ? 'text-on-surface' : 'text-on-surface-variant'}`}>{s.title}</span>
+            <Icon name="chevron_right" className="text-outline shrink-0" />
           </div>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1.5">
             {recorded ? <Pill tone="success">기록됨</Pill> : <Pill tone="muted">미기록</Pill>}
-            {recorded ? <span className="text-label-sm text-outline truncate">{counts}</span> : null}
+            <span className="text-label-sm text-outline truncate">{recorded ? counts : '눌러서 기록 시작'}</span>
           </div>
-        </div>
-        <Icon name="chevron_right" className="text-outline shrink-0" />
-      </Card>
-    </Link>
+
+          {thumbs.length ? (
+            <div className="flex gap-1.5 mt-2.5">
+              {thumbs.map((m) => (
+                <div key={m.id} className="relative w-12 h-12 rounded-md overflow-hidden bg-surface-container shrink-0">
+                  <img src={m.thumb_url ?? m.url} loading="lazy" className="w-full h-full object-cover" alt="" />
+                  {m.type === 'video' ? (
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/25">
+                      <Icon name="play_arrow" fill className="text-white text-[16px]" />
+                    </span>
+                  ) : null}
+                </div>
+              ))}
+              {media.length > thumbs.length ? (
+                <div className="w-12 h-12 rounded-md bg-surface-container flex items-center justify-center text-label-sm font-medium text-on-surface-variant shrink-0">
+                  +{media.length - thumbs.length}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </Card>
+      </Link>
+    </div>
   );
 }
 
