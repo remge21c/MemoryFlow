@@ -1,0 +1,17 @@
+{
+  "name": "Memory Flow",
+  "short_name": "MemoryFlow",
+  "description": "함께 만든 여행·행사의 사진과 이야기를 일정(장면) 단위로 모아 스토리북으로 정리하는 앱",
+  "lang": "ko",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f9f9f7",
+  "theme_color": "#2f6a67",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
