@@ -54,6 +54,11 @@ export default function ProjectHome() {
             {project.name}
           </h1>
 
+          {bgm.available && bgm.error ? (
+            <p className="mt-2 text-label-sm text-white bg-error/80 rounded-md px-2.5 py-1.5 inline-block">
+              {bgm.error}
+            </p>
+          ) : null}
           {bgm.available ? (
             <div className="mt-3 flex items-center gap-3">
               <button
