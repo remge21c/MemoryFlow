@@ -121,7 +121,8 @@ export const invites = sqliteTable('invites', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   projectId: integer('project_id').notNull().references(() => projects.id),
   tokenHash: text('token_hash').notNull().unique(),
-  token: text('token'), // 원본 토큰 — 목록에서 다시 열람/공유할 수 있도록 보관
+  token: text('token'), // (레거시) 평문 — 마이그레이션에서 token_enc로 이관 후 NULL
+  tokenEnc: text('token_enc'), // 원문 토큰 암호문 — 목록 재열람용
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   expiresAt: text('expires_at').notNull(),
   createdBy: integer('created_by').references(() => users.id),
@@ -132,7 +133,8 @@ export const shareLinks = sqliteTable('share_links', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   projectId: integer('project_id').notNull().references(() => projects.id),
   tokenHash: text('token_hash').notNull().unique(),
-  token: text('token'), // 원본 토큰 — 목록에서 다시 열람/공유할 수 있도록 보관 (공개 열람용 링크)
+  token: text('token'), // (레거시) 평문 — 마이그레이션에서 token_enc로 이관 후 NULL
+  tokenEnc: text('token_enc'), // 원문 토큰 암호문 — 목록 재열람용
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   expiresAt: text('expires_at').notNull(),
   createdAt: text('created_at').notNull().default(now),

@@ -5,6 +5,7 @@ import type { InviteDTO } from '@memoryflow/shared';
 import { db, schema } from '../db/client.js';
 import { requireProjectAdmin } from '../lib/guards.js';
 import { generateToken, tokenHash } from '../lib/hash.js';
+import { encryptToken, decryptToken } from '../lib/tokenCrypto.js';
 import { HttpError } from '../lib/errors.js';
 
 export async function inviteRoutes(app: FastifyInstance) {
@@ -17,13 +18,16 @@ export async function inviteRoutes(app: FastifyInstance) {
       .where(eq(schema.invites.projectId, pid))
       .orderBy(desc(schema.invites.createdAt));
     return {
-      invites: rows.map((r) => ({
-        id: r.id,
-        is_active: r.isActive,
-        expires_at: r.expiresAt,
-        created_at: r.createdAt,
-        url: r.token ? `/join/${r.token}` : '', // 토큰 보관분만 재열람 가능
-      })) as InviteDTO[],
+      invites: rows.map((r) => {
+        const raw = decryptToken(r.tokenEnc) ?? r.token; // 암호문 우선, 레거시 평문 폴백
+        return {
+          id: r.id,
+          is_active: r.isActive,
+          expires_at: r.expiresAt,
+          created_at: r.createdAt,
+          url: raw ? `/join/${raw}` : '', // 토큰 보관분만 재열람 가능
+        };
+      }) as InviteDTO[],
     };
   });
 
@@ -35,7 +39,7 @@ export async function inviteRoutes(app: FastifyInstance) {
     const expiresAt = new Date(Date.now() + body.expires_days * 86_400_000).toISOString();
     const inserted = await db
       .insert(schema.invites)
-      .values({ projectId: pid, tokenHash: tokenHash(raw), token: raw, expiresAt, createdBy: u.id })
+      .values({ projectId: pid, tokenHash: tokenHash(raw), tokenEnc: encryptToken(raw), expiresAt, createdBy: u.id })
       .returning();
     const r = inserted[0]!;
     return {

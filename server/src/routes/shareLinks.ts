@@ -5,6 +5,7 @@ import type { ShareLinkDTO } from '@memoryflow/shared';
 import { db, schema } from '../db/client.js';
 import { requireAdmin, requireProjectAdmin } from '../lib/guards.js';
 import { generateToken, tokenHash } from '../lib/hash.js';
+import { encryptToken, decryptToken } from '../lib/tokenCrypto.js';
 import { HttpError } from '../lib/errors.js';
 
 export async function shareLinkRoutes(app: FastifyInstance) {
@@ -17,13 +18,16 @@ export async function shareLinkRoutes(app: FastifyInstance) {
       .where(eq(schema.shareLinks.projectId, pid))
       .orderBy(desc(schema.shareLinks.createdAt));
     return {
-      share_links: rows.map((r) => ({
-        id: r.id,
-        is_active: r.isActive,
-        expires_at: r.expiresAt,
-        created_at: r.createdAt,
-        url: r.token ? `/share/${r.token}` : '', // 토큰 보관분만 재열람 가능
-      })) as ShareLinkDTO[],
+      share_links: rows.map((r) => {
+        const raw = decryptToken(r.tokenEnc) ?? r.token; // 암호문 우선, 레거시 평문 폴백
+        return {
+          id: r.id,
+          is_active: r.isActive,
+          expires_at: r.expiresAt,
+          created_at: r.createdAt,
+          url: raw ? `/share/${raw}` : '', // 토큰 보관분만 재열람 가능
+        };
+      }) as ShareLinkDTO[],
     };
   });
 
@@ -35,7 +39,7 @@ export async function shareLinkRoutes(app: FastifyInstance) {
     const expiresAt = new Date(Date.now() + body.expires_days * 86_400_000).toISOString();
     const inserted = await db
       .insert(schema.shareLinks)
-      .values({ projectId: pid, tokenHash: tokenHash(raw), token: raw, expiresAt })
+      .values({ projectId: pid, tokenHash: tokenHash(raw), tokenEnc: encryptToken(raw), expiresAt })
       .returning();
     const r = inserted[0]!;
     return {

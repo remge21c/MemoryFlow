@@ -1,6 +1,7 @@
 // 마이그레이션 — drizzle-kit 없이 raw DDL(CREATE TABLE IF NOT EXISTS).
 // 04-database.md 스키마와 1:1. 단일 프로세스 MVP라 단순/투명하게.
 import { sqlite } from './client.js';
+import { encryptToken } from '../lib/tokenCrypto.js';
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS users (
@@ -169,6 +170,31 @@ export function migrate(): void {
     }
   } catch (e) {
     console.error('[migrate] Failed to check or alter invites table:', e);
+  }
+
+  // 초대/공유 링크 원문 토큰을 암호문(token_enc)으로 이관 — 평문 token은 NULL로 제거
+  try {
+    for (const table of ['invites', 'share_links'] as const) {
+      const cols = sqlite.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+      if (!cols.some((c) => c.name === 'token_enc')) {
+        sqlite.exec(`ALTER TABLE ${table} ADD COLUMN token_enc TEXT`);
+        console.log(`[migrate] ADD COLUMN token_enc to ${table} table.`);
+      }
+    }
+    for (const table of ['invites', 'share_links'] as const) {
+      const rows = sqlite
+        .prepare(`SELECT id, token FROM ${table} WHERE token IS NOT NULL AND token_enc IS NULL`)
+        .all() as { id: number; token: string }[];
+      if (rows.length === 0) continue;
+      const upd = sqlite.prepare(`UPDATE ${table} SET token_enc = ?, token = NULL WHERE id = ?`);
+      const tx = sqlite.transaction((list: { id: number; token: string }[]) => {
+        for (const r of list) upd.run(encryptToken(r.token), r.id);
+      });
+      tx(rows);
+      console.log(`[migrate] ${table}: 평문 토큰 ${rows.length}건을 token_enc로 이관.`);
+    }
+  } catch (e) {
+    console.error('[migrate] Failed to migrate plaintext tokens to token_enc:', e);
   }
 }
 
