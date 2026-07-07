@@ -114,7 +114,7 @@ export async function buildApp() {
     return reply.status(500).send({ error: 'internal', message: '서버 오류' });
   });
 
-  app.get('/api/health', async () => ({ ok: true, ts: new Date().toISOString() }));
+  app.get('/api/health', async () => ({ ok: true })); // 상태/시간 등 내부정보 노출 최소화
 
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(joinRoutes, { prefix: '/api/join' });
