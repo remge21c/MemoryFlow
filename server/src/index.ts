@@ -24,8 +24,11 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
 process.on('SIGINT', () => void shutdown('SIGINT'));
 
 try {
-  await app.listen({ port: env.PORT, host: '0.0.0.0' });
-  app.log.info(`MemoryFlow API → http://localhost:${env.PORT}`);
+  // 기본은 루프백만 노출(로컬·동일호스트 Nginx 리버스프록시 앞단). 크로스호스트 접근이 필요한
+  // 경우에만 HOST=0.0.0.0 등으로 명시 opt-in한다.
+  const host = process.env.HOST ?? '127.0.0.1';
+  await app.listen({ port: env.PORT, host });
+  app.log.info(`MemoryFlow API → http://${host}:${env.PORT}`);
   app.log.info(`DB_PATH → ${env.DB_PATH}`); // 실제 사용 중인 DB 파일 확인용 (임시 폴백 감지)
 } catch (err) {
   app.log.error(err);
