@@ -23,8 +23,6 @@ export default function ProjectHome() {
     if (data) setViewing({ id: data.project.id, name: data.project.name, org_name: data.project.org_name ?? undefined });
   }, [data, setViewing]);
 
-  const bgm = useBgm(data?.project.bgm_url ?? null);
-
   if (isLoading) return <AppShell max={MAX}><HomeSkeleton /></AppShell>;
   if (!data) return <AppShell max={MAX}><EmptyState icon="error" title="프로젝트를 찾을 수 없습니다" /></AppShell>;
 
@@ -54,33 +52,7 @@ export default function ProjectHome() {
             {project.name}
           </h1>
 
-          {bgm.available && bgm.error ? (
-            <p className="mt-2 text-label-sm text-white bg-error/80 rounded-md px-2.5 py-1.5 inline-block">
-              {bgm.error}
-            </p>
-          ) : null}
-          {bgm.available ? (
-            <div className="mt-3 flex items-center gap-3">
-              <button
-                onClick={bgm.toggle}
-                aria-label={bgm.playing ? '배경음악 정지' : '배경음악 재생'}
-                className="w-10 h-10 rounded-full bg-white/20 backdrop-blur text-white flex items-center justify-center hover:bg-white/30 transition-colors shrink-0"
-              >
-                <Icon name={bgm.playing ? 'pause' : 'play_arrow'} fill className="text-[24px]" />
-              </button>
-              <Icon name="music_note" className="text-white/80 text-[18px] shrink-0" />
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={bgm.volume}
-                onChange={(e) => bgm.setVolume(Number(e.target.value))}
-                aria-label="배경음악 볼륨"
-                className="w-28 accent-white"
-              />
-            </div>
-          ) : null}
+          {project.bgm_url ? <BgmPlayer url={project.bgm_url} /> : null}
         </div>
       </div>
 
@@ -125,6 +97,63 @@ export default function ProjectHome() {
         )
       )}
     </AppShell>
+  );
+}
+
+function fmtClock(s: number): string {
+  const t = Number.isFinite(s) && s > 0 ? Math.floor(s) : 0;
+  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+}
+
+/** BGM 플레이어 — 진행바(탐색 가능)와 볼륨을 분리 표기. timeupdate 리렌더를 이 컴포넌트로 격리. */
+function BgmPlayer({ url }: { url: string }) {
+  const bgm = useBgm(url);
+  const volIcon = bgm.volume === 0 ? 'volume_off' : bgm.volume < 0.5 ? 'volume_down' : 'volume_up';
+
+  return (
+    <div className="mt-3">
+      {bgm.error ? (
+        <p className="mb-2 text-label-sm text-white bg-error/80 rounded-md px-2.5 py-1.5 inline-block">{bgm.error}</p>
+      ) : null}
+      <div className="flex items-center gap-2.5">
+        <button
+          onClick={bgm.toggle}
+          aria-label={bgm.playing ? '배경음악 정지' : '배경음악 재생'}
+          className="w-10 h-10 rounded-full bg-white/20 backdrop-blur text-white flex items-center justify-center hover:bg-white/30 transition-colors shrink-0"
+        >
+          <Icon name={bgm.playing ? 'pause' : 'play_arrow'} fill className="text-[24px]" />
+        </button>
+
+        {/* 진행바 — 탐색 가능 */}
+        <span className="text-label-sm text-white/85 tabular-nums shrink-0">
+          {fmtClock(bgm.currentTime)} / {fmtClock(bgm.duration)}
+        </span>
+        <input
+          type="range"
+          min={0}
+          max={Math.max(1, bgm.duration)}
+          step={0.1}
+          value={Math.min(bgm.currentTime, bgm.duration || 0)}
+          onChange={(e) => bgm.seek(Number(e.target.value))}
+          aria-label="재생 위치"
+          disabled={!bgm.duration}
+          className="flex-1 min-w-0 accent-white"
+        />
+
+        {/* 볼륨 — 아이콘으로 명확히 구분 */}
+        <Icon name={volIcon} className="text-white/85 text-[20px] shrink-0" />
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.05}
+          value={bgm.volume}
+          onChange={(e) => bgm.setVolume(Number(e.target.value))}
+          aria-label="볼륨"
+          className="w-16 sm:w-24 shrink-0 accent-white"
+        />
+      </div>
+    </div>
   );
 }
 

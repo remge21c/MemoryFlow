@@ -29,11 +29,15 @@ export function useBgm(url: string | null | undefined) {
   const [playing, setPlaying] = useState(false);
   const [volume, setVolumeState] = useState<number>(readVol);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   // 오디오 준비 + 마지막 설정 복원
   useEffect(() => {
     if (!url) return;
     setError(null);
+    setCurrentTime(0);
+    setDuration(0);
     // 캐시 버스트 — 과거 잘못된 MIME(application/octet-stream) 응답이 캐시된 경우를 우회
     const src = `${url}${url.includes('?') ? '&' : '?'}v=2`;
     const audio = new Audio(src);
@@ -44,9 +48,14 @@ export function useBgm(url: string | null | undefined) {
     const onPlay = () => { setPlaying(true); setError(null); };
     const onPause = () => setPlaying(false);
     const onError = () => setError(mediaErrorMessage(audio));
+    const onTime = () => setCurrentTime(audio.currentTime);
+    const onDur = () => setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
     audio.addEventListener('play', onPlay);
     audio.addEventListener('pause', onPause);
     audio.addEventListener('error', onError);
+    audio.addEventListener('timeupdate', onTime);
+    audio.addEventListener('loadedmetadata', onDur);
+    audio.addEventListener('durationchange', onDur);
 
     // 저장된 설정이 '켜짐'이면 재생 시도 (자동재생 차단은 정상 동작이라 에러 표시 안 함)
     if (localStorage.getItem(ON_KEY) === '1') {
@@ -58,6 +67,9 @@ export function useBgm(url: string | null | undefined) {
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
       audio.removeEventListener('error', onError);
+      audio.removeEventListener('timeupdate', onTime);
+      audio.removeEventListener('loadedmetadata', onDur);
+      audio.removeEventListener('durationchange', onDur);
       audio.src = '';
       audioRef.current = null;
       setPlaying(false);
@@ -92,5 +104,14 @@ export function useBgm(url: string | null | undefined) {
     localStorage.setItem(VOL_KEY, String(nv));
   }
 
-  return { available: !!url, playing, toggle, volume, setVolume, error };
+  /** 재생 위치 이동(초). 진행바 탐색용 — 서버 Range 지원으로 임의 지점 재생 가능. */
+  function seek(t: number) {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(t)) return;
+    const max = duration || audio.duration || 0;
+    audio.currentTime = Math.min(Math.max(0, t), max);
+    setCurrentTime(audio.currentTime);
+  }
+
+  return { available: !!url, playing, toggle, volume, setVolume, error, currentTime, duration, seek };
 }
