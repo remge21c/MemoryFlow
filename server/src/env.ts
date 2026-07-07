@@ -19,6 +19,14 @@ const sessionSecret = process.env.SESSION_SECRET;
 if (isProd && (!sessionSecret || sessionSecret.length < 32)) {
   throw new Error('SESSION_SECRET 환경변수(32자 이상)가 필요합니다 (production)');
 }
+// .env.example 예시 기본값이면: 프로덕션 기동 차단 + 개발은 경고 (길이는 충분해도 공개된 값이라 위험)
+const EXAMPLE_SESSION_SECRET = 'change-me-please-32chars-minimum-secret';
+if (sessionSecret === EXAMPLE_SESSION_SECRET) {
+  if (isProd) {
+    throw new Error('SESSION_SECRET이 .env.example 기본값입니다. 32자 이상 랜덤 값으로 교체하세요 (예: openssl rand -base64 48)');
+  }
+  console.warn('[env] ⚠ SESSION_SECRET이 .env.example 공개 기본값입니다. 로컬 개발 외에는 반드시 랜덤 값으로 교체하세요.');
+}
 
 // 프로덕션에서 DB_PATH 미설정 시 기동을 막는다.
 // (미설정 시 시스템 디스크의 임시 DB(./data/db)로 조용히 폴백 → 재배포 때 데이터/공유링크가 유실됨)
