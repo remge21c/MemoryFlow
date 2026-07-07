@@ -35,25 +35,26 @@ export default function ProjectHome() {
 
   return (
     <AppShell max={MAX}>
-      {/* 히어로 — 프로젝트명 + 커버 배경 + BGM */}
-      <div className="relative rounded-2xl overflow-hidden mb-5">
+      {/* 히어로 — 프로젝트 이미지를 최대한 살리고, 프로젝트명은 이미지 위에 오버레이 */}
+      <div className="relative rounded-2xl overflow-hidden mb-6">
         {hasCover ? (
-          <img src={project.cover_url!} alt="" className="absolute inset-0 w-full h-full object-cover" />
-        ) : null}
-        <div
-          className={`relative min-h-[190px] flex flex-col justify-end p-5 ${
-            hasCover ? 'bg-gradient-to-t from-black/75 via-black/30 to-black/10' : 'bg-tertiary-container'
-          }`}
-        >
-          {project.org_name ? (
-            <p className={`text-label-sm ${hasCover ? 'text-white/80' : 'text-on-tertiary-container/80'}`}>{project.org_name}</p>
-          ) : null}
-          <h1 className={`text-headline-md font-bold leading-tight ${hasCover ? 'text-white' : 'text-on-tertiary-container'}`}>
-            {project.name}
-          </h1>
-
-          {project.bgm_url ? <BgmPlayer url={project.bgm_url} /> : null}
-        </div>
+          <>
+            <img src={project.cover_url!} alt="" className="block w-full aspect-[16/10] object-cover" />
+            {/* 이름 가독용 하단 그라데이션만 — 이미지 상단은 깨끗하게 노출 */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-4">
+              {project.org_name ? <p className="text-label-sm text-white/85 drop-shadow-sm">{project.org_name}</p> : null}
+              <h1 className="text-headline-md font-bold text-white leading-tight drop-shadow-sm">{project.name}</h1>
+            </div>
+          </>
+        ) : (
+          <div className="relative bg-tertiary-container p-5 min-h-[128px] flex flex-col justify-end">
+            {project.org_name ? <p className="text-label-sm text-on-tertiary-container/80">{project.org_name}</p> : null}
+            <h1 className="text-headline-md font-bold text-on-tertiary-container leading-tight">{project.name}</h1>
+          </div>
+        )}
+        {/* BGM — 재생/정지 버튼 하나만 (볼륨은 기기에서 조절). 우상단 플로팅. */}
+        {project.bgm_url ? <BgmPlayer url={project.bgm_url} className="absolute top-3 right-3" /> : null}
       </div>
 
       {/* 진행 요약 — 원형 링 + 남은 개수 */}
@@ -100,60 +101,20 @@ export default function ProjectHome() {
   );
 }
 
-function fmtClock(s: number): string {
-  const t = Number.isFinite(s) && s > 0 ? Math.floor(s) : 0;
-  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
-}
-
-/** BGM 플레이어 — 진행바(탐색 가능)와 볼륨을 분리 표기. timeupdate 리렌더를 이 컴포넌트로 격리. */
-function BgmPlayer({ url }: { url: string }) {
+/** BGM — 재생/정지 버튼 하나. 볼륨은 기기에서 조절. 히어로 이미지 위에 플로팅. */
+function BgmPlayer({ url, className = '' }: { url: string; className?: string }) {
   const bgm = useBgm(url);
-  const volIcon = bgm.volume === 0 ? 'volume_off' : bgm.volume < 0.5 ? 'volume_down' : 'volume_up';
-
   return (
-    <div className="mt-3">
-      {bgm.error ? (
-        <p className="mb-2 text-label-sm text-white bg-error/80 rounded-md px-2.5 py-1.5 inline-block">{bgm.error}</p>
-      ) : null}
-      <div className="flex items-center gap-2.5">
-        <button
-          onClick={bgm.toggle}
-          aria-label={bgm.playing ? '배경음악 정지' : '배경음악 재생'}
-          className="w-10 h-10 rounded-full bg-white/20 backdrop-blur text-white flex items-center justify-center hover:bg-white/30 transition-colors shrink-0"
-        >
-          <Icon name={bgm.playing ? 'pause' : 'play_arrow'} fill className="text-[24px]" />
-        </button>
-
-        {/* 진행바 — 탐색 가능 */}
-        <span className="text-label-sm text-white/85 tabular-nums shrink-0">
-          {fmtClock(bgm.currentTime)} / {fmtClock(bgm.duration)}
-        </span>
-        <input
-          type="range"
-          min={0}
-          max={Math.max(1, bgm.duration)}
-          step={0.1}
-          value={Math.min(bgm.currentTime, bgm.duration || 0)}
-          onChange={(e) => bgm.seek(Number(e.target.value))}
-          aria-label="재생 위치"
-          disabled={!bgm.duration}
-          className="flex-1 min-w-0 accent-white"
-        />
-
-        {/* 볼륨 — 아이콘으로 명확히 구분 */}
-        <Icon name={volIcon} className="text-white/85 text-[20px] shrink-0" />
-        <input
-          type="range"
-          min={0}
-          max={1}
-          step={0.05}
-          value={bgm.volume}
-          onChange={(e) => bgm.setVolume(Number(e.target.value))}
-          aria-label="볼륨"
-          className="w-16 sm:w-24 shrink-0 accent-white"
-        />
-      </div>
-    </div>
+    <button
+      onClick={bgm.toggle}
+      aria-label={bgm.playing ? '배경음악 정지' : '배경음악 재생'}
+      title={bgm.error ?? (bgm.playing ? '정지' : '배경음악 재생')}
+      className={`w-11 h-11 rounded-full bg-black/40 backdrop-blur text-white flex items-center justify-center hover:bg-black/55 transition-colors shadow-md ${
+        bgm.error ? 'ring-2 ring-error' : ''
+      } ${className}`}
+    >
+      <Icon name={bgm.playing ? 'pause' : 'play_arrow'} fill className="text-[26px]" />
+    </button>
   );
 }
 
