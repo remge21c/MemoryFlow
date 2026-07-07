@@ -7,6 +7,7 @@ import type { Readable } from 'node:stream';
 import type { FastifyRequest } from 'fastify';
 import type { MultipartFile } from '@fastify/multipart';
 import { nanoid } from 'nanoid';
+import { fileTypeFromFile } from 'file-type';
 import { eq } from 'drizzle-orm';
 import { db, schema } from '../db/client.js';
 import { absPath, ensureDir, projectDir, removeFile } from '../lib/storage.js';
@@ -29,6 +30,31 @@ export interface SavedUpload {
 export interface CollectedUpload {
   fields: Record<string, string>;
   files: SavedUpload[];
+}
+
+type MediaKind = 'photo' | 'video' | 'audio';
+
+/**
+ * 저장된 파일의 실제 매직넘버가 기대 카테고리와 일치하는지 검증.
+ * 확장자/MIME은 위조 가능하므로 콘텐츠 시그니처로 최종 확인한다.
+ * 불일치·미탐지면 파일 삭제 후 415.
+ */
+async function assertActualContent(relPath: string, expected: MediaKind): Promise<void> {
+  const ft = await fileTypeFromFile(absPath(relPath)).catch(() => undefined);
+  const ext = ft ? `.${ft.ext}` : null;
+  const detected: MediaKind | null = !ext
+    ? null
+    : PHOTO_EXT.has(ext)
+      ? 'photo'
+      : VIDEO_EXT.has(ext)
+        ? 'video'
+        : AUDIO_EXTENSIONS.has(ext)
+          ? 'audio'
+          : null;
+  if (detected !== expected) {
+    removeFile(relPath);
+    throw new HttpError(415, '파일 내용이 형식과 일치하지 않습니다');
+  }
 }
 
 function resolveKind(mimetype: string, filename: string): { type: 'photo' | 'video'; ext: string } | null {
@@ -89,6 +115,7 @@ export async function collectMultipartUpload(req: FastifyRequest, projectId: num
         removeFile(relPath);
         throw new HttpError(413, '파일이 너무 큽니다');
       }
+      await assertActualContent(relPath, kind.type); // 매직넘버 검증(불일치 시 삭제+415)
       files.push({ type: kind.type, relPath, baseName, hash });
     }
   } catch (e) {
@@ -106,7 +133,7 @@ export const AUDIO_EXTENSIONS = new Set(['.mp3', '.m4a', '.aac', '.wav', '.ogg']
 export async function saveUploadedFile(
   part: MultipartFile,
   relDir: string,
-  opts: { allowedExt: Set<string>; maxBytes: number },
+  opts: { allowedExt: Set<string>; maxBytes: number; kind: MediaKind },
 ): Promise<string> {
   const ext = path.extname(part.filename).toLowerCase();
   if (!opts.allowedExt.has(ext)) {
@@ -119,6 +146,7 @@ export async function saveUploadedFile(
     removeFile(relPath);
     throw new HttpError(413, '파일이 너무 큽니다');
   }
+  await assertActualContent(relPath, opts.kind); // 매직넘버 검증
   return relPath;
 }
 

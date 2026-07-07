@@ -306,6 +306,7 @@ export async function projectRoutes(app: FastifyInstance) {
     const rel = await saveUploadedFile(file, projectDir(id).bgm, {
       allowedExt: AUDIO_EXTENSIONS,
       maxBytes: 50 * 1024 * 1024, // 50MB
+      kind: 'audio',
     });
 
     // 기존 BGM 있으면 로컬 파일 삭제
@@ -338,6 +339,7 @@ export async function projectRoutes(app: FastifyInstance) {
     const rel = await saveUploadedFile(file, projectDir(id).cover, {
       allowedExt: IMAGE_EXTENSIONS,
       maxBytes: 25 * 1024 * 1024, // 25MB
+      kind: 'photo',
     });
 
     // 기존 커버 있으면 로컬 파일 삭제

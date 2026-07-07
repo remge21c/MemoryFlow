@@ -47,6 +47,7 @@ export async function videoRoutes(app: FastifyInstance) {
     const rel = await saveUploadedFile(file, projectDir(pid).finalVideos, {
       allowedExt: VIDEO_EXTENSIONS,
       maxBytes: 1024 * 1024 * 1024, // 1GB
+      kind: 'video',
     });
     const inserted = await db
       .insert(schema.projectVideos)
