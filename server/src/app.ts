@@ -7,6 +7,7 @@ import { ZodError } from 'zod';
 import { env } from './env.js';
 import { migrate } from './db/migrate.js';
 import { loadUser } from './lib/session.js';
+import { isAllowedOrigin } from './lib/origin.js';
 import { HttpError } from './lib/errors.js';
 
 import { authRoutes } from './routes/auth.js';
@@ -32,8 +33,9 @@ export async function buildApp() {
   });
 
   await app.register(cors, {
-    // 개발: vite dev 서버 등 모든 origin 허용. 프로덕션: CORS_ORIGIN 목록만 (미설정 시 동일 출처만).
-    origin: env.isProd ? (env.CORS_ORIGINS.length > 0 ? env.CORS_ORIGINS : false) : true,
+    // 개발도 localhost/127.0.0.1 allowlist로 제한(전체 origin 반사 금지). 프로덕션은 CORS_ORIGINS 목록만.
+    // credentials:true 이므로 반사 origin은 반드시 allowlist 검증을 통과한 것만 허용.
+    origin: (origin, cb) => cb(null, !origin || isAllowedOrigin(origin)),
     credentials: true,
   });
   await app.register(cookie, { secret: env.SESSION_SECRET });
