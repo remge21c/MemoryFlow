@@ -30,7 +30,7 @@ export async function contributionRoutes(app: FastifyInstance) {
   });
 
   // 기여 생성 (사진/영상 + 스토리 동시, S-12 / T-4)
-  app.post('/projects/:pid/schedules/:sid/contributions', async (req) => {
+  app.post('/projects/:pid/schedules/:sid/contributions', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (req) => {
     const pid = Number((req.params as { pid: string }).pid);
     const sid = Number((req.params as { sid: string }).sid);
     const u = await requireMember(req, pid);
@@ -107,7 +107,7 @@ export async function contributionRoutes(app: FastifyInstance) {
   });
 
   // 기여에 미디어 추가
-  app.post('/contributions/:id/media', async (req) => {
+  app.post('/contributions/:id/media', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (req) => {
     const id = Number((req.params as { id: string }).id);
     const u = requireAuth(req);
     const c = await contributionContext(id);

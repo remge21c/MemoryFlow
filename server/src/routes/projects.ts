@@ -298,7 +298,7 @@ export async function projectRoutes(app: FastifyInstance) {
   });
 
   // BGM 업로드 (관리자)
-  app.post('/:id/bgm', async (req) => {
+  app.post('/:id/bgm', { config: { rateLimit: { max: 15, timeWindow: '1 minute' } } }, async (req) => {
     const id = Number((req.params as { id: string }).id);
     await requireProjectAdmin(req, id);
     const file = await req.file();
@@ -331,7 +331,7 @@ export async function projectRoutes(app: FastifyInstance) {
   });
 
   // 대표사진(커버) 업로드 (관리자) — 영상 패키지 project.json에 포함됨
-  app.post('/:id/cover', async (req) => {
+  app.post('/:id/cover', { config: { rateLimit: { max: 15, timeWindow: '1 minute' } } }, async (req) => {
     const id = Number((req.params as { id: string }).id);
     await requireProjectAdmin(req, id);
     const file = await req.file();

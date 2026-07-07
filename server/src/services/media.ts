@@ -9,6 +9,29 @@ import { absPath, ensureDir, projectDir } from '../lib/storage.js';
 if (env.FFMPEG_PATH) ffmpeg.setFfmpegPath(env.FFMPEG_PATH);
 if (env.FFPROBE_PATH) ffmpeg.setFfprobePath(env.FFPROBE_PATH);
 
+// ffmpeg 비용 방어: 벽시계 타임아웃 + 동시 처리 제한(CPU 고갈 방지)
+const FFMPEG_ENCODE_TIMEOUT_MS = 5 * 60_000; // 재인코딩(자르기)
+const FFMPEG_SHOT_TIMEOUT_MS = 60_000; // 커버 프레임 추출
+const MAX_CONCURRENT_FFMPEG = 2;
+
+let activeFfmpeg = 0;
+const ffmpegWaiters: Array<() => void> = [];
+
+/** 동시 ffmpeg 작업을 MAX_CONCURRENT_FFMPEG개로 제한. */
+async function withFfmpegSlot<T>(fn: () => Promise<T>): Promise<T> {
+  while (activeFfmpeg >= MAX_CONCURRENT_FFMPEG) {
+    await new Promise<void>((r) => ffmpegWaiters.push(r));
+  }
+  activeFfmpeg++;
+  try {
+    return await fn();
+  } finally {
+    activeFfmpeg--;
+    ffmpegWaiters.shift()?.();
+  }
+}
+
+
 export interface ImageDerivatives {
   thumbPath: string; // 480
   previewPath: string; // 1280
@@ -60,17 +83,25 @@ export async function makeVideoDerivatives(
 
   const durationSeconds = await probeDuration(srcAbs).catch(() => null);
 
-  const thumbPath = await new Promise<string | null>((resolve) => {
-    ffmpeg(srcAbs)
-      .on('end', () => resolve(thumbRel))
-      .on('error', () => resolve(null))
-      .screenshots({
-        timestamps: ['1'],
-        filename: `${baseName}_cover.jpg`,
-        folder: absPath(dir),
-        size: '1280x?',
-      });
-  });
+  const thumbPath = await withFfmpegSlot(
+    () =>
+      new Promise<string | null>((resolve) => {
+        const cmd = ffmpeg(srcAbs);
+        const timer = setTimeout(() => {
+          try { cmd.kill('SIGKILL'); } catch { /* noop */ }
+          resolve(null);
+        }, FFMPEG_SHOT_TIMEOUT_MS);
+        cmd
+          .on('end', () => { clearTimeout(timer); resolve(thumbRel); })
+          .on('error', () => { clearTimeout(timer); resolve(null); })
+          .screenshots({
+            timestamps: ['1'],
+            filename: `${baseName}_cover.jpg`,
+            folder: absPath(dir),
+            size: '1280x?',
+          });
+      }),
+  );
 
   return { durationSeconds, thumbPath };
 }
@@ -103,15 +134,23 @@ export async function trimVideo(
   const baseName = nanoid(16);
   const outRel = path.posix.join(dirs.videos, `${baseName}.mp4`);
 
-  await new Promise<void>((resolve, reject) => {
-    ffmpeg(absPath(relVideoPath))
-      .setStartTime(startSec)
-      .setDuration(endSec - startSec)
-      .outputOptions(['-c:v libx264', '-preset veryfast', '-crf 23', '-c:a aac', '-movflags +faststart'])
-      .on('end', () => resolve())
-      .on('error', (e) => reject(e))
-      .save(absPath(outRel));
-  });
+  await withFfmpegSlot(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const cmd = ffmpeg(absPath(relVideoPath))
+          .setStartTime(startSec)
+          .setDuration(endSec - startSec)
+          .outputOptions(['-c:v libx264', '-preset veryfast', '-crf 23', '-c:a aac', '-movflags +faststart']);
+        const timer = setTimeout(() => {
+          try { cmd.kill('SIGKILL'); } catch { /* noop */ }
+          reject(new Error('영상 처리 시간이 초과되었습니다'));
+        }, FFMPEG_ENCODE_TIMEOUT_MS);
+        cmd
+          .on('end', () => { clearTimeout(timer); resolve(); })
+          .on('error', (e) => { clearTimeout(timer); reject(e); })
+          .save(absPath(outRel));
+      }),
+  );
 
   const d = await makeVideoDerivatives(projectId, outRel, baseName);
   return { relPath: outRel, durationSeconds: d.durationSeconds, thumbPath: d.thumbPath };

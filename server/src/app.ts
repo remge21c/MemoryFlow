@@ -74,7 +74,8 @@ export async function buildApp() {
     }
   });
   await app.register(multipart, {
-    limits: { fileSize: 1024 * 1024 * 1024, files: 30 },
+    // 요청당 파일 수 축소. 파일당 바이트는 타입별로 services/upload.ts에서 더 엄격히 검증한다.
+    limits: { fileSize: 1024 * 1024 * 1024, files: 12 },
   });
 
   // CSRF 방어 — 상태변경 요청은 Origin/Referer가 허용 출처여야 함 (SameSite=lax와 이중 방어)

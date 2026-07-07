@@ -18,7 +18,7 @@ import { makeImageDerivatives, makeVideoDerivatives } from './media.js';
 const PHOTO_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.heic']);
 const VIDEO_EXT = new Set(['.mp4', '.mov', '.webm', '.mkv', '.avi']);
 const PHOTO_MAX_BYTES = 25 * 1024 * 1024; // 25MB
-const VIDEO_MAX_BYTES = 1024 * 1024 * 1024; // 1GB (multipart 전역 한도와 동일)
+const VIDEO_MAX_BYTES = 300 * 1024 * 1024; // 300MB (업로더 기여 영상 per-file 한도)
 
 export interface SavedUpload {
   type: 'photo' | 'video';

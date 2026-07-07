@@ -39,7 +39,7 @@ export async function videoRoutes(app: FastifyInstance) {
   });
 
   // 최종 영상 업로드 (관리자)
-  app.post('/projects/:pid/videos', async (req) => {
+  app.post('/projects/:pid/videos', { config: { rateLimit: { max: 15, timeWindow: '1 minute' } } }, async (req) => {
     const pid = Number((req.params as { pid: string }).pid);
     await requireProjectAdmin(req, pid);
     const file = await req.file();

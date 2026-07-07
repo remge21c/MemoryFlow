@@ -36,7 +36,8 @@ export async function mediaRoutes(app: FastifyInstance) {
   });
 
   // 영상 구간 자르기 (소유자/관리자, 미잠금) — 원본 보관 없이 교체, 재인코딩이라 수십 초 걸릴 수 있음
-  app.post('/media/:id/trim', async (req) => {
+  // 재인코딩은 CPU 비용이 크므로 rate limit
+  app.post('/media/:id/trim', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req) => {
     const id = Number((req.params as { id: string }).id);
     const u = requireAuth(req);
     const ctx = await mediaContext(id);
