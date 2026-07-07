@@ -49,6 +49,7 @@ function DateView({ data, pid, invalidate }: { data: ProjectDetail; pid: string;
               onChange={(e) => setForm((f) => ({ ...f, day_index: Number(e.target.value) }))}
               className="w-full rounded-md border border-outline/30 bg-surface-lowest px-3 py-3 text-body-lg"
             >
+              <option value={0}>사전 준비</option>
               {Array.from({ length: data.project.day_count }, (_, i) => (
                 <option key={i + 1} value={i + 1}>Day {i + 1}</option>
               ))}
@@ -85,8 +86,8 @@ function DateView({ data, pid, invalidate }: { data: ProjectDetail; pid: string;
       {data.days.map((day) => (
         <section key={day.day_index} className="mb-6">
           <div className="flex items-baseline gap-2 mb-2">
-            <h3 className="text-title-sm font-bold text-primary">Day {day.day_index}</h3>
-            {day.date ? <span className="text-label-sm text-outline">{day.date}</span> : null}
+            <h3 className="text-title-sm font-bold text-primary">{day.day_index === 0 ? '사전 준비' : `Day ${day.day_index}`}</h3>
+            {day.day_index !== 0 && day.date ? <span className="text-label-sm text-outline">{day.date}</span> : null}
           </div>
           {day.schedules.length === 0 ? (
             <p className="text-body-md text-outline py-2">아직 장면이 없습니다.</p>

@@ -59,7 +59,8 @@ export const insertScheduleSchema = z.object({
 
 // ── 세부일정 / 장면 (S-23) ─────────────────────────────
 export const createScheduleSchema = z.object({
-  day_index: z.coerce.number().int().min(1),
+  day_index: z.coerce.number().int().min(0), // 0 = 사전 준비(Day 0), 1..N = 행사일
+
   time: z.string().trim().max(20).optional().default(''),
   title: z.string().trim().min(1).max(120),
   place: z.string().trim().max(120).optional().default(''),

@@ -74,7 +74,7 @@ export async function shareRoutes(app: FastifyInstance) {
     const days = presentDays
       .map((di) => ({
         day_index: di,
-        date: isSeq ? '' : dateForDay(project.startDate, di),
+        date: isSeq || di === 0 ? '' : dateForDay(project.startDate, di), // di 0 = 사전 준비(날짜 없음)
         scenes: sceneByDay.get(di) ?? [],
       }))
       .filter((d) => d.scenes.length > 0);

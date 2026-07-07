@@ -111,8 +111,8 @@ export default function ShareView() {
           data.days.map((day) => (
             <section key={day.day_index} className="mb-10">
               <div className="flex items-baseline gap-2 mb-4">
-                <h2 className="text-headline-md font-bold text-primary">Day {day.day_index}</h2>
-                <span className="text-body-md text-on-surface-variant">{day.date}</span>
+                <h2 className="text-headline-md font-bold text-primary">{day.day_index === 0 ? '사전 준비' : `Day ${day.day_index}`}</h2>
+                {day.day_index !== 0 ? <span className="text-body-md text-on-surface-variant">{day.date}</span> : null}
               </div>
               {day.scenes.map((scene) => (
                 <SceneArticle key={scene.schedule.id} scene={scene} />

@@ -85,7 +85,7 @@ export default function ProjectHome() {
             <section key={day.day_index} className="mb-6">
               <div className="flex items-center justify-center my-3">
                 <span className="bg-secondary-container text-on-secondary-container text-body-md font-semibold px-4 py-1.5 rounded-full">
-                  {day.date ? `Day ${day.day_index} · ${day.date}` : `#${day.day_index}`}
+                  {day.day_index === 0 ? '사전 준비' : day.date ? `Day ${day.day_index} · ${day.date}` : `#${day.day_index}`}
                 </span>
               </div>
               <div>

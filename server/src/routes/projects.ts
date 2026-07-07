@@ -148,14 +148,23 @@ export async function projectRoutes(app: FastifyInstance) {
     }
 
     const dc = dayCount(p.startDate, p.endDate);
-    const days = Array.from({ length: dc }, (_, i) => {
-      const dayIndex = i + 1;
-      return {
-        day_index: dayIndex,
-        date: dateForDay(p.startDate, dayIndex) as string | null,
-        schedules: scheds.filter((s) => s.dayIndex === dayIndex).map(scheduleToDTO),
-      };
-    });
+    // Day 0 = 사전 준비(항상 제공, 비어 있어도). 그 뒤 Day 1..N
+    const day0 = {
+      day_index: 0,
+      date: null as string | null,
+      schedules: scheds.filter((s) => s.dayIndex === 0).map(scheduleToDTO),
+    };
+    const days = [
+      day0,
+      ...Array.from({ length: dc }, (_, i) => {
+        const dayIndex = i + 1;
+        return {
+          day_index: dayIndex,
+          date: dateForDay(p.startDate, dayIndex) as string | null,
+          schedules: scheds.filter((s) => s.dayIndex === dayIndex).map(scheduleToDTO),
+        };
+      }),
+    ];
     return { project: toDTO(p), days, storybook: sb };
   });
 
@@ -222,16 +231,26 @@ export async function projectRoutes(app: FastifyInstance) {
     }
 
     const dc = dayCount(p.startDate, p.endDate);
-    days = Array.from({ length: dc }, (_, i) => {
-      const dayIndex = i + 1;
-      return {
-        day_index: dayIndex,
-        date: dateForDay(p.startDate, dayIndex) as string | null,
-        schedules: scheds
-          .filter((s) => s.dayIndex === dayIndex)
-          .map((s) => ({ ...scheduleToDTO(s), contributions: contribBySched.get(s.id) ?? [] })),
-      };
-    });
+    const day0 = {
+      day_index: 0,
+      date: null as string | null,
+      schedules: scheds
+        .filter((s) => s.dayIndex === 0)
+        .map((s) => ({ ...scheduleToDTO(s), contributions: contribBySched.get(s.id) ?? [] })),
+    };
+    days = [
+      day0,
+      ...Array.from({ length: dc }, (_, i) => {
+        const dayIndex = i + 1;
+        return {
+          day_index: dayIndex,
+          date: dateForDay(p.startDate, dayIndex) as string | null,
+          schedules: scheds
+            .filter((s) => s.dayIndex === dayIndex)
+            .map((s) => ({ ...scheduleToDTO(s), contributions: contribBySched.get(s.id) ?? [] })),
+        };
+      }),
+    ];
 
     return { project: toDTO(p), days };
   });
