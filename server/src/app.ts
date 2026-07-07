@@ -8,6 +8,7 @@ import { env } from './env.js';
 import { migrate } from './db/migrate.js';
 import { loadUser } from './lib/session.js';
 import { isAllowedOrigin } from './lib/origin.js';
+import { isCsrfSafe } from './lib/csrf.js';
 import { HttpError } from './lib/errors.js';
 
 import { authRoutes } from './routes/auth.js';
@@ -63,6 +64,13 @@ export async function buildApp() {
   });
   await app.register(multipart, {
     limits: { fileSize: 1024 * 1024 * 1024, files: 30 },
+  });
+
+  // CSRF 방어 — 상태변경 요청은 Origin/Referer가 허용 출처여야 함 (SameSite=lax와 이중 방어)
+  app.addHook('onRequest', async (req) => {
+    if (!isCsrfSafe(req)) {
+      throw new HttpError(403, '요청 출처를 확인할 수 없습니다');
+    }
   });
 
   // 모든 요청에 세션 사용자 부착
