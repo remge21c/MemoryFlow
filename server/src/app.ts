@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import { ZodError } from 'zod';
@@ -31,6 +32,16 @@ export async function buildApp() {
   const app = Fastify({
     logger: true,
     bodyLimit: 50 * 1024 * 1024,
+  });
+
+  // 보안 헤더 (API 응답용). HTML/정적 페이지의 CSP·HSTS는 Nginx/Cloudflare가 담당
+  // → docs/security/hardening.md 참고. API는 JSON이라 CSP는 의미가 적어 비활성.
+  await app.register(helmet, {
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    // 미디어(cover/bgm/media)를 동일 사이트 SPA에서 로드 허용
+    crossOriginResourcePolicy: { policy: 'same-site' },
+    hsts: env.isProd ? { maxAge: 15552000, includeSubDomains: true } : false,
   });
 
   await app.register(cors, {
