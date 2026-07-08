@@ -86,7 +86,14 @@ export function AppShell({
               <Brand markClassName="w-7 h-7" textClassName="text-title-sm" />
             </Link>
 
-            <div className="flex-1" />
+            {/* 현재 프로젝트명 — 로고 옆, 로고보다 작게 */}
+            {titleProject ? (
+              <span className="flex-1 min-w-0 truncate text-body-md font-semibold text-on-surface">
+                {titleProject.name}
+              </span>
+            ) : (
+              <div className="flex-1" />
+            )}
 
             {/* 햄버거 메뉴 */}
             {user ? (

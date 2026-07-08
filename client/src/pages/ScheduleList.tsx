@@ -56,12 +56,7 @@ export default function ScheduleList() {
 
   return (
     <AppShell max="max-w-2xl lg:max-w-3xl">
-      {/* 헤더 — 데스크톱은 상단 고정 타이틀 바가 대신함 */}
-      <div className="mb-5 min-w-0 lg:hidden flex items-baseline gap-2">
-        <h1 className="text-headline-md font-bold text-on-surface truncate">{data.project.name}</h1>
-        {data.project.org_name ? <p className="text-body-md text-on-surface-variant truncate shrink-0">{data.project.org_name}</p> : null}
-      </div>
-
+      {/* 프로젝트명은 상단바(로고 옆)가 표시 — 별도 헤더 블록 없음 */}
       {!hasAnySchedule ? (
         <EmptyState icon="event_busy" title="아직 일정이 없어요" hint="관리자가 일정을 만들면 여기에 표시됩니다." />
       ) : (
