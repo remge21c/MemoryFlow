@@ -6,6 +6,7 @@ import { AppShell } from '../components/AppShell';
 import { Card, EmptyState, Icon, Pill, Skeleton } from '../components/ui';
 import { useActiveProject } from '../stores/activeProject';
 import { useBgm } from '../hooks/useBgm';
+import { bgmController } from '../lib/bgmController';
 import type { FeedData, FeedSchedule } from '../lib/feed';
 
 const MAX = 'max-w-2xl lg:max-w-3xl';
@@ -22,6 +23,11 @@ export default function ProjectHome() {
   useEffect(() => {
     if (data) setViewing({ id: data.project.id, name: data.project.name, org_name: data.project.org_name ?? undefined });
   }, [data, setViewing]);
+
+  // 이 프로젝트의 BGM을 전역 컨트롤러에 지정(같은 트랙이면 유지). 다른 페이지로 이동해도 재생 지속.
+  useEffect(() => {
+    if (data) bgmController.setSource(data.project.bgm_url ?? null);
+  }, [data]);
 
   if (isLoading) return <AppShell max={MAX}><HomeSkeleton /></AppShell>;
   if (!data) return <AppShell max={MAX}><EmptyState icon="error" title="프로젝트를 찾을 수 없습니다" /></AppShell>;
@@ -54,7 +60,7 @@ export default function ProjectHome() {
           </div>
         )}
         {/* BGM — 재생/정지 버튼 하나만 (볼륨은 기기에서 조절). 우상단 플로팅. */}
-        {project.bgm_url ? <BgmPlayer url={project.bgm_url} className="absolute top-3 right-3" /> : null}
+        {project.bgm_url ? <BgmPlayer className="absolute top-3 right-3" /> : null}
       </div>
 
       {/* 진행 요약 — 원형 링 + 남은 개수 */}
@@ -101,9 +107,10 @@ export default function ProjectHome() {
   );
 }
 
-/** BGM — 재생/정지 버튼 하나. 볼륨은 기기에서 조절. 히어로 이미지 위에 플로팅. */
-function BgmPlayer({ url, className = '' }: { url: string; className?: string }) {
-  const bgm = useBgm(url);
+/** BGM — 재생/정지 버튼 하나. 볼륨은 기기에서 조절. 히어로 이미지 위에 플로팅.
+ *  오디오는 전역 컨트롤러가 관리 → 페이지 이동에도 재생이 끊기지 않는다. */
+function BgmPlayer({ className = '' }: { className?: string }) {
+  const bgm = useBgm();
   return (
     <button
       onClick={bgm.toggle}
