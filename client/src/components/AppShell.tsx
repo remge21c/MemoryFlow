@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Icon } from './ui';
-import { Brand } from './Brand';
+import { Brand, BrandMark } from './Brand';
 import { useLogout, useMe } from '../lib/auth';
 import { useActiveProject } from '../stores/activeProject';
 import { ADMIN_PROJECT_TABS } from '../lib/adminNav';
@@ -77,18 +77,22 @@ export function AppShell({
         <header
           className={`${user ? 'lg:hidden' : ''} sticky top-0 z-40 bg-surface/95 backdrop-blur border-b border-outline-variant/20`}
         >
-          <div className={`${max} mx-auto flex items-center gap-3 h-14 px-4`}>
-            {/* 브랜드 */}
+          <div className={`${max} mx-auto flex items-center gap-2 h-14 px-3`}>
+            {/* 브랜드 — 프로젝트를 보고 있으면 이름 공간 확보를 위해 아이콘만, 아니면 풀 로고 */}
             <Link
               to={brandTo}
               className="flex items-center shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
             >
-              <Brand markClassName="w-7 h-7" textClassName="text-title-sm" />
+              {titleProject ? (
+                <BrandMark className="w-8 h-8" />
+              ) : (
+                <Brand markClassName="w-7 h-7" textClassName="text-title-sm" />
+              )}
             </Link>
 
-            {/* 현재 프로젝트명 — 로고 옆, 로고보다 작게 */}
+            {/* 현재 프로젝트명 — 워드마크 자리를 대신하는 타이틀 */}
             {titleProject ? (
-              <span className="flex-1 min-w-0 truncate text-body-md font-semibold text-on-surface">
+              <span className="flex-1 min-w-0 truncate text-body-lg font-bold text-on-surface">
                 {titleProject.name}
               </span>
             ) : (

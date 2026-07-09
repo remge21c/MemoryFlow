@@ -99,11 +99,11 @@ export default function Settings() {
             </select>
           </Field>
           {user?.is_admin ? (
-            <div className="mt-3 flex gap-2">
-              <Button variant="secondary" icon="add" className="h-9 px-4 text-label-sm" onClick={() => nav('/admin/projects/new')}>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button variant="secondary" icon="add" className="h-9 px-3 text-label-sm whitespace-nowrap" onClick={() => nav('/admin/projects/new')}>
                 새 프로젝트
               </Button>
-              <Button variant="secondary" icon="folder" className="h-9 px-4 text-label-sm" onClick={() => nav('/admin')}>
+              <Button variant="secondary" icon="folder" className="h-9 px-3 text-label-sm whitespace-nowrap" onClick={() => nav('/admin')}>
                 프로젝트 목록
               </Button>
             </div>
