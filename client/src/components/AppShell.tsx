@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Icon } from './ui';
-import { Brand, BrandMark } from './Brand';
+import { Brand } from './Brand';
 import { useLogout, useMe } from '../lib/auth';
 import { useActiveProject } from '../stores/activeProject';
 import { ADMIN_PROJECT_TABS } from '../lib/adminNav';
@@ -78,23 +78,22 @@ export function AppShell({
           className={`${user ? 'lg:hidden' : ''} sticky top-0 z-40 bg-surface/95 backdrop-blur border-b border-outline-variant/20`}
         >
           <div className={`${max} mx-auto flex items-center gap-2 h-14 px-3`}>
-            {/* 브랜드 — 프로젝트를 보고 있으면 이름 공간 확보를 위해 아이콘만, 아니면 풀 로고 */}
+            {/* 브랜드 — 로고+타이틀 유지. 프로젝트명 공간 확보 위해 워드마크는 살짝 작게 */}
             <Link
               to={brandTo}
               className="flex items-center shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
             >
-              {titleProject ? (
-                <BrandMark className="w-8 h-8" />
-              ) : (
-                <Brand markClassName="w-7 h-7" textClassName="text-title-sm" />
-              )}
+              <Brand markClassName="w-7 h-7" textClassName="text-body-md" />
             </Link>
 
-            {/* 현재 프로젝트명 — 워드마크 자리를 대신하는 타이틀 */}
+            {/* 현재 프로젝트명 — 로고 타이틀 옆, 남는 공간을 채우고 길면 말줄임 */}
             {titleProject ? (
-              <span className="flex-1 min-w-0 truncate text-body-lg font-bold text-on-surface">
-                {titleProject.name}
-              </span>
+              <>
+                <span className="h-4 w-px bg-outline/25 shrink-0" aria-hidden="true" />
+                <span className="flex-1 min-w-0 truncate text-body-md font-semibold text-on-surface">
+                  {titleProject.name}
+                </span>
+              </>
             ) : (
               <div className="flex-1" />
             )}
@@ -107,7 +106,7 @@ export function AppShell({
                   aria-label="메뉴 열기"
                   aria-expanded={menuOpen}
                   aria-haspopup="true"
-                  className="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors"
+                  className="-mr-1 w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors"
                 >
                   <Icon name={menuOpen ? 'close' : 'menu'} className="text-[24px]" />
                 </button>
