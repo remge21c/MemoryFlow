@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { MediaDTO, SceneDTO, StorybookDTO } from '@memoryflow/shared';
-import { formatSeconds } from '@memoryflow/shared';
+import { formatSeconds, weightedLength } from '@memoryflow/shared';
 import { apiGet, apiPatch, apiPost } from '../../lib/api';
 import { AppShell } from '../../components/AppShell';
 import { Button, Card, Icon, Pill, Spinner, TextArea, ErrorNote } from '../../components/ui';
@@ -86,7 +86,7 @@ export default function StorybookEdit() {
   const next = idx >= 0 && idx < scenes.length - 1 ? scenes[idx + 1] : null;
   const goScene = (s: SummaryScene) => nav(`/admin/projects/${pid}/storybook/scenes/${s.schedule_id}`);
 
-  const len = narration.trim().length;
+  const len = weightedLength(narration.trim());
   const over = len > scene.target_chars && scene.target_chars > 0;
   const aiLoading = mergeMut.isPending || sumMut.isPending;
 

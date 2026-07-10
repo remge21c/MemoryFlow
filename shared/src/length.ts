@@ -3,8 +3,9 @@
 // 한 장면 길이 = Σ(included photo × photo_seconds) + Σ(included video duration)
 // 적정 내레이션 글자수 = scene_seconds 기반 제안값 (강제 아님).
 
-/** 읽기 속도: 약 분당 ~312자 → 초당 5.2자 (목업 23초≈120자와 정합) */
-export const CHARS_PER_SECOND = 5.2;
+// 자막 읽기 속도(초당 글자수). 넷플릭스 한국어 자막 기준: 성인 12자/초, 아동 9자/초.
+// 청소년~가족 전 연령이 편안히 읽을 수 있는 값으로 10자/초 채택(사진 3초 ≈ 30자).
+export const CHARS_PER_SECOND = 10;
 
 export interface SceneMediaItem {
   type: 'photo' | 'video';
@@ -29,6 +30,26 @@ export function computeSceneSeconds(items: SceneMediaItem[], photoSeconds: numbe
 /** 장면 길이에 맞는 적정 내레이션 글자수(제안값). */
 export function targetChars(sceneSeconds: number): number {
   return Math.round(sceneSeconds * CHARS_PER_SECOND);
+}
+
+/**
+ * 가독 단위 글자수 — 한글/CJK/전각 문자는 1, 라틴문자·숫자·공백·문장부호는 0.5로 센다.
+ * (넷플릭스 한국어 자막 기준: 한글 1, 라틴/공백/문장부호 0.5. 영어가 한글보다 빨리 읽히는 점 반영)
+ */
+export function weightedLength(text: string): number {
+  let sum = 0;
+  for (const ch of text) {
+    const c = ch.codePointAt(0)!;
+    const isFullWidthScript =
+      (c >= 0xac00 && c <= 0xd7a3) || // 한글 음절
+      (c >= 0x1100 && c <= 0x11ff) || // 한글 자모
+      (c >= 0x3130 && c <= 0x318f) || // 한글 호환 자모
+      (c >= 0x4e00 && c <= 0x9fff) || // CJK 한자
+      (c >= 0x3040 && c <= 0x30ff) || // 히라가나·가타카나
+      (c >= 0xff00 && c <= 0xffef); // 전각
+    sum += isFullWidthScript ? 1 : 0.5;
+  }
+  return Math.round(sum);
 }
 
 export interface SceneLength {

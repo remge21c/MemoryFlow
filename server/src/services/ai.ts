@@ -3,7 +3,7 @@
 // 1차 제공자(gemini 등) 호출이 실패하면 LM Studio(로컬, OpenAI 호환)로 자동 폴백한다.
 // 미설정(AI_PROVIDER=stub)이면 로컬 스텁이 같은 인터페이스로 동작 → AI 없어도 편집/승인 가능.
 import { env } from '../env.js';
-import { targetChars } from '@memoryflow/shared';
+import { targetChars, weightedLength } from '@memoryflow/shared';
 
 export interface PerspectiveInput {
   name: string;
@@ -84,18 +84,18 @@ function stubMerge(perspectives: PerspectiveInput[], chars: number): string {
     .map((t) => (/[.!?…]$/.test(t) ? t : `${t}.`));
   const merged = sentences.join(' ');
   // 장면 길이가 정해져 있고(>0) 합본이 가이드의 1.5배를 넘으면만 압축
-  if (chars > 0 && merged.length > chars * 1.5) return stubSummarize(merged, chars);
+  if (chars > 0 && weightedLength(merged) > chars * 1.5) return stubSummarize(merged, chars);
   return merged;
 }
 
 function stubSummarize(text: string, chars: number): string {
   const clean = text.trim().replace(/\s+/g, ' ');
-  if (chars <= 0 || clean.length <= chars) return clean;
-  // 문장 경계 기준으로 chars 안쪽까지 채움
+  if (chars <= 0 || weightedLength(clean) <= chars) return clean;
+  // 문장 경계 기준으로 chars(가독 단위) 안쪽까지 채움
   const parts = clean.split(/(?<=[.!?…])\s+/);
   let out = '';
   for (const s of parts) {
-    if ((out + s).length > chars && out.length > 0) break;
+    if (weightedLength(out + s) > chars && out.length > 0) break;
     out += (out ? ' ' : '') + s;
   }
   if (!out) out = clean.slice(0, chars);
