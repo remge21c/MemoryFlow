@@ -43,12 +43,12 @@ export default function AdminProjects() {
                   <Icon name="folder" className="text-primary text-[24px]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-title-sm font-semibold truncate">{p.name}</h2>
+                  <h2 className="text-title-sm font-semibold truncate">{p.name}</h2>
+                  <div className="flex items-center gap-1.5 mt-1 min-w-0">
                     <Pill tone="muted">{PROJECT_STATUS_LABEL[p.status]}</Pill>
                     {active?.id === p.id ? <Pill tone="primary">활성</Pill> : null}
+                    {p.org_name ? <span className="text-body-md text-on-surface-variant truncate">{p.org_name}</span> : null}
                   </div>
-                  <p className="text-body-md text-on-surface-variant truncate">{p.org_name}</p>
                   <p className="text-label-sm text-outline mt-0.5">{dateRange(p.start_date, p.end_date)} · {p.day_count}일</p>
                 </div>
                 <Icon name="chevron_right" className="text-outline" />

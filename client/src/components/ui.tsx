@@ -81,7 +81,7 @@ export function Pill({ children, tone = 'neutral' }: { children: ReactNode; tone
     success: 'bg-tertiary/10 text-tertiary',
     muted: 'bg-surface-container text-on-surface-variant',
   };
-  return <span className={`inline-flex items-center px-3 py-1 rounded-full text-label-sm font-medium ${tones[tone]}`}>{children}</span>;
+  return <span className={`inline-flex items-center shrink-0 whitespace-nowrap px-3 py-1 rounded-full text-label-sm font-medium ${tones[tone]}`}>{children}</span>;
 }
 
 export function Card({ children, className = '', onClick }: { children: ReactNode; className?: string; onClick?: () => void }) {
