@@ -33,7 +33,7 @@ export function Brand({
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <BrandMark className={markClassName} />
       <span className={`font-bold tracking-tight text-on-surface whitespace-nowrap ${textClassName}`}>
-        Memory Flow
+        MemoryFlow
       </span>
     </span>
   );

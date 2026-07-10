@@ -83,17 +83,14 @@ export function AppShell({
               to={brandTo}
               className="flex items-center shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
             >
-              <Brand markClassName="w-7 h-7" textClassName="text-body-md" />
+              <Brand markClassName="w-7 h-7" textClassName="text-title-sm" />
             </Link>
 
-            {/* 현재 프로젝트명 — 로고 타이틀 옆, 남는 공간을 채우고 길면 말줄임 */}
+            {/* 현재 프로젝트명 — 로고 타이틀 옆, 작게. 남는 공간을 채우고 길면 말줄임 */}
             {titleProject ? (
-              <>
-                <span className="h-4 w-px bg-outline/25 shrink-0" aria-hidden="true" />
-                <span className="flex-1 min-w-0 truncate text-body-md font-semibold text-on-surface">
-                  {titleProject.name}
-                </span>
-              </>
+              <span className="flex-1 min-w-0 truncate text-body-md font-semibold text-on-surface-variant">
+                {titleProject.name}
+              </span>
             ) : (
               <div className="flex-1" />
             )}
