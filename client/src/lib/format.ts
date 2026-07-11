@@ -5,8 +5,7 @@ export function formatDate(iso: string): string {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export function dateRange(start: string | null | undefined, end: string | null | undefined): string {
-  if (!start || !end) return ''; // 순번형 프로젝트 등 날짜 없음
+export function dateRange(start: string, end: string): string {
   return `${formatDate(start)} – ${formatDate(end)}`;
 }
 

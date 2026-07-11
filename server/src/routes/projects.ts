@@ -266,8 +266,6 @@ export async function projectRoutes(app: FastifyInstance) {
     if (body.description !== undefined) patch.description = body.description;
     if (body.status !== undefined) patch.status = body.status;
     if (body.default_photo_seconds !== undefined) patch.defaultPhotoSeconds = body.default_photo_seconds;
-    if (body.start_date !== undefined) patch.startDate = body.start_date;
-    if (body.end_date !== undefined) patch.endDate = body.end_date;
     if (Object.keys(patch).length) {
       await db.update(schema.projects).set(patch).where(eq(schema.projects.id, id));
     }
