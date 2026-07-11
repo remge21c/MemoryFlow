@@ -40,13 +40,21 @@ export const createProjectSchema = z.union([
   }),
 ]);
 
-export const updateProjectSchema = z.object({
-  name: z.string().trim().min(1).max(120).optional(),
-  org_name: z.string().trim().max(120).optional(),
-  description: z.string().trim().max(4000).optional(),
-  status: z.enum(PROJECT_STATUS).optional(),
-  default_photo_seconds: z.coerce.number().int().min(1).max(60).optional(),
-});
+export const updateProjectSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120).optional(),
+    org_name: z.string().trim().max(120).optional(),
+    description: z.string().trim().max(4000).optional(),
+    status: z.enum(PROJECT_STATUS).optional(),
+    default_photo_seconds: z.coerce.number().int().min(1).max(60).optional(),
+    // 기간 수정(날짜형 프로젝트). 보통 시작/종료를 함께 보낸다.
+    start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD').optional(),
+    end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD').optional(),
+  })
+  .refine((v) => !(v.start_date && v.end_date) || v.end_date >= v.start_date, {
+    message: '종료일은 시작일 이후여야 합니다',
+    path: ['end_date'],
+  });
 
 // ── 세부일정 앞/뒤 삽입 ───────────────────────────────
 export const insertScheduleSchema = z.object({

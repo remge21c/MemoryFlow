@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useOutletContext, useParams, Link, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ProjectDetail } from './ProjectLayout';
 import { Card, Icon, Pill, Button, TextInput, Field, ErrorNote } from '../../components/ui';
 import { dateRange, PROJECT_STATUS_LABEL } from '../../lib/format';
@@ -16,6 +17,38 @@ export default function ProjectOverview() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // 기간 수정 (날짜형 프로젝트)
+  const qc = useQueryClient();
+  const isDateType = p.schedule_type === 'date';
+  const [editDates, setEditDates] = useState(false);
+  const [sd, setSd] = useState(p.start_date ?? '');
+  const [ed, setEd] = useState(p.end_date ?? '');
+  const [dateSaving, setDateSaving] = useState(false);
+  const [dateErr, setDateErr] = useState('');
+
+  function openDateEdit() {
+    setSd(p.start_date ?? '');
+    setEd(p.end_date ?? '');
+    setDateErr('');
+    setEditDates(true);
+  }
+
+  async function saveDates() {
+    setDateErr('');
+    if (!sd || !ed) { setDateErr('시작일과 종료일을 모두 입력하세요'); return; }
+    if (ed < sd) { setDateErr('종료일은 시작일 이후여야 합니다'); return; }
+    setDateSaving(true);
+    try {
+      await apiSend('PATCH', `/projects/${p.id}`, { start_date: sd, end_date: ed });
+      await qc.invalidateQueries({ queryKey: ['project', pid] });
+      setEditDates(false);
+    } catch (e) {
+      setDateErr((e as Error).message);
+    } finally {
+      setDateSaving(false);
+    }
+  }
 
   const steps = [
     { to: 'schedules', icon: 'event', label: '일정(장면) 설계', desc: `${scheduleCount}개 장면 · ${p.day_count}일` },
@@ -66,7 +99,29 @@ export default function ProjectOverview() {
           <Pill tone="muted">기본 노출 {p.default_photo_seconds}초</Pill>
           {data.storybook.status === 'approved' ? <Pill tone="success">승인됨</Pill> : <Pill tone="primary">편집 중</Pill>}
         </div>
-        <p className="text-body-md text-on-surface-variant">{dateRange(p.start_date, p.end_date)}</p>
+        {editDates ? (
+          <div className="mt-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <input type="date" value={sd} onChange={(e) => setSd(e.target.value)}
+                className="rounded-md border border-outline/30 bg-surface-lowest px-2 py-1.5 text-body-md" />
+              <span className="text-outline">~</span>
+              <input type="date" value={ed} min={sd || undefined} onChange={(e) => setEd(e.target.value)}
+                className="rounded-md border border-outline/30 bg-surface-lowest px-2 py-1.5 text-body-md" />
+              <Button className="h-9 px-4 text-label-sm" loading={dateSaving} onClick={saveDates}>저장</Button>
+              <Button variant="ghost" className="h-9 px-3 text-label-sm" disabled={dateSaving} onClick={() => { setEditDates(false); setDateErr(''); }}>취소</Button>
+            </div>
+            {dateErr ? <div className="mt-2"><ErrorNote message={dateErr} /></div> : null}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <p className="text-body-md text-on-surface-variant">{dateRange(p.start_date, p.end_date)}</p>
+            {isDateType ? (
+              <button onClick={openDateEdit} className="text-label-sm text-primary hover:underline font-semibold flex items-center gap-0.5">
+                <Icon name="edit" className="text-[16px]" /> 기간 수정
+              </button>
+            ) : null}
+          </div>
+        )}
         {p.description ? <p className="text-body-md text-on-surface mt-2 whitespace-pre-line">{p.description}</p> : null}
       </Card>
 
