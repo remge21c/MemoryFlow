@@ -27,11 +27,12 @@ export async function mergeStories(
 ): Promise<string> {
   const filled = perspectives.filter((p) => p.text.trim().length > 0);
   const chars = targetChars(sceneSeconds);
+  // 개인정보 보호: 실명 대신 익명 라벨로 전송(외부 AI로 이름이 나가지 않게). 내레이션은 이름을 붙이지 않으므로 품질 영향 없음.
   const prompt =
     `다음은 "${sceneTitle}" 장면에 대한 여러 사람의 한 줄 소감입니다. ` +
     `이를 따뜻하고 자연스러운 한 단락 내레이션으로 합쳐주세요. ` +
     `약 ${chars}자 내외, 영상 자막으로 읽기 좋게. 군더더기 없이 내레이션만 출력하세요.\n\n` +
-    filled.map((p) => `- ${p.name}: ${p.text}`).join('\n');
+    filled.map((p, i) => `- 참가자 ${i + 1}: ${p.text}`).join('\n');
   const out = await callAI(prompt);
   return out ?? stubMerge(filled, chars);
 }

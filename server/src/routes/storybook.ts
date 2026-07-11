@@ -156,8 +156,8 @@ export async function storybookRoutes(app: FastifyInstance) {
     return { ok: true };
   });
 
-  // AI: 대본 초안 생성 (PRD 9장) — 초안만 반환, 적용은 클라이언트
-  app.post('/projects/:pid/storybook/ai/merge', async (req, reply) => {
+  // AI: 대본 초안 생성 (PRD 9장) — 초안만 반환, 적용은 클라이언트. 외부 AI 비용/남용 방지 rate limit
+  app.post('/projects/:pid/storybook/ai/merge', { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (req, reply) => {
     const pid = Number((req.params as { pid: string }).pid);
     const u = await requireProjectAdmin(req, pid);
     const body = aiMergeSchema.parse(req.body);
@@ -173,8 +173,8 @@ export async function storybookRoutes(app: FastifyInstance) {
     }
   });
 
-  // AI: 모든 장면 대본 초안 일괄 생성 및 저장
-  app.post('/projects/:pid/storybook/ai/merge-all', async (req, reply) => {
+  // AI: 모든 장면 대본 초안 일괄 생성 및 저장 — 여러 장면을 한 번에 호출하므로 더 엄격히 제한
+  app.post('/projects/:pid/storybook/ai/merge-all', { config: { rateLimit: { max: 3, timeWindow: '1 minute' } } }, async (req, reply) => {
     const pid = Number((req.params as { pid: string }).pid);
     const u = await requireProjectAdmin(req, pid);
     const sb = await ensureStorybook(pid);
@@ -225,7 +225,7 @@ export async function storybookRoutes(app: FastifyInstance) {
   });
 
   // AI: 길이에 맞게 요약
-  app.post('/projects/:pid/storybook/ai/summarize', async (req, reply) => {
+  app.post('/projects/:pid/storybook/ai/summarize', { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (req, reply) => {
     const pid = Number((req.params as { pid: string }).pid);
     const u = await requireProjectAdmin(req, pid);
     const body = aiSummarizeSchema.parse(req.body);

@@ -184,10 +184,13 @@ export default function StorybookEdit() {
           )}
         </div>
         {!locked ? (
-          <div className="flex justify-center mt-4">
+          <div className="flex flex-col items-center gap-1.5 mt-4">
             <Button icon="auto_awesome" loading={mergeMut.isPending} disabled={aiLoading} onClick={() => { setAiErr(''); mergeMut.mutate(); }}>
               대본 초안 생성
             </Button>
+            <p className="text-label-sm text-outline text-center">
+              초안 생성 시 소감 텍스트가 외부 AI로 전송될 수 있어요(이름 등 개인정보는 익명 처리).
+            </p>
           </div>
         ) : null}
       </section>
