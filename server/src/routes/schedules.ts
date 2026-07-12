@@ -6,6 +6,17 @@ import { requireMember, requireProjectAdmin } from '../lib/guards.js';
 import { HttpError } from '../lib/errors.js';
 import { scheduleToDTO } from '../services/scene.js';
 
+// "HH:MM" → 분 단위. 파싱 불가하면 null(정렬 비교에서 제외, 시간 없는 장면 취급)
+function parseMinutes(t: string | null | undefined): number | null {
+  if (!t) return null;
+  const m = t.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (h > 23 || min > 59) return null;
+  return h * 60 + min;
+}
+
 async function scheduleProjectId(scheduleId: number): Promise<number> {
   const r = await db
     .select({ pid: schema.schedules.projectId })
@@ -32,20 +43,36 @@ export async function scheduleRoutes(app: FastifyInstance) {
     const pid = Number((req.params as { pid: string }).pid);
     await requireProjectAdmin(req, pid);
     const body = createScheduleSchema.parse(req.body);
-    const inserted = await db
-      .insert(schema.schedules)
-      .values({
-        projectId: pid,
-        dayIndex: body.day_index,
-        time: body.time,
-        title: body.title,
-        place: body.place,
-        category: body.category,
-        sortOrder: body.sort_order,
-        photoSeconds: body.photo_seconds ?? null,
-      })
-      .returning();
-    return { schedule: scheduleToDTO(inserted[0]!) };
+
+    // 같은 Day 안에서 시간(time) 기준 자동 삽입 위치 계산.
+    // 시간이 있으면 더 늦은 시간을 가진 첫 장면 앞에 끼워 넣고, 시간 없는 장면은 건너뛴다(그대로 둔다).
+    // 시간이 없으면 기존처럼 맨 뒤에 추가.
+    const siblings = await db
+      .select({ id: schema.schedules.id, sortOrder: schema.schedules.sortOrder, time: schema.schedules.time })
+      .from(schema.schedules)
+      .where(and(eq(schema.schedules.projectId, pid), eq(schema.schedules.dayIndex, body.day_index)))
+      .orderBy(asc(schema.schedules.sortOrder));
+
+    const newMin = parseMinutes(body.time);
+    let insertAt = siblings.length;
+    if (newMin !== null) {
+      const idx = siblings.findIndex((s) => {
+        const m = parseMinutes(s.time);
+        return m !== null && m > newMin;
+      });
+      if (idx !== -1) insertAt = idx;
+    }
+
+    const inserted = sqlite.transaction(() => {
+      for (let i = siblings.length - 1; i >= insertAt; i--) {
+        sqlite.prepare('UPDATE schedules SET sort_order = ? WHERE id = ?').run(i + 1, siblings[i]!.id);
+      }
+      return sqlite.prepare(
+        'INSERT INTO schedules (project_id, day_index, title, time, place, category, sort_order, photo_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *'
+      ).get(pid, body.day_index, body.title, body.time || null, body.place || null, body.category || null, insertAt, body.photo_seconds ?? null);
+    })();
+
+    return { schedule: scheduleToDTO(inserted as typeof schema.schedules.$inferSelect) };
   });
 
   app.patch('/schedules/:id', async (req) => {
