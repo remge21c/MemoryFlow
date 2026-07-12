@@ -38,6 +38,11 @@ function DateView({ data, pid, invalidate }: { data: ProjectDetail; pid: string;
     },
   });
 
+  const resortMut = useMutation({
+    mutationFn: () => apiPost(`/projects/${pid}/schedules/resort-by-time`, {}),
+    onSuccess: invalidate,
+  });
+
   return (
     <div>
       <Card className="p-4 mb-6 space-y-3">
@@ -82,6 +87,18 @@ function DateView({ data, pid, invalidate }: { data: ProjectDetail; pid: string;
           장면 추가
         </Button>
       </Card>
+
+      <div className="flex justify-end mb-3">
+        <Button
+          variant="ghost"
+          icon="sort"
+          className="h-9 px-4 text-label-sm"
+          loading={resortMut.isPending}
+          onClick={() => resortMut.mutate()}
+        >
+          시간순 정렬
+        </Button>
+      </div>
 
       {data.days.map((day) => (
         <section key={day.day_index} className="mb-6">

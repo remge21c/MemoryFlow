@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, ne } from 'drizzle-orm';
 import { createScheduleSchema, insertScheduleSchema, updateScheduleSchema } from '@memoryflow/shared';
 import { db, schema, sqlite } from '../db/client.js';
 import { requireMember, requireProjectAdmin } from '../lib/guards.js';
@@ -37,6 +37,42 @@ export async function scheduleRoutes(app: FastifyInstance) {
       .where(eq(schema.schedules.projectId, pid))
       .orderBy(asc(schema.schedules.dayIndex), asc(schema.schedules.sortOrder));
     return { schedules: rows.map(scheduleToDTO) };
+  });
+
+  // 이미 순서가 꼬여 있는 기존 장면들을 한 번에 시간순으로 재정렬(Day별로 독립).
+  // 시간이 없는 장면은 상대 순서를 유지한 채 맨 뒤로 보낸다.
+  app.post('/projects/:pid/schedules/resort-by-time', async (req) => {
+    const pid = Number((req.params as { pid: string }).pid);
+    await requireProjectAdmin(req, pid);
+
+    const rows = await db
+      .select()
+      .from(schema.schedules)
+      .where(eq(schema.schedules.projectId, pid))
+      .orderBy(asc(schema.schedules.dayIndex), asc(schema.schedules.sortOrder));
+
+    const byDay = new Map<number, typeof rows>();
+    for (const r of rows) {
+      const arr = byDay.get(r.dayIndex) ?? [];
+      arr.push(r);
+      byDay.set(r.dayIndex, arr);
+    }
+
+    sqlite.transaction(() => {
+      for (const arr of byDay.values()) {
+        const sorted = arr
+          .map((r, i) => ({ r, i, key: parseMinutes(r.time) ?? Infinity }))
+          .sort((a, b) => a.key - b.key || a.i - b.i)
+          .map((x) => x.r);
+        sorted.forEach((r, idx) => {
+          if (r.sortOrder !== idx) {
+            sqlite.prepare('UPDATE schedules SET sort_order = ? WHERE id = ?').run(idx, r.id);
+          }
+        });
+      }
+    })();
+
+    return { ok: true };
   });
 
   app.post('/projects/:pid/schedules', async (req) => {
@@ -80,14 +116,50 @@ export async function scheduleRoutes(app: FastifyInstance) {
     const pid = await scheduleProjectId(id);
     await requireProjectAdmin(req, pid);
     const body = updateScheduleSchema.parse(req.body);
+    const current = (await db.select().from(schema.schedules).where(eq(schema.schedules.id, id)).limit(1))[0]!;
+
     const patch: Record<string, unknown> = {};
-    if (body.day_index !== undefined) patch.dayIndex = body.day_index;
-    if (body.time !== undefined) patch.time = body.time;
     if (body.title !== undefined) patch.title = body.title;
     if (body.place !== undefined) patch.place = body.place;
     if (body.category !== undefined) patch.category = body.category;
-    if (body.sort_order !== undefined) patch.sortOrder = body.sort_order;
     if (body.photo_seconds !== undefined) patch.photoSeconds = body.photo_seconds;
+
+    // day_index/sort_order를 명시적으로 보낸 경우(수동 삽입 등)는 그대로 존중.
+    // time만 바뀐 경우엔 같은 Day 안에서 새 시간에 맞는 위치로 자동 재배치.
+    const dayIndex = body.day_index ?? current.dayIndex;
+    const timeChanged = body.time !== undefined && (body.time || null) !== current.time;
+    const manualPosition = body.sort_order !== undefined || body.day_index !== undefined;
+
+    if ((timeChanged || body.day_index !== undefined) && !manualPosition) {
+      const siblings = await db
+        .select({ id: schema.schedules.id, sortOrder: schema.schedules.sortOrder, time: schema.schedules.time })
+        .from(schema.schedules)
+        .where(and(eq(schema.schedules.projectId, pid), eq(schema.schedules.dayIndex, dayIndex), ne(schema.schedules.id, id)))
+        .orderBy(asc(schema.schedules.sortOrder));
+
+      const newTime = body.time !== undefined ? body.time : current.time;
+      const newMin = parseMinutes(newTime);
+      let insertAt = siblings.length;
+      if (newMin !== null) {
+        const idx = siblings.findIndex((s) => {
+          const m = parseMinutes(s.time);
+          return m !== null && m > newMin;
+        });
+        if (idx !== -1) insertAt = idx;
+      }
+
+      sqlite.transaction(() => {
+        for (let i = siblings.length - 1; i >= insertAt; i--) {
+          sqlite.prepare('UPDATE schedules SET sort_order = ? WHERE id = ?').run(i + 1, siblings[i]!.id);
+        }
+        sqlite.prepare('UPDATE schedules SET day_index = ?, sort_order = ? WHERE id = ?').run(dayIndex, insertAt, id);
+      })();
+    } else if (body.day_index !== undefined) {
+      patch.dayIndex = body.day_index;
+    }
+    if (body.time !== undefined) patch.time = body.time || null;
+    if (manualPosition && body.sort_order !== undefined) patch.sortOrder = body.sort_order;
+
     if (Object.keys(patch).length) {
       await db.update(schema.schedules).set(patch).where(eq(schema.schedules.id, id));
     }
