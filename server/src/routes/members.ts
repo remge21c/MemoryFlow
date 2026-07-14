@@ -5,6 +5,7 @@ import type { MemberDTO } from '@memoryflow/shared';
 import { db, schema } from '../db/client.js';
 import { requireProjectAdmin } from '../lib/guards.js';
 import { hashPassword } from '../lib/password.js';
+import { destroyUserSessions } from '../lib/session.js';
 
 export async function memberRoutes(app: FastifyInstance) {
   app.get('/projects/:pid/members', async (req) => {
@@ -60,6 +61,8 @@ export async function memberRoutes(app: FastifyInstance) {
       .update(schema.users)
       .set({ passwordHash: await hashPassword(body.password) })
       .where(eq(schema.users.id, uid));
+    // 재설정된 계정의 기존 로그인 전부 무효화 — 임시 비밀번호로만 다시 접속 가능
+    await destroyUserSessions(uid);
     return { ok: true };
   });
 }

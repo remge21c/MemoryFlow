@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { changePasswordSchema, loginSchema, registerSchema } from '@memoryflow/shared';
 import { db, schema } from '../db/client.js';
 import { hashPassword, verifyPassword } from '../lib/password.js';
-import { createSession, destroySession } from '../lib/session.js';
+import { SESSION_COOKIE, createSession, destroySession, destroyUserSessions } from '../lib/session.js';
 import { HttpError } from '../lib/errors.js';
 import { requireAuth } from '../lib/guards.js';
 
@@ -13,23 +13,8 @@ const strictLimit = { config: { rateLimit: { max: 10, timeWindow: '1 minute' } }
 export async function authRoutes(app: FastifyInstance) {
   app.get('/me', async (req) => ({ user: req.user }));
 
-  app.post('/register', strictLimit, async (req, reply) => {
-    const body = registerSchema.parse(req.body);
-    const existing = await db
-      .select({ id: schema.users.id })
-      .from(schema.users)
-      .where(eq(schema.users.email, body.email))
-      .limit(1);
-    if (existing[0]) throw new HttpError(409, '이미 가입된 이메일입니다');
-    const passwordHash = await hashPassword(body.password);
-    const inserted = await db
-      .insert(schema.users)
-      .values({ name: body.name, email: body.email, passwordHash })
-      .returning({ id: schema.users.id, name: schema.users.name, email: schema.users.email, isAdmin: schema.users.isAdmin });
-    const u = inserted[0]!;
-    await createSession(reply, u.id);
-    return { user: { id: u.id, name: u.name, email: u.email, is_admin: u.isAdmin } };
-  });
+  // 공개 회원가입 제거 — 업로더는 초대 링크(/api/join), 첫 관리자는 bootstrap-admin으로만 가입.
+  // (열어두면 무의미한 계정 대량 생성 스팸 벡터가 됨. 클라이언트도 이 라우트를 사용하지 않음)
 
   app.post('/login', strictLimit, async (req, reply) => {
     const body = loginSchema.parse(req.body);
@@ -63,6 +48,8 @@ export async function authRoutes(app: FastifyInstance) {
       .update(schema.users)
       .set({ passwordHash: await hashPassword(body.new_password) })
       .where(eq(schema.users.id, u.id));
+    // 비밀번호 변경 시 다른 기기의 기존 로그인 전부 무효화 (현재 세션만 유지)
+    await destroyUserSessions(u.id, req.cookies[SESSION_COOKIE]);
     return { ok: true };
   });
 

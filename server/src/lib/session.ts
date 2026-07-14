@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { and, eq, gt } from 'drizzle-orm';
+import { and, eq, gt, ne } from 'drizzle-orm';
 import { db, schema } from '../db/client.js';
 import { generateToken } from './hash.js';
 import { env } from '../env.js';
@@ -34,6 +34,17 @@ export async function destroySession(req: FastifyRequest, reply: FastifyReply): 
     await db.delete(schema.sessions).where(eq(schema.sessions.id, id));
   }
   reply.clearCookie(SESSION_COOKIE, { path: '/' });
+}
+
+/** 해당 사용자의 세션 전부 삭제(keepSessionId만 유지). 비밀번호 변경/재설정 시 기존 로그인 무효화용. */
+export async function destroyUserSessions(userId: number, keepSessionId?: string): Promise<void> {
+  if (keepSessionId) {
+    await db
+      .delete(schema.sessions)
+      .where(and(eq(schema.sessions.userId, userId), ne(schema.sessions.id, keepSessionId)));
+  } else {
+    await db.delete(schema.sessions).where(eq(schema.sessions.userId, userId));
+  }
 }
 
 /** 쿠키 → 사용자. 없거나 만료면 null. */
